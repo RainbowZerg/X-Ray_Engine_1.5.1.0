@@ -1,0 +1,13 @@
+﻿Build started 29.07.2015 10:00:13.
+     1>Project "D:\XRay_Clear_Sky_1.5.1.0\cs\sdk\sources\OpenAutomate\oalib\oalib.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         E:\Visual Studio 2013\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /MP /O2 /Ob2 /Oi /Ot /Oy /GT /GL /D WIN32 /D NDEBUG /D _LIB /D _USING_V110_SDK71_ /D _UNICODE /D UNICODE /GF /Gm- /EHsc /MD /GS /Gy /arch:SSE2 /fp:fast /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TC /analyze- /errorReport:prompt ..\src\OpenAutomate.c
+         OpenAutomate.c
+       Lib:
+         E:\Visual Studio 2013\VC\bin\Lib.exe /OUT:"D:\XRay_Clear_Sky_1.5.1.0\cs\sdk\sources\OpenAutomate\Release\oalib.lib" /NOLOGO /LTCG Release\OpenAutomate.obj
+         oalib.vcxproj -> D:\XRay_Clear_Sky_1.5.1.0\cs\sdk\sources\OpenAutomate\Release\oalib.lib
+     1>Done Building Project "D:\XRay_Clear_Sky_1.5.1.0\cs\sdk\sources\OpenAutomate\oalib\oalib.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.09

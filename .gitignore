@@ -45,3 +45,10 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+#ignore specific folders & files
+binaries
+intermediate
+ipch
+libraries
+*.sdf
