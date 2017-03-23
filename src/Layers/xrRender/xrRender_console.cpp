@@ -582,7 +582,7 @@ void		xrRender_initconsole	()
 
 	// R1-specific
 	CMD4(CCC_Integer,	"r1_glows_per_frame",	&ps_r1_GlowsPerFrame,		2,		32		);
-	CMD3(CCC_Mask,		"r1_no_detail_textures",&ps_r2_ls_flags,			R1FLAG_NO_DETAIL_TEXTURES);
+	CMD3(CCC_Mask,		"r1_detail_textures",&ps_r2_ls_flags,				R1FLAG_DETAIL_TEXTURES);
 
 	CMD4(CCC_Float,		"r1_fog_luminance",		&ps_r1_fog_luminance,		0.2f,	5.f	);
 

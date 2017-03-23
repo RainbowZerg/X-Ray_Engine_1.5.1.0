@@ -73,7 +73,7 @@ void					CRender::create					()
 	// disasm
 	o.disasm					= (strstr(Core.Params,"-disasm"))?		TRUE	:FALSE	;
 	o.forceskinw				= (strstr(Core.Params,"-skinw"))?		TRUE	:FALSE	;
-	o.no_detail_textures		= ps_r2_ls_flags.test(R1FLAG_NO_DETAIL_TEXTURES);
+	o.detail_textures			= !ps_r2_ls_flags.test(R1FLAG_DETAIL_TEXTURES);
 	c_ldynamic_props			= "L_dynamic_props";
 
 	m_bMakeAsyncSS				= false;

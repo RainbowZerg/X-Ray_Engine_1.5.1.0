@@ -90,7 +90,7 @@ void	CBlender_Compile::_cpp_Compile	(ShaderElement* _SH)
 
 #ifndef _EDITOR
 #if RENDER==R_R1
-	if (RImplementation.o.no_detail_textures)
+	if (RImplementation.o.detail_textures)
 		bDetail = FALSE;
 #endif
 #endif
