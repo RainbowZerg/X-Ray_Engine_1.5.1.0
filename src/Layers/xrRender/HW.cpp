@@ -23,7 +23,8 @@
 	void	free_render_mode_list		()			{}
 #endif
 
- CHW			HW;
+ CHW		HW;
+ D3DCAPS9	caps;
 
 #ifdef DEBUG
 IDirect3DStateBlock9*	dwDebugSB = 0;
@@ -67,7 +68,7 @@ void CHW::Reset		(HWND hwnd)
 	// Windoze
 	DevPP.SwapEffect			= bWindowed?D3DSWAPEFFECT_COPY:D3DSWAPEFFECT_DISCARD;
 	DevPP.Windowed				= bWindowed;
-	DevPP.PresentationInterval	= D3DPRESENT_INTERVAL_IMMEDIATE;
+	DevPP.PresentationInterval	= selectPresentInterval(); // ZergO: vsync fix (SkyLoader)
 	if( !bWindowed )		DevPP.FullScreen_RefreshRateInHz	= selectRefresh	(DevPP.BackBufferWidth,DevPP.BackBufferHeight,Caps.fTarget);
 	else					DevPP.FullScreen_RefreshRateInHz	= D3DPRESENT_RATE_DEFAULT;
 #endif
@@ -348,7 +349,7 @@ void		CHW::CreateDevice		(HWND m_hWnd, bool move_window)
 	P.Flags					= 0;	//. D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL;
 
 	// Refresh rate
-	P.PresentationInterval	= D3DPRESENT_INTERVAL_IMMEDIATE;
+	P.PresentationInterval	= selectPresentInterval(); // ZergO: vsync fix (SkyLoader)
     if( !bWindowed )		P.FullScreen_RefreshRateInHz	= selectRefresh	(P.BackBufferWidth, P.BackBufferHeight,fTarget);
     else					P.FullScreen_RefreshRateInHz	= D3DPRESENT_RATE_DEFAULT;
 
@@ -399,9 +400,11 @@ void		CHW::CreateDevice		(HWND m_hWnd, bool move_window)
 #ifdef DEBUG
 	R_CHK	(pDevice->CreateStateBlock			(D3DSBT_ALL,&dwDebugSB));
 #endif
+	CHK_DX	(pDevice->GetDeviceCaps(&caps));
 	R_CHK	(pDevice->GetRenderTarget			(0,&pBaseRT));
 	R_CHK	(pDevice->GetDepthStencilSurface	(&pBaseZB));
 	u32	memory									= pDevice->GetAvailableTextureMem	();
+	Msg		("*   Max texture size: [%d]x[%d]", caps.MaxTextureWidth, caps.MaxTextureHeight);
 	Msg		("*     Texture memory: %d M",		memory/(1024*1024));
 	Msg		("*          DDI-level: %2.1f",		float(D3DXGetDriverLevel(pDevice))/100.f);
 #ifndef _EDITOR
@@ -412,7 +415,6 @@ void		CHW::CreateDevice		(HWND m_hWnd, bool move_window)
 
 u32	CHW::selectPresentInterval	()
 {
-	D3DCAPS9	caps;
 	pD3D->GetDeviceCaps(DevAdapter,DevT,&caps);
 
 	if (!psDeviceFlags.test(rsVSync)) 
@@ -429,7 +431,6 @@ u32 CHW::selectGPU ()
 {
 	if (Caps.bForceGPU_SW) return D3DCREATE_SOFTWARE_VERTEXPROCESSING;
 
-	D3DCAPS9	caps;
 	pD3D->GetDeviceCaps(DevAdapter,DevT,&caps);
 
     if(caps.DevCaps&D3DDEVCAPS_HWTRANSFORMANDLIGHT)
@@ -487,8 +488,10 @@ void	CHW::updateWindowProps	(HWND m_hWnd)
 
 	u32		dwWindowStyle			= 0;
 	// Set window properties depending on what mode were in.
-	if (bWindowed)		{
-		if (m_move_window) {
+	if (bWindowed)		
+	{
+		if (m_move_window) 
+		{
 			if (strstr(Core.Params,"-no_dialog_header"))
 				SetWindowLong	( m_hWnd, GWL_STYLE, dwWindowStyle=(WS_BORDER|WS_VISIBLE) );
 			else
@@ -502,32 +505,17 @@ void	CHW::updateWindowProps	(HWND m_hWnd)
 			// changed to 1024x768, because windows cannot be larger than the
 			// desktop.
 
-			RECT			m_rcWindowBounds;
-			BOOL			bCenter = FALSE;
-			if (strstr(Core.Params, "-center_screen"))	bCenter = TRUE;
-
-#ifndef _EDITOR
-			if (g_dedicated_server)
-				bCenter		= TRUE;
-#endif
-
-			if(bCenter){
-				RECT				DesktopRect;
+			RECT m_rcWindowBounds;
+			RECT DesktopRect;
 				
-				GetClientRect		(GetDesktopWindow(), &DesktopRect);
+			GetClientRect (GetDesktopWindow(), &DesktopRect);
 
-				SetRect(			&m_rcWindowBounds, 
-									(DesktopRect.right-DevPP.BackBufferWidth)/2, 
-									(DesktopRect.bottom-DevPP.BackBufferHeight)/2, 
-									(DesktopRect.right+DevPP.BackBufferWidth)/2, 
-									(DesktopRect.bottom+DevPP.BackBufferHeight)/2			);
-			}else{
-				SetRect(			&m_rcWindowBounds,
-									0, 
-									0, 
-									DevPP.BackBufferWidth, 
-									DevPP.BackBufferHeight );
-			};
+			SetRect(&m_rcWindowBounds, 
+					(DesktopRect.right-DevPP.BackBufferWidth)	/2, 
+					(DesktopRect.bottom-DevPP.BackBufferHeight)	/2, 
+					(DesktopRect.right+DevPP.BackBufferWidth)	/2, 
+					(DesktopRect.bottom+DevPP.BackBufferHeight)	/2);
+
 
 			AdjustWindowRect		(	&m_rcWindowBounds, dwWindowStyle, FALSE );
 
@@ -564,79 +552,6 @@ struct _uniq_mode
 
 #ifndef _EDITOR
 
-/*
-void free_render_mode_list()
-{
-	for( int i=0; vid_quality_token[i].name; i++ )
-	{
-		xr_free					(vid_quality_token[i].name);
-	}
-	xr_free						(vid_quality_token);
-	vid_quality_token			= NULL;
-}
-*/
-/*
-void	fill_render_mode_list()
-{
-	if(vid_quality_token != NULL)		return;
-
-	D3DCAPS9					caps;
-	CHW							_HW;
-	_HW.CreateD3D				();
-	_HW.pD3D->GetDeviceCaps		(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,&caps);
-	_HW.DestroyD3D				();
-	u16		ps_ver_major		= u16 ( u32(u32(caps.PixelShaderVersion)&u32(0xf << 8ul))>>8 );
-
-	xr_vector<LPCSTR>			_tmp;
-	u32 i						= 0;
-	for(; i<5; ++i)
-	{
-		bool bBreakLoop = false;
-		switch (i)
-		{
-		case 3:		//"renderer_r2.5"
-			if (ps_ver_major < 3)
-				bBreakLoop = true;
-			break;
-		case 4:		//"renderer_r_dx10"
-			bBreakLoop = true;
-			break;
-		default:	;
-		}
-
-		if (bBreakLoop) break;
-
-		_tmp.push_back				(NULL);
-		LPCSTR val					= NULL;
-		switch (i)
-		{
-			case 0: val ="renderer_r1";			break;
-			case 1: val ="renderer_r2a";		break;
-			case 2: val ="renderer_r2";			break;
-			case 3: val ="renderer_r2.5";		break;
-			case 4: val ="renderer_r_dx10";		break; //  -)
-		}
-		_tmp.back()					= xr_strdup(val);
-	}
-	u32 _cnt								= _tmp.size()+1;
-	vid_quality_token						= xr_alloc<xr_token>(_cnt);
-
-	vid_quality_token[_cnt-1].id			= -1;
-	vid_quality_token[_cnt-1].name			= NULL;
-
-#ifdef DEBUG
-	Msg("Available render modes[%d]:",_tmp.size());
-#endif // DEBUG
-	for(u32 i=0; i<_tmp.size();++i)
-	{
-		vid_quality_token[i].id				= i;
-		vid_quality_token[i].name			= _tmp[i];
-#ifdef DEBUG
-		Msg							("[%s]",_tmp[i]);
-#endif // DEBUG
-	}
-}
-*/
 void free_vid_mode_list()
 {
 	for( int i=0; vid_mode_token[i].name; i++ )

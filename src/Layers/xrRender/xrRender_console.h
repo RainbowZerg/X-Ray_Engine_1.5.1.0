@@ -34,23 +34,23 @@ extern ECORE_API	float		ps_r__Tree_w_amp;
 extern ECORE_API	float		ps_r__Tree_SBC;		// scale bias correct
 extern ECORE_API	Fvector		ps_r__Tree_Wave;
 
-extern ECORE_API	float		ps_r__WallmarkTTL		;
-extern ECORE_API	float		ps_r__WallmarkSHIFT		;
-extern ECORE_API	float		ps_r__WallmarkSHIFT_V	;
+extern ECORE_API	float		ps_r__WallmarkTTL;
+extern ECORE_API	float		ps_r__WallmarkSHIFT;
+extern ECORE_API	float		ps_r__WallmarkSHIFT_V;
 
 extern ECORE_API	float		ps_r__GLOD_ssa_start;
-extern ECORE_API	float		ps_r__GLOD_ssa_end	;
-extern ECORE_API	float		ps_r__LOD			;
-//.extern ECORE_API	float		ps_r__LOD_Power		;
-extern ECORE_API	float		ps_r__ssaDISCARD	;
-extern ECORE_API	float		ps_r__ssaDONTSORT	;
-extern ECORE_API	float		ps_r__ssaHZBvsTEX	;
+extern ECORE_API	float		ps_r__GLOD_ssa_end;
+extern ECORE_API	float		ps_r__LOD;
+//.extern ECORE_API	float		ps_r__LOD_Power;
+extern ECORE_API	float		ps_r__ssaDISCARD;
+extern ECORE_API	float		ps_r__ssaDONTSORT;
+extern ECORE_API	float		ps_r__ssaHZBvsTEX;
+extern ECORE_API	float		ps_r__ssaLOD_A;
+extern ECORE_API	float		ps_r__ssaLOD_B;
 extern ECORE_API	int			ps_r__tf_Anisotropic;
+extern ECORE_API	float		ps_r__tf_Mipbias;
 
 // R1
-extern ECORE_API	float		ps_r1_ssaLOD_A;
-extern ECORE_API	float		ps_r1_ssaLOD_B;
-extern ECORE_API	float		ps_r1_tf_Mipbias;
 extern ECORE_API	float		ps_r1_lmodel_lerp;
 extern ECORE_API	float		ps_r1_dlights_clip;
 extern ECORE_API	float		ps_r1_pps_u;
@@ -66,11 +66,6 @@ enum
 {
 	R1FLAG_DLIGHTS				= (1<<0),
 };
-
-// R2
-extern ECORE_API	float		ps_r2_ssaLOD_A;
-extern ECORE_API	float		ps_r2_ssaLOD_B;
-extern ECORE_API	float		ps_r2_tf_Mipbias;
 
 // R2-specific
 extern ECORE_API Flags32		ps_r2_ls_flags;				// r2-only
@@ -188,6 +183,5 @@ enum
 
 extern void						xrRender_initconsole	();
 extern BOOL						xrRender_test_hw		();
-extern void						xrRender_apply_tf		();
 
 #endif

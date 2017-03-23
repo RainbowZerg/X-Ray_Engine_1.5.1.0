@@ -283,7 +283,6 @@ void					CRender::create					()
 	for (u32 i=0; i<HW.Caps.iGPUNum; ++i)
 		R_CHK						(HW.pDevice->CreateQuery(D3DQUERYTYPE_EVENT,&q_sync_point[i]));
 
-	xrRender_apply_tf			();
 	::PortalTraverser.initialize();
 }
 
@@ -337,18 +336,8 @@ void CRender::reset_end()
 	HWOCC.occq_create			(occq_size);
 
 	Target						=	xr_new<CRenderTarget>	();
-
-	xrRender_apply_tf			();
 }
-/*
-void CRender::OnFrame()
-{
-	Models->DeleteQueue			();
-	if (ps_r2_ls_flags.test(R2FLAG_EXP_MT_CALC))	{
-		Device.seqParallel.insert	(Device.seqParallel.begin(),
-			fastdelegate::FastDelegate0<>(&HOM,&CHOM::MT_RENDER));
-	}
-}*/
+
 void CRender::OnFrame()
 {
 	Models->DeleteQueue			();

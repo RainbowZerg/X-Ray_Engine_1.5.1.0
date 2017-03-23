@@ -26,7 +26,8 @@ public:
 	void	PSApplySamplers(HArray &samplers);
 	void	GSApplySamplers(HArray &samplers);
 
-	void	SetMaxAnisotropy( UINT uiMaxAniso);
+	void	SetMaxAnisotropy(u32 uiMaxAniso);
+	void	SetMipLODBias	(float uiMipLODBias);
 
 	//	Marks all device sample as unused
 	void	ResetDeviceState();
@@ -64,6 +65,7 @@ private:
 	SHandle					m_aGSSamplers[D3D10_COMMONSHADER_SAMPLER_SLOT_COUNT];
 
 	u32						m_uiMaxAnisotropy;
+	float					m_uiMipLODBias;
 };
 
 extern	dx10SamplerStateCache	SSManager;
