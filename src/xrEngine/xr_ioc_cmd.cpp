@@ -609,7 +609,6 @@ extern Flags32		psEnvFlags;
 
 extern int			g_ErrorLineCount;
 
-ENGINE_API int			ps_r__Supersample			= 1;
 void CCC_Register()
 {
 	// General
