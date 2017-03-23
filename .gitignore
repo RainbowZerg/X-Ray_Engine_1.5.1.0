@@ -53,3 +53,4 @@ ipch
 libraries
 *.sdf
 *.opensdf
+*.suo
