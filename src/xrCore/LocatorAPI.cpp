@@ -299,18 +299,19 @@ void CLocatorAPI::LoadArchive(archive& A, LPCSTR entrypoint)
 {
 	// Create base path
 	string_path					fs_entry_point;
-	if(A.header)
+	if (A.header)
 	{
 
 		shared_str read_path	= A.header->r_string("header","entry_point");
-		if(0==stricmp(read_path.c_str(),"gamedata"))
+		if (0==stricmp(read_path.c_str(),"gamedata"))
 		{
 			read_path				= "$fs_root$";
 			FS_Path* root			= FS.get_path(read_path.c_str());
 			R_ASSERT3				(root, "path not found ", read_path.c_str());
 			strcpy_s				(fs_entry_point, sizeof(fs_entry_point), root->m_Path);
 			strcat					(fs_entry_point,"gamedata\\");
-		}else
+		}
+		else
 		{
 			string256			alias_name;
 			alias_name[0]		= 0;
@@ -323,20 +324,20 @@ void CLocatorAPI::LoadArchive(archive& A, LPCSTR entrypoint)
 			R_ASSERT3			(root, "path not found ", alias_name);
 
 			strcpy_s			(fs_entry_point, sizeof(fs_entry_point), root->m_Path);
-
 			strcat_s			(fs_entry_point, sizeof(fs_entry_point), read_path.c_str()+xr_strlen(alias_name)+1);
 		}
-
-	}else
+	}
+	else
 	{
-		R_ASSERT2				(0, "unsupported");
+		R_ASSERT3				(0, "unsupported: header not found ", A.path.c_str()); // ZergO - more detailed assert
 		strcpy_s				(fs_entry_point, sizeof(fs_entry_point), A.path.c_str());
-		if(strext(fs_entry_point))
+
+		if (strext(fs_entry_point))
 			*strext(fs_entry_point) = 0;
 	}
-	if(entrypoint)
-		strcpy_s				(fs_entry_point, sizeof(fs_entry_point), entrypoint);
 
+	if (entrypoint)
+		strcpy_s				(fs_entry_point, sizeof(fs_entry_point), entrypoint);
 
 //	DUMMY_STUFF	*g_temporary_stuff_subst = NULL;
 //
@@ -814,15 +815,14 @@ void CLocatorAPI::_initialize	(u32 flags, LPCSTR target_folder, LPCSTR fs_name)
 		FS_Path* pAppdataPath = FS.get_path("$app_data_root$");
 
 
-		if (pLogsPath) pLogsPath->_set_root(c_newAppPathRoot);
+		if (pLogsPath) 
+			pLogsPath->_set_root(c_newAppPathRoot);
+
 		if (pAppdataPath) 
 		{
 			pAppdataPath->_set_root(c_newAppPathRoot);
 			rescan_path(pAppdataPath->m_Path, pAppdataPath->m_Flags.is(FS_Path::flRecurse));
 		}
-
-		int x=0;
-		x=x;
 	}
 
 	rec_files.clear	();

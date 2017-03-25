@@ -14,15 +14,43 @@
 #endif // DEBUG
 
 XRCORE_API		xrCore	Core;
-XRCORE_API		u32		build_id;
-XRCORE_API		LPCSTR	build_date;
+
+static const char* BuildDate;
+static u32 BuildId;
+static u32	init_counter = 0;
+
+static void ComputeBuildId()
+{
+    static const char* monthId[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+    static const int daysInMonth[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    static const int startDay  = 22, startMonth  = 3,  startYear  = 2017;
+    BuildDate = __DATE__;
+    int days, years;
+    string16 month;
+    sscanf(BuildDate, "%s %d %d", month, &days, &years);
+    int months = 0;
+    for (int i = 0; i < 12; i++)
+    {
+        if (stricmp(monthId[i], month)) continue;
+        months = i;
+        break;
+    }
+
+    int buildId = (years - startYear) * 365 + days - startDay;
+
+	for (int i = 0; i < months; ++i)
+		buildId += daysInMonth[i];
+
+	for (int i = 0; i < startMonth - 1; ++i) 
+		buildId -= daysInMonth[i];
+
+	BuildId  = buildId;
+}
 
 namespace CPU
 {
 	extern	void			Detect	();
 };
-
-static u32	init_counter	= 0;
 
 extern char g_application_path[256];
 
@@ -39,13 +67,17 @@ void xrCore::_initialize	(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs,
 		_control87	( _RC_NEAR, MCW_RC );
 		_control87	( _MCW_EM,  MCW_EM );
 #endif
-		// Init COM so we can use CoCreateInstance
-//		HRESULT co_res = 
-		if (!strstr(GetCommandLine(),"-editor"))
-			CoInitializeEx	(NULL, COINIT_MULTITHREADED);
+		ComputeBuildId();
 
-		strcpy_s			(Params,sizeof(Params),GetCommandLine());
-		_strlwr_s			(Params,sizeof(Params));
+		Params = xr_strdup(GetCommandLine());
+		strlwr(Params);
+
+		// Init COM so we can use CoCreateInstance
+		OSVERSIONINFO osvi;
+		osvi.dwOSVersionInfoSize = sizeof(osvi);
+		GetVersionEx(&osvi);
+		if (osvi.dwMajorVersion < 6 && !strstr(Params, "-editor")) //skyloader: if not windows vista, 7, 8, etc.
+			CoInitializeEx	(NULL, COINIT_MULTITHREADED);
 
 		string_path		fn,dr,di;
 
@@ -114,7 +146,7 @@ void xrCore::_initialize	(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs,
 	#endif
 #endif
 		FS._initialize		(flags,0,fs_fname);
-		Msg					("'%s' build %d, %s\n","xrCore",build_id, build_date);
+		Msg					("'xrCore' based on 1.5.10, build %d, %s\n", BuildId, BuildDate);
 		EFS._initialize		();
 #ifdef DEBUG
     #ifndef	_EDITOR

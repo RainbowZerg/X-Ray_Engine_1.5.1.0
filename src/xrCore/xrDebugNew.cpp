@@ -161,6 +161,10 @@ void xrDebug::gather_info		(const char *expression, const char *description, con
 
 void xrDebug::do_exit	(const std::string &message)
 {
+	// ZergO: hide game window
+	HWND hWnd			= GetForegroundWindow();
+	ShowWindow			(hWnd, SW_FORCEMINIMIZE);
+
 	FlushLog			();
 	MessageBox			(NULL,message.c_str(),"Error",MB_OK|MB_ICONERROR|MB_SYSTEMMODAL);
 	TerminateProcess	(GetCurrentProcess(),1);
@@ -177,6 +181,10 @@ void xrDebug::backend	(const char *expression, const char *description, const ch
 	CS.Enter			();
 
 	error_after_dialog	= true;
+
+	// ZergO: hide game window
+	HWND hWnd			= GetForegroundWindow();
+	ShowWindow			(hWnd, SW_FORCEMINIMIZE);
 
 	string4096			assertion_info;
 
@@ -591,6 +599,10 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 	string256				error_message;
 	format_message			(error_message,sizeof(error_message));
 
+	// ZergO: hide game window
+	HWND hWnd				= GetForegroundWindow();
+	ShowWindow				(hWnd, SW_FORCEMINIMIZE);
+
 	if (!error_after_dialog && !strstr(GetCommandLine(),"-no_call_stack_assert")) {
 		CONTEXT				save = *pExceptionInfo->ContextRecord;
 		BuildStackTrace		(pExceptionInfo);
@@ -604,10 +616,12 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 			os_clipboard::copy_to_clipboard	("stack trace:\r\n\r\n");
 		}
 
-		string4096			buffer;
-		for (int i=0; i<g_stackTraceCount; ++i) {
+		char buffer[4099];
+		for (int i=0; i<g_stackTraceCount; ++i) 
+		{
 			if (shared_str_initialized)
 				Msg			("%s",g_stackTrace[i]);
+
 			sprintf			(buffer,"%s\r\n",g_stackTrace[i]);
 #ifdef DEBUG
 			if (!IsDebuggerPresent())
@@ -682,9 +696,6 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 //		::SetUnhandledExceptionFilter	(UnhandledFilter);	// exception handler to all "unhandled" exceptions
     }
 #else
-    typedef int		(__cdecl * _PNH)( size_t );
-    _CRTIMP int		__cdecl _set_new_mode( int );
-    _CRTIMP _PNH	__cdecl _set_new_handler( _PNH );
 
 #ifndef USE_BUG_TRAP
 	void _terminate		()

@@ -10,16 +10,19 @@
 namespace BlackBox {
 
 
-bool isspace( int ch )
+bool isspace(int ch)
 {
-	return ((ch == 0x09) || (ch == 0x0A) || (ch == 0x0B) || 
-		(ch == 0x0B) || (ch == 0x0C) || (ch == 0x0D) || (ch == 0x20)) ? true : false;
+	return ((ch == 0x09) || 
+			(ch == 0x0A) || 
+			(ch == 0x0B) || 
+			(ch == 0x0C) || 
+			(ch == 0x0D) || 
+			(ch == 0x20)) ? true : false;
 }
 
-bool isdigit( int ch ) 
+bool isdigit(int ch) 
 {
-	return ( (ch == '0') || (ch == '1') || (ch == '2') || (ch == '3') || (ch == '4') ||
-				(ch == '5') || (ch == '6') || (ch == '7') || (ch == '8') || (ch == '9')) ? true : false;
+	return (ch >= '0' && ch <= '9');
 }
 
 

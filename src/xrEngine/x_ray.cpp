@@ -43,47 +43,6 @@ XRCORE_API	u32		build_id;
 #	define NO_MULTI_INSTANCES
 #endif // #ifdef MASTER_GOLD
 
-
-static LPSTR month_id[12] = {
-	"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
-};
-
-static int days_in_month[12] = {
-	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-};
-
-static int start_day	= 31;	// 31
-static int start_month	= 1;	// January
-static int start_year	= 1999;	// 1999
-
-void compute_build_id	()
-{
-	build_date			= __DATE__;
-
-	int					days;
-	int					months = 0;
-	int					years;
-	string16			month;
-	string256			buffer;
-	strcpy_s				(buffer,__DATE__);
-	sscanf				(buffer,"%s %d %d",month,&days,&years);
-
-	for (int i=0; i<12; i++) {
-		if (_stricmp(month_id[i],month))
-			continue;
-
-		months			= i;
-		break;
-	}
-
-	build_id			= (years - start_year)*365 + days - start_day;
-
-	for (int i=0; i<months; ++i)
-		build_id		+= days_in_month[i];
-
-	for (int i=0; i<start_month-1; ++i)
-		build_id		-= days_in_month[i];
-}
 //---------------------------------------------------------------------
 // 2446363
 // umbt@ukr.net
@@ -627,7 +586,6 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 
 //	g_temporary_stuff			= &trivial_encryptor::decode;
 	
-	compute_build_id			();
 	Core._initialize			("xray",NULL, TRUE, fsgame[0] ? fsgame : NULL);
 	InitSettings				();
 
@@ -1235,40 +1193,44 @@ int doLauncher()
 
 void doBenchmark(LPCSTR name)
 {
-	g_bBenchmark = true;
-	string_path in_file;
-	FS.update_path(in_file,"$app_data_root$", name);
-	CInifile ini(in_file);
-	int test_count = ini.line_count("benchmark");
-	LPCSTR test_name,t;
-	shared_str test_command;
-	for(int i=0;i<test_count;++i){
-		ini.r_line			( "benchmark", i, &test_name, &t);
-		strcpy_s				(g_sBenchmarkName, test_name);
+	g_bBenchmark			= true;
+    string_path				configPath;
+    FS.update_path			(configPath, "$app_data_root$", name);
+    CInifile ini			(configPath);
+	int testCount			= ini.line_count("benchmark");
+	LPCSTR					test_name,t;
+	shared_str				test_command;
+	for(int i=0;i<testCount;++i)
+	{
+		ini.r_line			("benchmark", i, &test_name, &t);
+		strcpy_s			(g_sBenchmarkName, test_name);
 		
 		test_command		= ini.r_string_wb("benchmark",test_name);
-		strcpy_s			(Core.Params,*test_command);
-		_strlwr_s				(Core.Params);
-		
-		InitInput					();
-		if(i){
+
+		Core.Params			= (char*)xr_realloc(Core.Params, test_command.size() + 1);
+		strcpy				(Core.Params,*test_command);
+		strlwr				(Core.Params);
+
+		InitInput			();
+
+		if (i)
+		{
 			//ZeroMemory(&HW,sizeof(CHW));
 			//	TODO: KILL HW here!
 			//  pApp->m_pRender->KillHW();
 			InitEngine();
 		}
 
+		Engine.External.Initialize();
+		strcpy_s(Console->ConfigFile,"user.ltx");
 
-		Engine.External.Initialize	( );
-
-		strcpy_s						(Console->ConfigFile,"user.ltx");
-		if (strstr(Core.Params,"-ltx ")) {
-			string64				c_name;
-			sscanf					(strstr(Core.Params,"-ltx ")+5,"%[^ ] ",c_name);
-			strcpy_s				(Console->ConfigFile,c_name);
+		if (strstr(Core.Params,"-ltx ")) 
+		{
+			string64			c_name;
+			sscanf				(strstr(Core.Params,"-ltx ")+5,"%[^ ] ",c_name);
+			strcpy_s			(Console->ConfigFile,c_name);
 		}
-
-		Startup	 				();
+		Startup	 			();
 	}
 }
 #pragma optimize("g", off)

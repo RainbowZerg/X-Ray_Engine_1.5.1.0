@@ -449,7 +449,7 @@ LPCTSTR __stdcall GetFaultReason ( EXCEPTION_POINTERS * pExPtrs )
 
         // Start looking up the exception address.
         PIMAGEHLP_SYMBOL pSym = (PIMAGEHLP_SYMBOL)&g_stSymbol ;
-        FillMemory ( pSym , NULL , SYM_BUFF_SIZE ) ;
+        ZeroMemory ( pSym, SYM_BUFF_SIZE ) ;
         pSym->SizeOfStruct = sizeof ( IMAGEHLP_SYMBOL ) ;
         pSym->MaxNameLength = SYM_BUFF_SIZE - sizeof ( IMAGEHLP_SYMBOL);
 
