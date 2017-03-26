@@ -480,8 +480,9 @@ void CEnvironment::OnFrame()
 	float					current_weight;
 	lerp					(current_weight);
 
-	//	Igor. Dynamic sun position. 
-	if ( !::Render->is_sun_static())
+	//	Igor. Dynamic sun position.
+
+	if (!Render->is_sun_static() && (Current[0]->auto_sun_dir && Current[1]->auto_sun_dir))
 		calculate_dynamic_sun_dir();
 
 #ifndef MASTER_GOLD
@@ -539,9 +540,7 @@ void CEnvironment::calculate_dynamic_sun_dir()
 	float const LatitudeR = deg2rad(Latitude);
 
 	//	Now we can calculate the Sun Zenith Angle (SZA):
-	float cosSZA = _sin(LatitudeR)
-		* _sin(deg2rad(D)) + _cos(LatitudeR)*
-		_cos(deg2rad(D)) * _cos(deg2rad(SHA));
+	float cosSZA = _sin(LatitudeR) * _sin(deg2rad(D)) + _cos(LatitudeR) * _cos(deg2rad(D)) * _cos(deg2rad(SHA));
 
 	clamp( cosSZA, -1.0f, 1.0f);
 
@@ -557,7 +556,7 @@ void CEnvironment::calculate_dynamic_sun_dir()
 		cosAZ	= (_sin(deg2rad(D))-_sin(LatitudeR)*_cos(SZA))/sin_SZA_X_cos_Latitude;
 
 	clamp( cosAZ, -1.0f, 1.0f);
-	float AZ = acosf(cosAZ);
+	float AZ = acosf(cosAZ) + PI; // ZergO - turn the sun into right direction
 
 	const Fvector2 minAngle = Fvector2().set(deg2rad(1.0f), deg2rad(3.0f));
 

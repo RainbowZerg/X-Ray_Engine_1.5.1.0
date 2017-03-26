@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #pragma hdrstop
 
+#ifndef _EDITOR
+#include "render.h"
+#endif
+
 #include "Environment.h"
 #include "xr_efflensflare.h"
 #include "thunderbolt.h"
@@ -227,6 +231,7 @@ CEnvDescriptor::CEnvDescriptor	(shared_str const& identifier) :
 	ambient.set			(0,0,0);
 	hemi_color.set		(1,1,1,1);
 	sun_color.set		(1,1,1);
+	auto_sun_dir		= true;
 	sun_dir.set			(0,-1,0);
 
 	m_fSunShaftsIntensity = 0;
@@ -243,60 +248,67 @@ void CEnvDescriptor::load	(CEnvironment& environment, CInifile& config)
 {
 	Ivector3 tm				={0,0,0};
 	sscanf					(m_identifier.c_str(),"%d:%d:%d",&tm.x,&tm.y,&tm.z);
-	R_ASSERT3				((tm.x>=0)&&(tm.x<24)&&(tm.y>=0)&&(tm.y<60)&&(tm.z>=0)&&(tm.z<60),"Incorrect weather time",m_identifier.c_str());
+	LPCSTR time_id			= m_identifier.c_str();
+
+	R_ASSERT3				((tm.x>=0)&&(tm.x<24)&&(tm.y>=0)&&(tm.y<60)&&(tm.z>=0)&&(tm.z<60),"Incorrect weather time", time_id);
 	exec_time				= tm.x*3600.f+tm.y*60.f+tm.z;
 	exec_time_loaded		= exec_time;
 	string_path				st,st_env;
-	strcpy_s				(st,config.r_string	(m_identifier.c_str(),"sky_texture"));
+	strcpy_s				(st,config.r_string	(time_id,"sky_texture"));
 	strconcat				(sizeof(st_env),st_env,st,"#small"		);
 	sky_texture_name		= st;
 	sky_texture_env_name	= st_env;
-	clouds_texture_name		= config.r_string	(m_identifier.c_str(),"clouds_texture");
-	LPCSTR	cldclr			= config.r_string	(m_identifier.c_str(),"clouds_color");
+	clouds_texture_name		= config.r_string	(time_id,"clouds_texture");
+	LPCSTR	cldclr			= config.r_string	(time_id,"clouds_color");
 	float	multiplier		= 0, save=0;
 	sscanf					(cldclr,"%f,%f,%f,%f,%f",&clouds_color.x,&clouds_color.y,&clouds_color.z,&clouds_color.w,&multiplier);
 	save=clouds_color.w;	clouds_color.mul		(.5f*multiplier);		
 	clouds_color.w			= save; 
 	
-	sky_color				= config.r_fvector3	(m_identifier.c_str(),"sky_color");		
+	sky_color				= config.r_fvector3	(time_id,"sky_color");		
 	
-	if (config.line_exist(m_identifier.c_str(),"sky_rotation"))	sky_rotation	= deg2rad(config.r_float(m_identifier.c_str(),"sky_rotation"));
+	if (config.line_exist(time_id,"sky_rotation"))	sky_rotation	= deg2rad(config.r_float(time_id,"sky_rotation"));
 	else											sky_rotation	= 0;
-	far_plane				= config.r_float	(m_identifier.c_str(),"far_plane");
-	fog_color				= config.r_fvector3	(m_identifier.c_str(),"fog_color");
-	fog_density				= config.r_float	(m_identifier.c_str(),"fog_density");
-	fog_distance			= config.r_float	(m_identifier.c_str(),"fog_distance");
-	rain_density			= config.r_float	(m_identifier.c_str(),"rain_density");		clamp(rain_density,0.f,1.f);
-	rain_color				= config.r_fvector3	(m_identifier.c_str(),"rain_color");            
-	wind_velocity			= config.r_float	(m_identifier.c_str(),"wind_velocity");
-	wind_direction			= deg2rad(config.r_float(m_identifier.c_str(),"wind_direction"));
-	ambient					= config.r_fvector3	(m_identifier.c_str(),"ambient_color");
-	hemi_color				= config.r_fvector4	(m_identifier.c_str(),"hemisphere_color");
-	sun_color				= config.r_fvector3	(m_identifier.c_str(),"sun_color");
-//	if (config.line_exist(m_identifier.c_str(),"sun_altitude"))
-		sun_dir.setHP			(
-			deg2rad(config.r_float(m_identifier.c_str(),"sun_altitude")),
-			deg2rad(config.r_float(m_identifier.c_str(),"sun_longitude"))
-		);
+	far_plane				= config.r_float	(time_id,"far_plane");
+	fog_color				= config.r_fvector3	(time_id,"fog_color");
+	fog_density				= config.r_float	(time_id,"fog_density");
+	fog_distance			= config.r_float	(time_id,"fog_distance");
+	rain_density			= config.r_float	(time_id,"rain_density");		clamp(rain_density,0.f,1.f);
+	rain_color				= config.r_fvector3	(time_id,"rain_color");            
+	wind_velocity			= config.r_float	(time_id,"wind_velocity");
+	wind_direction			= deg2rad(config.r_float(time_id,"wind_direction"));
+	ambient					= config.r_fvector3	(time_id,"ambient_color");
+	hemi_color				= config.r_fvector4	(time_id,"hemisphere_color");
+	sun_color				= config.r_fvector3	(time_id,"sun_color");
+
+	// ZergO
+	if (config.line_exist(time_id, "auto_sun_dir"))
+		auto_sun_dir = !!config.r_bool(time_id, "auto_sun_dir");
+
+#pragma todo("ZergO - баг с солнцем на r1")
+	// Баг, когда положение солнца на статике не соответствует лайтмапу.
+	// кроме как выставить стандартное положение солнца, с которым скомпилены все карты
+	// другого решения не придумал (впрочем как и ПЫС)
+	// следует записывать это значение в level-файл (нужна правка компилятора\СДК) или в конфигах для каждой локи (легче реализовать)
+	if (!::Render->is_sun_static())
+		sun_dir.setHP(deg2rad(config.r_float(time_id, "sun_altitude")), deg2rad(config.r_float(time_id, "sun_longitude")));
+	else
+		sun_dir.setHP(deg2rad(-68.999985f),deg2rad(-18.000000f));
+
 	R_ASSERT				( _valid(sun_dir) );
-//	else
-//		sun_dir.setHP			(
-//			deg2rad(config.r_fvector2(m_identifier.c_str(),"sun_dir").y),
-//			deg2rad(config.r_fvector2(m_identifier.c_str(),"sun_dir").x)
-//		);
 	VERIFY2					(sun_dir.y < 0, "Invalid sun direction settings while loading");
 
-	lens_flare_id			= environment.eff_LensFlare->AppendDef(environment, environment.m_suns_config, config.r_string(m_identifier.c_str(),"sun"));
-	tb_id					= environment.eff_Thunderbolt->AppendDef(environment, environment.m_thunderbolt_collections_config, environment.m_thunderbolts_config, config.r_string(m_identifier.c_str(),"thunderbolt_collection"));
-	bolt_period				= (tb_id.size())?config.r_float	(m_identifier.c_str(),"thunderbolt_period"):0.f;
-	bolt_duration			= (tb_id.size())?config.r_float	(m_identifier.c_str(),"thunderbolt_duration"):0.f;
-	env_ambient				= config.line_exist(m_identifier.c_str(),"ambient")?environment.AppendEnvAmb	(config.r_string(m_identifier.c_str(),"ambient")):0;
+	lens_flare_id			= environment.eff_LensFlare->AppendDef(environment, environment.m_suns_config, config.r_string(time_id,"sun"));
+	tb_id					= environment.eff_Thunderbolt->AppendDef(environment, environment.m_thunderbolt_collections_config, environment.m_thunderbolts_config, config.r_string(time_id,"thunderbolt_collection"));
+	bolt_period				= (tb_id.size())?config.r_float	(time_id,"thunderbolt_period"):0.f;
+	bolt_duration			= (tb_id.size())?config.r_float	(time_id,"thunderbolt_duration"):0.f;
+	env_ambient				= config.line_exist(time_id,"ambient")?environment.AppendEnvAmb	(config.r_string(time_id,"ambient")):0;
 
-	if (config.line_exist(m_identifier.c_str(),"sun_shafts_intensity"))
-		m_fSunShaftsIntensity = config.r_float(m_identifier.c_str(),"sun_shafts_intensity");
+	if (config.line_exist(time_id,"sun_shafts_intensity"))
+		m_fSunShaftsIntensity = config.r_float(time_id,"sun_shafts_intensity");
 
-	if (config.line_exist(m_identifier.c_str(),"water_intensity"))
-		m_fWaterIntensity = config.r_float(m_identifier.c_str(),"water_intensity");
+	if (config.line_exist(time_id,"water_intensity"))
+		m_fWaterIntensity = config.r_float(time_id,"water_intensity");
 
 	C_CHECK					(clouds_color);
 	C_CHECK					(sky_color	);
