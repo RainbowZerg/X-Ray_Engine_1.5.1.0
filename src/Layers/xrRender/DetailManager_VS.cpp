@@ -11,11 +11,9 @@
 #	include "../../xrEngine/environment.h"
 #endif
 
+#ifdef	USE_DX10
 #include "../xrRenderDX10/dx10BufferUtils.h"
-
-const int			quant	= 16384;
-const int			c_hdr	= 10;
-const int			c_size	= 4;
+#endif
 
 static D3DVERTEXELEMENT9 dwDecl[] =
 {
@@ -23,14 +21,6 @@ static D3DVERTEXELEMENT9 dwDecl[] =
 	{ 0, 12, D3DDECLTYPE_SHORT4,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,	0 },	// uv
 	D3DDECL_END()
 };
-
-#pragma pack(push,1)
-struct	vertHW
-{
-	float		x,y,z;
-	short		u,v,t,mid;
-};
-#pragma pack(pop)
 
 short QC (float v)
 {
@@ -40,23 +30,17 @@ short QC (float v)
 
 void CDetailManager::hw_Load	()
 {
-	hw_Load_Geom();
-	hw_Load_Shaders();
-}
-
-void CDetailManager::hw_Load_Geom()
-{
 	// Analyze batch-size
-	hw_BatchSize	= (u32(HW.Caps.geometry.dwRegisters)-c_hdr)/c_size;
+	hw_BatchSize	= (HW.Caps.geometry.dwRegisters - c_hdr) / c_size;
 	clamp			(hw_BatchSize,(u32)0,(u32)64);
-	Msg				("* [DETAILS] VertexConsts(%d), Batch(%d)",u32(HW.Caps.geometry.dwRegisters),hw_BatchSize);
+	Msg				("* [DETAILS] VertexConsts(%d), Batch(%d)", HW.Caps.geometry.dwRegisters, hw_BatchSize);
 
 	// Pre-process objects
 	u32			dwVerts		= 0;
 	u32			dwIndices	= 0;
 	for (u32 o=0; o<objects.size(); o++)
 	{
-		const CDetail& D	=	*objects[o];
+		const CDetail& D = *objects[o];
 		dwVerts		+=	D.number_vertices*hw_BatchSize;
 		dwIndices	+=	D.number_indices*hw_BatchSize;
 	}
@@ -83,9 +67,9 @@ void CDetailManager::hw_Load_Geom()
 #else	//	USE_DX10
 		R_CHK			(hw_VB->Lock(0,0,(void**)&pV,0));
 #endif	//	USE_DX10
-		for (o=0; o<objects.size(); o++)
+		for (u32 o=0; o<objects.size(); o++)
 		{
-			const CDetail& D		=	*objects[o];
+			const CDetail& D	= *objects[o];
 			for (u32 batch=0; batch<hw_BatchSize; batch++)
 			{
 				u32 mid	=	batch*c_size;
@@ -121,15 +105,16 @@ void CDetailManager::hw_Load_Geom()
 #else	//	USE_DX10
 		R_CHK			(hw_IB->Lock(0,0,(void**)(&pI),0));
 #endif	//	USE_DX10
-		for (o=0; o<objects.size(); o++)
+		for (u32 o=0; o<objects.size(); o++)
 		{
 			const CDetail& D		=	*objects[o];
 			u16		offset	=	0;
-			for (u32 batch=0; batch<hw_BatchSize; batch++)
+			for (u32 batch = 0; batch < hw_BatchSize; batch++)
 			{
-				for (u32 i=0; i<u32(D.number_indices); i++)
-					*pI++	=	u16(u16(D.indices[i]) + u16(offset));
-				offset		=	u16(offset+u16(D.number_vertices));
+				for (u32 i = 0; i < D.number_indices; i++)
+					*pI++	= D.indices[i] + offset;
+
+				offset		+=	u16(D.number_vertices);
 			}
 		}
 #ifdef	USE_DX10
@@ -139,6 +124,18 @@ void CDetailManager::hw_Load_Geom()
 		R_CHK			(hw_IB->Unlock());
 #endif	//	USE_DX10
 	}
+
+	// Create shader to access constant storage
+	ref_shader		S;	S.create("details\\set");
+	R_constant_table&	T0	= *(S->E[0]->passes[0]->constants);
+	R_constant_table&	T1	= *(S->E[1]->passes[0]->constants);
+	hwc_consts			= T0.get("consts");
+	hwc_wave			= T0.get("wave");
+	hwc_wind			= T0.get("dir2D");
+	hwc_array			= T0.get("array");
+	hwc_s_consts		= T1.get("consts");
+	hwc_s_xform			= T1.get("xform");
+	hwc_s_array			= T1.get("array");
 
 	// Declare geometry
 	hw_Geom.create		(dwDecl, hw_VB, hw_IB);
@@ -153,28 +150,13 @@ void CDetailManager::hw_Unload()
 }
 
 #ifndef	USE_DX10
-void CDetailManager::hw_Load_Shaders()
-{
-	// Create shader to access constant storage
-	ref_shader		S;	S.create("details\\set");
-	R_constant_table&	T0	= *(S->E[0]->passes[0]->constants);
-	R_constant_table&	T1	= *(S->E[1]->passes[0]->constants);
-	hwc_consts			= T0.get("consts");
-	hwc_wave			= T0.get("wave");
-	hwc_wind			= T0.get("dir2D");
-	hwc_array			= T0.get("array");
-	hwc_s_consts		= T1.get("consts");
-	hwc_s_xform			= T1.get("xform");
-	hwc_s_array			= T1.get("array");
-}
-
 void CDetailManager::hw_Render()
 {
 	// Render-prepare
 	//	Update timer
 	//	Can't use Device.fTimeDelta since it is smoothed! Don't know why, but smoothed value looks more choppy!
 	float fDelta = Device.fTimeGlobal-m_global_time_old;
-	if ( (fDelta<0) || (fDelta>1))	fDelta = 0.03;
+	if ((fDelta<0) || (fDelta>1))	fDelta = 0.03;
 	m_global_time_old = Device.fTimeGlobal;
 
 	m_time_rot_1	+= (PI_MUL_2*fDelta/swing_current.rot1);
@@ -226,6 +208,7 @@ void	CDetailManager::hw_Render_dump		(ref_constant x_array, u32 var_id, u32 lod_
 
 	vis_list& list	=	m_visibles	[var_id];
 
+#if RENDER == R_R1
 	Fvector					c_sun,c_ambient,c_hemi;
 #ifndef _EDITOR
 	CEnvDescriptor&	desc	= *g_pGamePersistent->Environment().CurrentEnv;
@@ -237,14 +220,17 @@ void	CDetailManager::hw_Render_dump		(ref_constant x_array, u32 var_id, u32 lod_
 	c_ambient.set			(1,1,1);
 	c_hemi.set				(1,1,1);
 #endif    
+#endif
 
 	VERIFY(objects.size()<=list.size());
 
 	// Iterate
-	for (u32 O=0; O<objects.size(); O++){
+	for (u32 O = 0; O < objects.size(); ++O)
+	{
 		CDetail&	Object				= *objects	[O];
-		xr_vector <SlotItemVec* >& vis	= list		[O];
-		if (!vis.empty()){
+		xr_vector <SlotItemVec*>& vis	= list		[O];
+		if (!vis.empty())
+		{
 			// Setup matrices + colors (and flush it as nesessary)
 			RCache.set_Element				(Object.shader->E[lod_id]);
 			RImplementation.apply_lmaterial	();
@@ -255,48 +241,65 @@ void	CDetailManager::hw_Render_dump		(ref_constant x_array, u32 var_id, u32 lod_
 
 			xr_vector <SlotItemVec* >::iterator _vI = vis.begin();
 			xr_vector <SlotItemVec* >::iterator _vE = vis.end();
-			for (; _vI!=_vE; _vI++){
+
+			for (; _vI!=_vE; ++_vI)
+			{
 				SlotItemVec*	items		= *_vI;
 				SlotItemVecIt _iI			= items->begin();
 				SlotItemVecIt _iE			= items->end();
-				for (; _iI!=_iE; _iI++){
-					SlotItem&	Instance	= **_iI;
-					u32			base		= dwBatch*4;
+				for (; _iI!=_iE; ++_iI)
+				{
 
-					// Build matrix ( 3x4 matrix, last row - color )
+					if (!(*_iI)) continue;
+					SlotItem& Instance = **_iI;
+#ifdef DETAILS_OPT
+					float dist = Device.vCameraPosition.distance_to(Instance.mRotY.c);
+
+					if (dist > ps_r__details_opt.z) {
+						if (!Instance.need_to_render_anyway[2]) continue;
+					} else if (dist > ps_r__details_opt.y) {
+						if (!Instance.need_to_render_anyway[1]) continue;
+					} else if (dist > ps_r__details_opt.x) {
+						if (!Instance.need_to_render_anyway[0]) continue;
+					}
+#endif
+					u32			base		= dwBatch*2; // 4
+
+					// Build color & matrix
 					float		scale		= Instance.scale_calculated;
 					Fmatrix&	M			= Instance.mRotY;
-					c_storage[base+0].set	(M._11*scale,	M._21*scale,	M._31*scale,	M._41	);
-					c_storage[base+1].set	(M._12*scale,	M._22*scale,	M._32*scale,	M._42	);
-					c_storage[base+2].set	(M._13*scale,	M._23*scale,	M._33*scale,	M._43	);
-
-					// Build color
+					float		h			= Instance.c_hemi;
+					float		s			= Instance.c_sun;
 #if RENDER==R_R1
 					Fvector C;
 					C.set					(c_ambient);
 //					C.mad					(c_lmap,Instance.c_rgb);
-					C.mad					(c_hemi,Instance.c_hemi);
-					C.mad					(c_sun,	Instance.c_sun);
-					c_storage[base+3].set	(C.x,			C.y,			C.z,			1.f		);
+					C.mad					(c_hemi,h);
+					C.mad					(c_sun,	s);
+
+					c_storage[base+0].set	(M._11*scale,	M._31*scale,	C.x,	C.y	);
+					c_storage[base+1].set	(M._41,			M._42,			M._43,	C.z	);
 #else
-					// R2 only needs hemisphere
-					float		h			= Instance.c_hemi;
-					float		s			= Instance.c_sun;
-					c_storage[base+3].set	(s,				s,				s,				h		);
+					c_storage[base+0].set	(M._11*scale,	M._31*scale,	s,		h	);
+					c_storage[base+1].set	(M._41,			M._42,		M._43,	scale	);
 #endif
+
 					dwBatch	++;
-					if (dwBatch == hw_BatchSize)	{
+					if (dwBatch == hw_BatchSize)	
+					{
 						// flush
 						Device.Statistic->RenderDUMP_DT_Count					+=	dwBatch;
 						u32 dwCNT_verts			= dwBatch * Object.number_vertices;
 						u32 dwCNT_prims			= (dwBatch * Object.number_indices)/3;
 						RCache.get_ConstantCache_Vertex().b_dirty				=	TRUE;
-						RCache.get_ConstantCache_Vertex().get_array_f().dirty	(c_base,c_base+dwBatch*4);
+						RCache.get_ConstantCache_Vertex().get_array_f().dirty	(c_base,c_base+dwBatch*2); // *4
 						RCache.Render			(D3DPT_TRIANGLELIST,vOffset, 0, dwCNT_verts,iOffset,dwCNT_prims);
 						RCache.stat.r.s_details.add	(dwCNT_verts);
 
 						// restart
-						dwBatch					= 0;
+						dwBatch			= 0;
+//						counter			++;
+//						vert_counter	+= dwCNT_verts;
 					}
 				}
 			}
@@ -307,12 +310,24 @@ void	CDetailManager::hw_Render_dump		(ref_constant x_array, u32 var_id, u32 lod_
 				u32 dwCNT_verts			= dwBatch * Object.number_vertices;
 				u32 dwCNT_prims			= (dwBatch * Object.number_indices)/3;
 				RCache.get_ConstantCache_Vertex().b_dirty				=	TRUE;
-				RCache.get_ConstantCache_Vertex().get_array_f().dirty	(c_base,c_base+dwBatch*4);
+				RCache.get_ConstantCache_Vertex().get_array_f().dirty	(c_base,c_base+dwBatch*2); // *4
 				RCache.Render				(D3DPT_TRIANGLELIST,vOffset,0,dwCNT_verts,iOffset,dwCNT_prims);
 				RCache.stat.r.s_details.add	(dwCNT_verts);
+
+				// restart
+				dwBatch			= 0;
+//				counter			++;
+//				vert_counter	+= dwCNT_verts;
 			}
 			// Clean up
-			vis.clear_not_free			();
+			//	KD: we must not clear vis on r2 since we want details shadows
+
+//#if RENDER==R_R2
+//			if ((ps_r2_ls_flags.test(R2FLAG_DETAILS_SHADOWS) && (RImplementation.PHASE_SMAP == RImplementation.phase))										// phase smap with shadows
+//			|| (ps_r2_ls_flags.test(R2FLAG_DETAILS_SHADOWS) && (RImplementation.PHASE_NORMAL == RImplementation.phase) && (!RImplementation.is_sun()))		// phase normal with shadows without sun
+//			|| (!ps_r2_ls_flags.test(R2FLAG_DETAILS_SHADOWS) && (RImplementation.PHASE_NORMAL == RImplementation.phase)))									// phase normal without shadows
+//#endif
+//			vis.clear_not_free			();
 		}
 		vOffset		+=	hw_BatchSize * Object.number_vertices;
 		iOffset		+=	hw_BatchSize * Object.number_indices;

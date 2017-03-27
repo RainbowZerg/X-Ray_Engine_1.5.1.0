@@ -301,22 +301,32 @@ void					CRender::destroy				()
 	Device.seqFrame.Remove		(this);
 }
 
+extern u32 reset_frame;
 void CRender::reset_begin()
 {
 	// Update incremental shadowmap-visibility solver
 	// BUG-ID: 10646
 	{
 		u32 it=0;
-		for (it=0; it<Lights_LastFrame.size(); it++)	{
-			if (0==Lights_LastFrame[it])	continue	;
+		for (it=0; it<Lights_LastFrame.size(); it++)	
+		{
+			if (0==Lights_LastFrame[it])	continue;
 			try {
-				Lights_LastFrame[it]->svis.resetoccq ()	;
-			} catch (...)
-			{
+				Lights_LastFrame[it]->svis.resetoccq();
+			} catch (...) {
 				Msg	("! Failed to flush-OCCq on light [%d] %X",it,*(u32*)(&Lights_LastFrame[it]));
 			}
 		}
 		Lights_LastFrame.clear	();
+	}
+
+	reset_frame = Device.dwFrame;
+
+	// KD: let's reload details while changed details options on vid_restart
+	if (psDeviceFlags.is(rsDetails) && b_loaded && ((dm_current_size != dm_size) || (ps_r__Detail_density != ps_current_detail_density)))
+	{
+		Details->Unload				();
+		xr_delete					(Details);
 	}
 
 	xr_delete					(Target);
@@ -333,9 +343,17 @@ void CRender::reset_end()
 	//R_CHK						(HW.pDevice->CreateQuery(D3DQUERYTYPE_EVENT,&q_sync_point[1]));
 	for (u32 i=0; i<HW.Caps.iGPUNum; ++i)
 		R_CHK					(HW.pDevice->CreateQuery(D3DQUERYTYPE_EVENT,&q_sync_point[i]));
+	
 	HWOCC.occq_create			(occq_size);
 
-	Target						=	xr_new<CRenderTarget>	();
+	Target						= xr_new<CRenderTarget>	();
+
+	// KD: let's reload details while changed details options on vid_restart
+	if (psDeviceFlags.is(rsDetails) && b_loaded && ((dm_current_size != dm_size) || (ps_r__Detail_density != ps_current_detail_density)))
+	{
+		Details					= xr_new<CDetailManager>	();
+		Details->Load			();
+	}
 }
 
 void CRender::OnFrame()

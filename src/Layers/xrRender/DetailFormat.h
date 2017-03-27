@@ -1,13 +1,11 @@
 #pragma once
-
-#ifndef _DETAIL_FORMAT_H_
-#define _DETAIL_FORMAT_H_
 #pragma pack(push,1)
 
 #define DETAIL_VERSION		3
 #define DETAIL_SLOT_SIZE	2.f
 #define DETAIL_SLOT_SIZE_2	DETAIL_SLOT_SIZE*0.5f
- 
+#define DO_NO_WAVING	0x0001
+
 //	int s_x	= iFloor			(EYE.x/slot_size+.5f)+offs_x;		// [0...size_x)
 //	int s_z	= iFloor			(EYE.z/slot_size+.5f)+offs_z;		// [0...size_z)
 
@@ -56,8 +54,6 @@
 	fvfVertexIn*	vertices;
 	u16*			indices;
 */
-
-#define DO_NO_WAVING	0x0001
 
 struct DetailHeader
 {
@@ -128,4 +124,3 @@ public:
 };
 
 #pragma pack(pop)
-#endif // _DEBUG

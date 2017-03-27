@@ -225,9 +225,6 @@
     <ClInclude Include="doug_lea_memory_allocator.h">
       <Filter>Core\memory</Filter>
     </ClInclude>
-    <ClInclude Include="DetailFormat.h">
-      <Filter>Details</Filter>
-    </ClInclude>
     <ClInclude Include="..\xrRender\DetailManager.h">
       <Filter>Details</Filter>
     </ClInclude>
@@ -713,6 +710,9 @@
     </ClInclude>
     <ClInclude Include="..\xrRender\Debug\dxPixEventWrapper.h">
       <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xrRender\DetailFormat.h">
+      <Filter>Details</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -38,7 +38,8 @@ void CDetailManager::soft_Render	()
 		xr_vector<SlotItemVec*>& _vis	= m_visibles[0][O];
 		xr_vector <SlotItemVec* >::iterator _vI = _vis.begin();
 		xr_vector <SlotItemVec* >::iterator _vE = _vis.end();
-		for (; _vI!=_vE; _vI++){
+		for (; _vI != _vE; _vI++)
+		{
 			SlotItemVec*	items	= *_vI;
 			u32	vCount_Total		= items->size()*vCount_Object;
 			// calculate lock count needed
@@ -105,8 +106,10 @@ void CDetailManager::soft_Render	()
 						LPDWORD	sit		= LPDWORD(Object.indices);
 						LPDWORD	send	= sit+count;
 						LPDWORD	dit		= LPDWORD(iDest);
-						for		(; sit!=send; dit++,sit++)	*dit=*sit+item;
-						if		(Object.number_indices&1)
+						for	(; sit!=send; dit++,sit++)	
+							*dit=*sit+item;
+
+						if (Object.number_indices & 1)
 							iDest[Object.number_indices-1]=(u16)(Object.indices[Object.number_indices-1]+u16(iOffset));
 					}
 
@@ -128,31 +131,3 @@ void CDetailManager::soft_Render	()
 		_vis.clear_not_free	();
 	}
 }
-
-/*
-//.
-                VERIFY(sizeof(CDetail::fvfVertexOut)==soft_Geom->vb_stride);
-                
-                CDetail::fvfVertexOut	*dstIt = vDest;
-
-                VERIFY(items->size()*Object.number_vertices==vCount_Lock);
-                
-                for	(u32 k=0; k<vCount_Lock; k++)
-                {
-					// Transfer vertices
-					{
-						u32					C = 0xffffffff;
-						CDetail::fvfVertexIn	*srcIt = Object.vertices, *srcEnd = Object.vertices+Object.number_vertices;
-						CDetail::fvfVertexOut	*dstIt = vDest;
-
-						for	(; srcIt!=srcEnd; srcIt++, dstIt++)
-						{
-							mXform.transform_tiny	(dstIt->P,srcIt->P);
-							dstIt->C	= C;
-							dstIt->u	= srcIt->u;
-							dstIt->v	= srcIt->v;
-						}
-					}
-                }
-*/                
-

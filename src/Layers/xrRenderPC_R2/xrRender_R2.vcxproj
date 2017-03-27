@@ -239,6 +239,7 @@
     <ClInclude Include="..\xrRender\Blender_Screen_SET.h" />
     <ClInclude Include="..\xrRender\Blender_tree.h" />
     <ClInclude Include="..\xrRender\D3DUtils.h" />
+    <ClInclude Include="..\xrRender\DetailFormat.h" />
     <ClInclude Include="..\xrRender\DetailManager.h" />
     <ClInclude Include="..\xrRender\DetailModel.h" />
     <ClInclude Include="..\xrRender\du_box.h" />
@@ -337,7 +338,6 @@
     <ClInclude Include="blender_luminance.h" />
     <ClInclude Include="blender_ssao.h" />
     <ClInclude Include="cl_intersect.h" />
-    <ClInclude Include="DetailFormat.h" />
     <ClInclude Include="doug_lea_memory_allocator.h" />
     <ClInclude Include="light.h" />
     <ClInclude Include="light_gi.h" />

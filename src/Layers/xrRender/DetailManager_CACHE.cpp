@@ -8,28 +8,44 @@ void CDetailManager::cache_Initialize	()
 	cache_cz			= 0;
 
 	// Initialize cache-grid
+#ifndef DYNAMIC_DETAILS
+	const u32 cache_ln	 = dm_cache_line;
+	const u32 cache1_ln  = dm_cache1_line;
+#else
+	const u32 cache_ln	 = dm_current_cache_line;
+	const u32 cache1_ln  = dm_current_cache1_line;
+#endif
+
 	Slot*	slt 		= cache_pool;
-	for (u32 i=0; i<dm_cache_line; i++)
-		for (u32 j=0; j<dm_cache_line; j++, slt++){
+	for (u32 i = 0; i<cache_ln; i++)
+		for (u32 j = 0; j<cache_ln; j++, slt++)
+		{
 			cache			[i][j]	= slt;
 			cache_Task		(j,i,slt);
 		}
 	VERIFY	(cache_Validate());
 
-    for (int _mz1=0; _mz1<dm_cache1_line; _mz1++){
-    	for (int _mx1=0; _mx1<dm_cache1_line; _mx1++){
+	for (u32 _mz1 = 0; _mz1<cache1_ln; _mz1++)
+	{
+		const u32 _mzoffset = _mz1 * dm_cache1_count;
+		for (u32 _mx1 = 0; _mx1<cache1_ln; _mx1++)
+		{
 		    CacheSlot1& MS 	= cache_level1[_mz1][_mx1];
-			for (int _z=0; _z<dm_cache1_count; _z++)
-				for (int _x=0; _x<dm_cache1_count; _x++)
-					MS.slots[_z*dm_cache1_count+_x] = &cache[_mz1*dm_cache1_count+_z][_mx1*dm_cache1_count+_x];
+			const u32 _mxoffset = _mx1 * dm_cache1_count;
+			for (u32 _z = 0; _z < dm_cache1_count; _z++)
+			{
+				const int _zoffset = _z * dm_cache1_count;
+				for (u32 _x = 0; _x < dm_cache1_count; _x++)
+					MS.slots[_zoffset + _x] = &cache[_mzoffset + _z][_mxoffset + _x];
+			}
         }
     }
 }
 
 CDetailManager::Slot*	CDetailManager::cache_Query	(int r_x, int r_z)
 {
-	int			gx		= w2cg_X(r_x + cache_cx);	VERIFY	(gx>=0 && gx<dm_cache_line);
-	int			gz		= w2cg_Z(r_z + cache_cz);	VERIFY	(gz>=0 && gz<dm_cache_line);
+	int			gx		= w2cg_X(r_x + cache_cx);	VERIFY	(gx>=0 && gx<dm_current_cache_line);
+	int			gz		= w2cg_Z(r_z + cache_cz);	VERIFY	(gz>=0 && gz<dm_current_cache_line);
 	return		cache	[gz][gx];
 }
 
@@ -55,9 +71,14 @@ void 	CDetailManager::cache_Task		(int gx, int gz, Slot* D)
 	D->vis.box.grow			(EPS_L);
 
 	for (u32 i=0; i<dm_obj_in_slot; i++)	{
-		D->G[i].id			= DS.r_id	(i);
+		D->G[i].id = DS.r_id(i);
 		for (u32 clr=0; clr<D->G[i].items.size(); clr++)
-			poolSI.destroy(D->G[i].items[clr]);
+		{
+			CDetailManager::SlotItem *si = D->G[i].items[clr];
+			if (si)								// temp hack to avoid crash
+				poolSI.destroy(si);
+//			poolSI.destroy(D->G[i].items[clr]);
+		}
 		D->G[i].items.clear	();
 	}
 
@@ -71,13 +92,13 @@ void 	CDetailManager::cache_Task		(int gx, int gz, Slot* D)
 
 BOOL	CDetailManager::cache_Validate	()
 {
-	for (int z=0; z<dm_cache_line; z++)
+	for (u32 z = 0; z < dm_current_cache_line; z++)
 	{
-		for (int x=0; x<dm_cache_line; x++)
+		for (u32 x = 0; x < dm_current_cache_line; x++)
 		{
-			int		w_x		= cg2w_X(x);
-			int		w_z		= cg2w_Z(z);
-			Slot*	D		= cache[z][x];
+			int		w_x	= cg2w_X(x);
+			int		w_z	= cg2w_Z(z);
+			Slot*	D	= cache[z][x];
 
 			if (D->sx	!= w_x)	return FALSE;
 			if (D->sz	!= w_z)	return FALSE;
@@ -95,65 +116,75 @@ void	CDetailManager::cache_Update	(int v_x, int v_z, Fvector& view, int limit)
 		if (v_x>cache_cx)	{
 			// shift matrix to left
 			cache_cx ++;
-			for (int z=0; z<dm_cache_line; z++)
+			for (u32 z=0; z<dm_current_cache_line; z++)
 			{
 				Slot*	S	= cache[z][0];
-				for			(int x=1; x<dm_cache_line; x++)		cache[z][x-1] = cache[z][x];
-				cache		[z][dm_cache_line-1] = S;
-				cache_Task	(dm_cache_line-1, z, S);
+				for			(u32 x=1; x<dm_current_cache_line; x++) cache[z][x - 1] = cache[z][x];
+				cache		[z][dm_current_cache_line-1] = S;
+				cache_Task	(dm_current_cache_line-1, z, S);
 			}
 			// R_ASSERT	(cache_Validate());
 		} else {
 			// shift matrix to right
 			cache_cx --;
-			for (int z=0; z<dm_cache_line; z++)
+			for (u32 z=0; z<dm_current_cache_line; z++)
 			{
-				Slot*	S	= cache[z][dm_cache_line-1];
-				for			(int x=dm_cache_line-1; x>0; x--)	cache[z][x] = cache[z][x-1];
+				Slot*	S	= cache[z][dm_current_cache_line-1];
+				for			(int x=dm_current_cache_line-1; x>0; x--)	cache[z][x] = cache[z][x-1];
 				cache		[z][0]	= S;
 				cache_Task	(0,z,S);
 			}
 			// R_ASSERT	(cache_Validate());
 		}
 	}
+
 	while (cache_cz!=v_z)
 	{
-		if (v_z>cache_cz)	{
+		if (v_z>cache_cz)	
+		{
 			// shift matrix down a bit
 			cache_cz ++;
-			for (int x=0; x<dm_cache_line; x++)
+			for (u32 x = 0; x < dm_current_cache_line; x++)
 			{
-				Slot*	S	= cache[dm_cache_line-1][x];
-				for			(int z=dm_cache_line-1; z>0; z--)	cache[z][x] = cache[z-1][x];
+				Slot*	S	= cache[dm_current_cache_line-1][x];
+				for			(int z=dm_current_cache_line-1; z>0; z--)	cache[z][x] = cache[z-1][x];
 				cache		[0][x]	= S;
 				cache_Task	(x,0,S);
 			}
 			// R_ASSERT	(cache_Validate());
-		} else {
+		} 
+		else 
+		{
 			// shift matrix up
 			cache_cz --;
-			for (int x=0; x<dm_cache_line; x++)
+			for (u32 x = 0; x < dm_current_cache_line; x++)
 			{
 				Slot*	S	= cache[0][x];
-				for			(int z=1; z<dm_cache_line; z++)		cache[z-1][x] = cache[z][x];
-				cache		[dm_cache_line-1][x]	= S;
-				cache_Task	(x,dm_cache_line-1,S);
+				for			(u32 z=1; z<dm_current_cache_line; z++)		cache[z-1][x] = cache[z][x];
+				cache		[dm_current_cache_line-1][x]	= S;
+				cache_Task	(x,dm_current_cache_line-1,S);
 			}
 			// R_ASSERT	(cache_Validate());
 		}
 	}
 
 	// Task performer
-	BOOL	bFullUnpack		= FALSE;
-	if (cache_task.size() == dm_cache_size)	{ limit = dm_cache_size; bFullUnpack=TRUE; }
+	BOOL bFullUnpack = FALSE;
+	if (cache_task.size() == dm_current_cache_size)
+	{ 
+		limit = dm_current_cache_size;
+		bFullUnpack = TRUE; 
+	}
 
-	for (int iteration=0; cache_task.size() && (iteration<limit); iteration++){
+	for (int iteration = 0; cache_task.size() && (iteration < limit); iteration++)
+	{
 		u32		best_id		= 0;
 		float	best_dist	= flt_max;
 
-		if (bFullUnpack){
+		if (bFullUnpack)
 			best_id			= cache_task.size()-1;
-		} else {
+		else 
+		{
 			for (u32 entry=0; entry<cache_task.size(); entry++){
 				// Gain access to data
 				Slot*		S	= cache_task[entry];
@@ -178,13 +209,17 @@ void	CDetailManager::cache_Update	(int v_x, int v_z, Fvector& view, int limit)
 		cache_task.erase	(best_id);
 	}
 
-    if (bNeedMegaUpdate){
-        for (int _mz1=0; _mz1<dm_cache1_line; _mz1++){
-            for (int _mx1=0; _mx1<dm_cache1_line; _mx1++){
+    if (bNeedMegaUpdate)
+	{
+		for (u32 _mz1 = 0; _mz1 < dm_current_cache1_line; _mz1++)
+		{
+			for (u32 _mx1 = 0; _mx1 < dm_current_cache1_line; _mx1++)
+			{
                 CacheSlot1& MS 	= cache_level1[_mz1][_mx1];
 				MS.empty		= TRUE;
                 MS.vis.clear	();
-                for (int _i=0; _i<dm_cache1_count*dm_cache1_count; _i++){
+                for (int _i=0; _i < dm_cache1_count * dm_cache1_count; _i++)
+				{
                     Slot*	PS		= *MS.slots[_i];
                     Slot& 	S 		= *PS;
                     MS.vis.box.merge(S.vis.box);

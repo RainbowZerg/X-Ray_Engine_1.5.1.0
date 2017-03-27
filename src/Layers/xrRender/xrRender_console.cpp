@@ -84,6 +84,24 @@ float		ps_r__Detail_l_aniso		= 0.25f	;
 float		ps_r__Detail_density		= 0.3f	;
 float		ps_r__Detail_rainbow_hemi	= 0.75f	;
 
+////////////// трава
+u32			ps_r__detail_radius			= 49;
+u32			dm_current_size				= 24;
+u32 		dm_current_cache1_line		= 12;
+u32			dm_current_cache_line		= 49;
+u32			dm_current_cache_size		= 2401;
+float		dm_current_fade				= 47.5;
+#ifdef DYNAMIC_DETAILS
+u32			dm_size						= 24;
+u32 		dm_cache1_line				= 12;
+u32			dm_cache_line				= 49;
+u32			dm_cache_size				= 2401;
+float		dm_fade						= 47.5;
+float		ps_current_detail_density	= 0.6;
+#endif
+Fvector		ps_r__details_opt			= { 150, 200, 250 };
+///////////////////////////////////////////////////
+
 float		ps_r__Tree_w_rot			= 10.0f	;
 float		ps_r__Tree_w_speed			= 1.00f	;
 float		ps_r__Tree_w_amp			= 0.005f;
@@ -207,6 +225,41 @@ float		ps_r2_gloss_factor			= 3.0f;
 #endif	//	USE_DX10
 
 //-----------------------------------------------------------------------
+// KD
+class CCC_detail_radius	: public CCC_Integer
+{
+public:
+	void	apply	()	
+	{
+		u32 curr_size = iFloor((float)ps_r__detail_radius/4)*2;
+		// 
+#ifdef DYNAMIC_DETAILS
+		dm_size					= curr_size;
+		dm_cache1_line			= dm_size*2/dm_cache1_count;
+		dm_cache_line			= dm_size+1+dm_size;
+		dm_cache_size			= dm_cache_line*dm_cache_line;
+		dm_fade					= float(2*dm_size)-.5f;
+#else
+		dm_current_size			= curr_size;
+		dm_current_cache1_line	= dm_current_size*2/dm_cache1_count;
+		dm_current_cache_line	= dm_current_size+1+dm_current_size;
+		dm_current_cache_size	= dm_current_cache_line*dm_current_cache_line;
+		dm_current_fade			= float(2*dm_current_size)-.5f;
+#endif
+	}
+	CCC_detail_radius(LPCSTR N, u32* V, int _min=0, int _max=999) : CCC_Integer(N, (int *)V, _min, _max) { };
+	virtual void Execute	(LPCSTR args)
+	{
+		CCC_Integer::Execute	(args);
+		apply					();
+	}
+	virtual void	Status	(TStatus& S)
+	{	
+		CCC_Integer::Status		(S);
+	}
+};
+// KD
+
 class CCC_tf_Aniso		: public CCC_Integer
 {
 public:
@@ -523,7 +576,8 @@ void		xrRender_initconsole	()
 	CMD1(CCC_DumpResources,		"dump_resources");
 #endif	//	 DEBUG
 
-	CMD4(CCC_Float,		"r__dtex_range",		&r__dtex_range,		5,		175	);
+	Fvector4	tw_min, tw_max;
+	Fvector		rp_min, rp_max;
 
 // Common
 	CMD1(CCC_Screenshot,"screenshot"			);
@@ -542,16 +596,22 @@ void		xrRender_initconsole	()
 	CMD1(CCC_ModelPoolStat,"stat_models"		);
 #endif // DEBUG
 	CMD4(CCC_Float,		"r__wallmark_ttl",		&ps_r__WallmarkTTL,			1.0f,	5.f*60.f);
-
-	CMD4(CCC_Integer,	"r__supersample",		&ps_r__Supersample,			1,		8		);
-
-	Fvector	tw_min,tw_max;
 	
 	CMD4(CCC_Float,		"r__geometry_lod",		&ps_r__LOD,					0.1f,	1.2f		);
 //.	CMD4(CCC_Float,		"r__geometry_lod_pow",	&ps_r__LOD_Power,			0,		2		);
 
-//.	CMD4(CCC_Float,		"r__detail_density",	&ps_r__Detail_density,		.05f,	0.99f	);
-	CMD4(CCC_Float,		"r__detail_density",	&ps_r__Detail_density,		.2f,	0.6f	);
+	CMD4(CCC_Float,		"r__detail_density",	&ps_current_detail_density,	.2f,	0.6f	);
+	CMD4(CCC_detail_radius,	"r__detail_radius",	&ps_r__detail_radius,		49,		290		);
+	// ZergO: прорежает траву на расстоянии (KD)
+	rp_min.set(1, 1, 1); rp_max.set(300, 300, 300);
+	CMD4(CCC_Vector3,	"r__details_opt",		&ps_r__details_opt,			rp_min, rp_max	);
+
+	CMD4(CCC_Float,		"r__dtex_range",		&r__dtex_range,		5,		175	);
+	CMD2(CCC_tf_Aniso,	"r__tf_aniso",			&ps_r__tf_Anisotropic		); //	{1..16}
+	CMD2(CCC_tf_MipBias,"r__tf_mipbias",		&ps_r__tf_Mipbias			);//	{-3 +3}
+	CMD4(CCC_Float,		"r__ssa_lod_a",			&ps_r__ssaLOD_A,			16,		96		);
+	CMD4(CCC_Float,		"r__ssa_lod_b",			&ps_r__ssaLOD_B,			16,		64		);
+	CMD4(CCC_Integer,	"r__supersample",		&ps_r__Supersample,			1,		8		);
 
 #ifdef DEBUG
 	CMD4(CCC_Float,		"r__detail_l_ambient",	&ps_r__Detail_l_ambient,	.5f,	.95f	);
@@ -565,12 +625,6 @@ void		xrRender_initconsole	()
 	tw_max.set			(2,2,2);
 	CMD4(CCC_Vector3,	"r__d_tree_wave",		&ps_r__Tree_Wave,			tw_min, tw_max	);
 #endif // DEBUG
-
-	CMD4(CCC_Float,		"r__ssa_lod_a",			&ps_r__ssaLOD_A,			16,		96		);
-	CMD4(CCC_Float,		"r__ssa_lod_b",			&ps_r__ssaLOD_B,			16,		64		);
-
-	CMD2(CCC_tf_Aniso,	"r__tf_aniso",			&ps_r__tf_Anisotropic		); //	{1..16}
-	CMD2(CCC_tf_MipBias,"r__tf_mipbias",		&ps_r__tf_Mipbias			);//	{-3 +3}
 
 	// R1
 	CMD4(CCC_Float,		"r1_lmodel_lerp",		&ps_r1_lmodel_lerp,			0,		0.333f	);
@@ -669,25 +723,20 @@ void		xrRender_initconsole	()
 
 	CMD4(CCC_Float,		"r2_slight_fade",		&ps_r2_slight_fade,			.2f,	1.f		);
 
-	tw_min.set			(0,0,0);	tw_max.set	(1,1,1);
-	CMD4(CCC_Vector3,	"r2_aa_break",			&ps_r2_aa_barier,			tw_min, tw_max	);
-
-	tw_min.set			(0,0,0);	tw_max.set	(1,1,1);
-	CMD4(CCC_Vector3,	"r2_aa_weight",			&ps_r2_aa_weight,			tw_min, tw_max	);
+	rp_min.set(0,0,0); rp_max.set(1,1,1);
+	CMD4(CCC_Vector3,	"r2_aa_break",			&ps_r2_aa_barier,			rp_min, rp_max	);
+	CMD4(CCC_Vector3,	"r2_aa_weight",			&ps_r2_aa_weight,			rp_min, rp_max	);
 
 	//	Igor: Depth of field
-	tw_min.set			(-10000,-10000,0);	tw_max.set	(10000,10000,10000);
-	CMD4( CCC_Dof,		"r2_dof",		&ps_r2_dof, tw_min, tw_max);
-	CMD4( CCC_DofNear,	"r2_dof_near",	&ps_r2_dof.x, tw_min.x, tw_max.x);
-	CMD4( CCC_DofFocus,	"r2_dof_focus", &ps_r2_dof.y, tw_min.y, tw_max.y);
-	CMD4( CCC_DofFar,	"r2_dof_far",	&ps_r2_dof.z, tw_min.z, tw_max.z);
+	rp_min.set(-10000,-10000,0); rp_max.set	(10000,10000,10000);
+	CMD4( CCC_Dof,		"r2_dof",				&ps_r2_dof,					rp_min,		rp_max);
+	CMD4( CCC_DofNear,	"r2_dof_near",			&ps_r2_dof.x,				rp_min.x,	rp_max.x);
+	CMD4( CCC_DofFocus,	"r2_dof_focus",			&ps_r2_dof.y,				rp_min.y,	rp_max.y);
+	CMD4( CCC_DofFar,	"r2_dof_far",			&ps_r2_dof.z,				rp_min.z,	rp_max.z);
 
-	CMD4(CCC_Float,		"r2_dof_kernel",&ps_r2_dof_kernel_size,				.0f,	10.f);
-	CMD4(CCC_Float,		"r2_dof_sky",	&ps_r2_dof_sky,						-10000.f,	10000.f);
-	CMD3(CCC_Mask,		"r2_dof_enable",&ps_r2_ls_flags,	R2FLAG_DOF);
-	
-//	float		ps_r2_dof_near			= 0.f;					// 0.f
-//	float		ps_r2_dof_focus			= 1.4f;					// 1.4f
+	CMD4(CCC_Float,		"r2_dof_kernel",		&ps_r2_dof_kernel_size,		.0f,		10.f);
+	CMD4(CCC_Float,		"r2_dof_sky",			&ps_r2_dof_sky,				-10000.f,	10000.f);
+	CMD3(CCC_Mask,		"r2_dof_enable",		&ps_r2_ls_flags,			R2FLAG_DOF);
 	
 	CMD3(CCC_Mask,		"r2_volumetric_lights",			&ps_r2_ls_flags,			R2FLAG_VOLUMETRIC_LIGHTS);
 //	CMD3(CCC_Mask,		"r2_sun_shafts",				&ps_r2_ls_flags,			R2FLAG_SUN_SHAFTS);

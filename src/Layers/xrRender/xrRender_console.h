@@ -24,10 +24,6 @@ extern ECORE_API	xr_token	qminmax_sm_token[];
 extern ENGINE_API	int			ps_r__Supersample;
 extern ECORE_API	int			ps_r__LightSleepFrames;
 
-extern ECORE_API	float		ps_r__Detail_l_ambient;
-extern ECORE_API	float		ps_r__Detail_l_aniso;
-extern ECORE_API	float		ps_r__Detail_density;
-
 extern ECORE_API	float		ps_r__Tree_w_rot;
 extern ECORE_API	float		ps_r__Tree_w_speed;
 extern ECORE_API	float		ps_r__Tree_w_amp;
@@ -49,6 +45,12 @@ extern ECORE_API	float		ps_r__ssaLOD_A;
 extern ECORE_API	float		ps_r__ssaLOD_B;
 extern ECORE_API	int			ps_r__tf_Anisotropic;
 extern ECORE_API	float		ps_r__tf_Mipbias;
+// DETAILS
+extern ECORE_API	float		ps_r__Detail_l_ambient;
+extern ECORE_API	float		ps_r__Detail_l_aniso;
+extern ECORE_API	float		ps_r__Detail_density;
+extern ECORE_API	Fvector		ps_r__details_opt;
+//
 
 // R1
 extern ECORE_API	float		ps_r1_lmodel_lerp;
