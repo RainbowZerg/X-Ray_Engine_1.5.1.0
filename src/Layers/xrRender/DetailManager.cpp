@@ -231,8 +231,8 @@ void CDetailManager::UpdateVisibleM()
 	CFrustum	View = RImplementation.ViewBase;
 	//	View.CreateFromMatrix		(Device.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 
-	float fade_limit			= dm_current_fade;	fade_limit=fade_limit*fade_limit;
-	float fade_start			= 0.f;		//fade_start=fade_start*fade_start;
+	float fade_limit			= dm_current_fade*dm_current_fade;
+	float fade_start			= 0.f;
 	float fade_range			= fade_limit-fade_start;
 	float r_ssaCHEAP			= 140*r_ssaDISCARD; // 16*
 
@@ -332,7 +332,7 @@ void CDetailManager::Render	()
 {
 #ifndef _EDITOR
 	if (0 == RImplementation.Details)	return;
-	if (0==dtFS)						return;
+	if (0 == dtFS)						return;
 	if (!psDeviceFlags.is(rsDetails))	return;
 	if (IsMainMenuActive())				return; // не рисовать траву в меню
 #endif
@@ -374,9 +374,8 @@ void __stdcall	CDetailManager::MT_CALC		()
 		if ((m_frame_rendered+1)==Device.dwFrame) //already rendered
 		{
 			Fvector EYE			= Device.vCameraPosition;
-			const float _tmp	= dm_slot_size + .5f;
-			const int s_x		= iFloor(EYE.x/_tmp);
-			const int s_z		= iFloor(EYE.z/_tmp);
+			int s_x				= iFloor(EYE.x/dm_slot_size+.5f);
+			int s_z				= iFloor(EYE.z/dm_slot_size+.5f);
 
 			Device.Statistic->RenderDUMP_DT_Cache.Begin	();
 			cache_Update		(s_x,s_z,EYE,dm_max_decompress);
