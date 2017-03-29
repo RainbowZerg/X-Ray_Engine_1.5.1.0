@@ -284,22 +284,22 @@ void CHangingLamp::TurnOff	()
 //					   Fvector p_in_object_space, float impulse, ALife::EHitType hit_type)
 void	CHangingLamp::Hit					(SHit* pHDS)
 {
-	SHit	HDS = *pHDS;
-	callback(GameObject::eHit)(
-		lua_game_object(), 
-		HDS.power,
-		HDS.dir,
-		smart_cast<const CGameObject*>(HDS.who)->lua_game_object(),
-		HDS.bone()
-		);
-	BOOL	bWasAlive		= Alive		();
+	SHit HDS = *pHDS;
+	callback(GameObject::eHit)(lua_game_object(), HDS.power, HDS.dir, smart_cast<const CGameObject*>(HDS.who)->lua_game_object(), HDS.bone());
+	bool bWasAlive = Alive();
 
-	if(m_pPhysicsShell) m_pPhysicsShell->applyHit(pHDS->p_in_bone_space,pHDS->dir,pHDS->impulse,pHDS->boneID,pHDS->hit_type);
+	if (m_pPhysicsShell) 
+		m_pPhysicsShell->applyHit(pHDS->p_in_bone_space,pHDS->dir,pHDS->impulse,pHDS->boneID,pHDS->hit_type);
 
-	if (pHDS->boneID==light_bone)fHealth =	0.f;
-	else	fHealth -=	pHDS->damage()*100.f;
+	// ZergO - Изменено поведение дин. лампочек: пуля гасит только при попадании 
+	// в bone_light, а взрыв работает как раньше
+	if (pHDS->boneID == light_bone)
+		fHealth = 0.f;
+	else if (pHDS->hit_type == ALife::eHitTypeExplosion)
+		fHealth -= pHDS->damage()*100.f;
 
-	if (bWasAlive && (!Alive()))		TurnOff	();
+	if (bWasAlive && !Alive())		
+		TurnOff	();
 }
 
 static BONE_P_MAP bone_map=BONE_P_MAP();

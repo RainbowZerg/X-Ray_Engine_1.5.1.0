@@ -54,6 +54,7 @@ public:
 	
 	virtual		void		Render_First		();
 	virtual		void		Render_Last			();	   
+	virtual		void		Render_Actor_Shadow	();	// added by KD
 	virtual		void		OnFrame				();
 
 	virtual		void		RenderUI			();

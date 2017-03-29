@@ -72,12 +72,11 @@ u32 GetNVGpuNum()
 u32 GetATIGpuNum()
 {
 	int iGpuNum = AtiMultiGPUAdapters();
-	//int iGpuNum = 1;
 
-	if (iGpuNum>1)
-	{
-		Msg	("* ATI MGPU: %d-Way CrossFire detected.", iGpuNum);
-	}
+	if (iGpuNum <= 0)
+		return 0;		// Fix in-game flickering of screen
+
+	Msg	("* ATI MGPU: %d-Way CrossFire detected.", iGpuNum);
 
 	return iGpuNum;
 }

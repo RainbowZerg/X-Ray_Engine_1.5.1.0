@@ -676,14 +676,10 @@ bool CAI_Bloodsucker::in_solid_state ()
 
 void CAI_Bloodsucker::Hit(SHit* pHDS)
 {
-	if ( state_invisible )
-	{
-		return;
-	}
-	if ( !collision_hit_off )
-	{
+	//	if (state_invisible) return; // ZergO: отключена неу€звимость кровососа в невидимости
+
+	if (!collision_hit_off)
 		inherited::Hit(pHDS);
-	}
 }
 
 void CAI_Bloodsucker::start_invisible_predator()

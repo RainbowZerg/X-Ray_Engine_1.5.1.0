@@ -512,26 +512,16 @@ void CActor::g_sv_Orientate(u32 /**mstate_rl/**/, float /**dt/**/)
 
 bool isActorAccelerated(u32 mstate, bool ZoomMode) 
 {
-	bool res = false;
-	if (mstate&mcAccel)
-		res = psActorFlags.test(AF_ALWAYSRUN)?false:true;
-	else
-		res = psActorFlags.test(AF_ALWAYSRUN)?true :false;
-	if (mstate&(mcCrouch|mcClimb|mcJump|mcLanding|mcLanding2))
-		return res;
-	if (mstate & mcLookout || ZoomMode)
-		return false;
+	bool res = (mstate&mcAccel) ? false : true;
+
+	if (mstate & (mcCrouch|mcClimb|mcJump|mcLanding|mcLanding2))	return res;
+	if (mstate & mcLookout || ZoomMode)								return false;
 	return res;
 }
 
 bool CActor::CanAccelerate()
 {
-	bool can_accel = !conditions().IsLimping() &&
-		!character_physics_support()->movement()->PHCapture() && 
-		(m_time_lock_accel < Device.dwTimeGlobal)
-	;		
-
-	return can_accel;
+	return !conditions().IsLimping() && !character_physics_support()->movement()->PHCapture() && (m_time_lock_accel < Device.dwTimeGlobal);
 }
 
 bool CActor::CanRun()

@@ -1089,14 +1089,22 @@ void	CCharacterPhysicsSupport::	CreateShell						( CObject* who, Fvector& dp, Fv
 	m_eState=esDead;
 	m_flags.set(fl_skeleton_in_shell,TRUE);
 	
-	if(IsGameTypeSingle())
+	// ZergO: bodies collision in SP
+	/*
+	if (IsGameTypeSingle())
 	{
 		m_pPhysicsShell->SetPrefereExactIntegration	();//use exact integration for ragdolls in single
 		m_pPhysicsShell->SetRemoveCharacterCollLADisable();
 	}
 	else
 		m_pPhysicsShell->SetIgnoreDynamic();
+
 	m_pPhysicsShell->SetIgnoreSmall();
+	*/
+
+	if (!IsGameTypeSingle())
+		m_pPhysicsShell->SetIgnoreDynamic();
+	//
 	AddActiveWeaponCollision();
 }
 void	CCharacterPhysicsSupport::	EndActivateFreeShell			( CObject* who, const Fvector& inital_entity_position, const Fvector& dp, const Fvector & velocity )

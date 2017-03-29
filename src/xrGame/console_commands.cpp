@@ -76,19 +76,18 @@ extern	int		psLUA_GCSTEP;
 
 extern	int		x_m_x;
 extern	int		x_m_z;
-extern	BOOL	net_cl_inputguaranteed	;
-extern	BOOL	net_sv_control_hit		;
-extern	int		g_dwInputUpdateDelta	;
+extern	BOOL	net_cl_inputguaranteed;
+extern	BOOL	net_sv_control_hit;
+extern	int		g_dwInputUpdateDelta;
 #ifdef DEBUG
-extern	BOOL	g_ShowAnimationInfo		;
+extern	BOOL	g_ShowAnimationInfo;
 #endif // DEBUG
-extern	BOOL	g_bShowHitSectors		;
-extern	BOOL	g_bDebugDumpPhysicsStep	;
+extern	BOOL	g_bShowHitSectors;
+extern	BOOL	g_bDebugDumpPhysicsStep;
 extern	ESingleGameDifficulty g_SingleGameDifficulty;
-extern	BOOL	g_show_wnd_rect2			;
+extern	BOOL	g_show_wnd_rect2;
 //-----------------------------------------------------------
 extern	float	g_fTimeFactor;
-extern	BOOL	b_toggle_weapon_aim;
 //extern  BOOL	g_old_style_ui_hud;
 
 extern float	g_smart_cover_factor;
@@ -1557,11 +1556,13 @@ void CCC_RegisterCommands()
 
 	CMD1(CCC_MemStats,			"stat_memory"			);
 	// game
-	psActorFlags.set(AF_ALWAYSRUN, true);
-	CMD3(CCC_Mask,				"g_always_run",			&psActorFlags,	AF_ALWAYSRUN);
-	CMD1(CCC_GameDifficulty,	"g_game_difficulty"		);
-
-	CMD3(CCC_Mask,				"g_backrun",			&psActorFlags,	AF_RUN_BACKWARD);
+	CMD3(CCC_Mask,				"g_autopickup",			&psActorFlags,	AF_AUTOPICKUP	);
+	CMD3(CCC_Mask,				"g_dynamic_music",		&psActorFlags,	AF_DYNAMIC_MUSIC);
+	CMD4(CCC_Float,				"g_fov",				&g_fov,			5.0f,	180.0f	);
+	CMD1(CCC_GameDifficulty,	"g_game_difficulty"										);
+	CMD3(CCC_Mask,				"g_god",				&psActorFlags,	AF_GODMODE		);
+	CMD3(CCC_Mask,				"g_unlimitedammo",		&psActorFlags,	AF_UNLIMITEDAMMO);
+	CMD3(CCC_Mask,				"g_wpn_aim_toggle",		&psActorFlags,  AF_WPNAIMTOGGLE	);
 
 	// alife
 #ifdef DEBUG
@@ -1584,25 +1585,20 @@ void CCC_RegisterCommands()
 //#endif // MASTER_GOLD
 
 
-	CMD3(CCC_Mask,				"hud_weapon",			&psHUD_Flags,	HUD_WEAPON);
-	CMD3(CCC_Mask,				"hud_info",				&psHUD_Flags,	HUD_INFO);
+	psHUD_Flags.set(HUD_CROSSHAIR, true);
+	psHUD_Flags.set(HUD_WEAPON, true);
+	psHUD_Flags.set(HUD_DRAW, true);
+	psHUD_Flags.set(HUD_INFO, true);
 
-//#ifndef MASTER_GOLD
-	CMD3(CCC_Mask,				"hud_draw",				&psHUD_Flags,	HUD_DRAW);
-//#endif // MASTER_GOLD
 	// hud
-	psHUD_Flags.set(HUD_CROSSHAIR,		true);
-	psHUD_Flags.set(HUD_WEAPON,			true);
-	psHUD_Flags.set(HUD_DRAW,			true);
-	psHUD_Flags.set(HUD_INFO,			true);
-
 	CMD3(CCC_Mask,				"hud_crosshair",		&psHUD_Flags,	HUD_CROSSHAIR);
 	CMD3(CCC_Mask,				"hud_crosshair_dist",	&psHUD_Flags,	HUD_CROSSHAIR_DIST);
-
-//#ifdef DEBUG
+	CMD3(CCC_Mask,				"hud_crosshair_dynamic",&psHUD_Flags,	HUD_CROSSHAIR_DYNAMIC);
+	CMD3(CCC_Mask,				"hud_crosshair_old",    &psHUD_Flags,	HUD_CROSSHAIR_OLD);
+	CMD3(CCC_Mask,				"hud_draw",				&psHUD_Flags,	HUD_DRAW);
 	CMD4(CCC_Float,				"hud_fov",				&psHUD_FOV,		0.1f,	1.0f);
-	CMD4(CCC_Float,				"g_fov",				&g_fov,			5.0f,	180.0f);
-//#endif // DEBUG
+	CMD3(CCC_Mask,				"hud_info",				&psHUD_Flags,	HUD_INFO);
+	CMD3(CCC_Mask,				"hud_weapon",			&psHUD_Flags,	HUD_WEAPON);
 
 	// Demo
 	CMD1(CCC_DemoPlay,			"demo_play"				);
@@ -1736,15 +1732,10 @@ CMD4(CCC_Integer,			"hit_anims_tune",						&tune_hit_anims,		0, 1);
 
 //#ifndef MASTER_GOLD
 	CMD1(CCC_JumpToLevel,	"jump_to_level"		);
-	CMD3(CCC_Mask,			"g_god",			&psActorFlags,	AF_GODMODE	);
-	CMD3(CCC_Mask,			"g_unlimitedammo",	&psActorFlags,	AF_UNLIMITEDAMMO);
 	CMD1(CCC_Script,		"run_script");
 	CMD1(CCC_ScriptCommand,	"run_string");
 	CMD1(CCC_TimeFactor,	"time_factor");		
 //#endif // MASTER_GOLD
-
-	CMD3(CCC_Mask,		"g_autopickup",			&psActorFlags,	AF_AUTOPICKUP);
-	CMD3(CCC_Mask,		"g_dynamic_music",		&psActorFlags,	AF_DYNAMIC_MUSIC);
 
 
 #ifdef DEBUG
@@ -1886,7 +1877,6 @@ CMD4(CCC_FloatBlock,		"dbg_text_height_scale",	&dbg_text_height_scale	,			0.2f	,
 
 #endif
 
-	CMD3(CCC_Mask,			"cl_dynamiccrosshair",	&psHUD_Flags,	HUD_CROSSHAIR_DYNAMIC);
 	CMD1(CCC_MainMenu,		"main_menu"				);
 
 #ifndef MASTER_GOLD
@@ -1929,7 +1919,6 @@ extern BOOL dbg_moving_bones_snd_player;
 	CMD4(CCC_Integer,   "dbg_bones_snd_player",		&dbg_moving_bones_snd_player, FALSE, TRUE );
 #endif
 	CMD4(CCC_Float,		"con_sensitive",			&g_console_sensitive,	0.01f, 1.0f );
-	CMD4(CCC_Integer,	"wpn_aim_toggle",			&b_toggle_weapon_aim, 0, 1);
 //	CMD4(CCC_Integer,	"hud_old_style",			&g_old_style_ui_hud, 0, 1);
 
 #ifdef DEBUG

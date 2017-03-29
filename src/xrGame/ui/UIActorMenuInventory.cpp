@@ -47,7 +47,7 @@ void CUIActorMenu::InitInventoryMode()
 	InitInventoryContents				(m_pInventoryBagList);
 
 	VERIFY( HUD().GetUI() && HUD().GetUI()->UIMainIngameWnd );
-	HUD().GetUI()->UIMainIngameWnd->ShowZoneMap(true);
+//	HUD().GetUI()->UIMainIngameWnd->ShowZoneMap(true);
 }
 
 void CUIActorMenu::DeInitInventoryMode()

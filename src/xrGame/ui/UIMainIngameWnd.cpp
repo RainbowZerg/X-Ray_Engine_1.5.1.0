@@ -81,7 +81,7 @@ CUIMainIngameWnd::CUIMainIngameWnd()
 //	m_pWeapon					= NULL;
 	m_pGrenade					= NULL;
 	m_pItem						= NULL;
-	UIZoneMap					= xr_new<CUIZoneMap>();
+//	UIZoneMap					= xr_new<CUIZoneMap>();
 	m_pPickUpItem				= NULL;
 	m_pMPChatWnd				= NULL;
 	m_pMPLogWnd					= NULL;	
@@ -93,7 +93,7 @@ extern CUIProgressShape* g_MissileForceShape;
 CUIMainIngameWnd::~CUIMainIngameWnd()
 {
 	DestroyFlashingIcons		();
-	xr_delete					(UIZoneMap);
+//	xr_delete					(UIZoneMap);
 	HUD_SOUND_ITEM::DestroySound(m_contactSnd);
 	xr_delete					(g_MissileForceShape);
 }
@@ -134,7 +134,7 @@ void CUIMainIngameWnd::Init()
 	//---------------------------------------------------------
 
 	//индикаторы 
-	UIZoneMap->Init				();
+//	UIZoneMap->Init				();
 
 	// Подсказки, которые возникают при наведении прицела на объект
 	AttachChild					(&UIStaticQuickHelp);
@@ -265,8 +265,8 @@ void CUIMainIngameWnd::Draw()
 
 	CUIWindow::Draw();
 
-	UIZoneMap->visible = true;
-	UIZoneMap->Render();
+//	UIZoneMap->visible = true;
+//	UIZoneMap->Render();
 
 	RenderQuickInfos();		
 }
@@ -300,7 +300,7 @@ void CUIMainIngameWnd::Update()
 		return;
 	}
 
-	UIZoneMap->Update();
+//	UIZoneMap->Update();
 	
 //	UIHealthBar.SetProgressPos	(m_pActor->GetfHealth()*100.0f);
 	UIMotionIcon.SetPower		(m_pActor->conditions().GetPower()*100.0f);
@@ -647,11 +647,10 @@ void CUIMainIngameWnd::UpdateFlashingIcons()
 
 void CUIMainIngameWnd::AnimateContacts(bool b_snd)
 {
-	UIZoneMap->Counter_ResetClrAnimation();
+//	UIZoneMap->Counter_ResetClrAnimation();
 
-	if(b_snd)
+	if (b_snd)
 		HUD_SOUND_ITEM::PlaySound	(m_contactSnd, Fvector().set(0,0,0), 0, true );
-
 }
 
 
@@ -709,16 +708,15 @@ void CUIMainIngameWnd::UpdatePickUpItem	()
 
 void CUIMainIngameWnd::OnConnected()
 {
-	UIZoneMap->SetupCurrentMap();
-	if ( m_ui_hud_states )
-	{
+//	UIZoneMap->SetupCurrentMap();
+
+	if (m_ui_hud_states)
 		m_ui_hud_states->on_connected();
-	}
 }
 
 void CUIMainIngameWnd::OnSectorChanged(int sector)
 {
-	UIZoneMap->OnSectorChanged(sector);
+//	UIZoneMap->OnSectorChanged(sector);
 }
 
 void CUIMainIngameWnd::reset_ui()

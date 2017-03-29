@@ -317,7 +317,7 @@ void hide_indicators()
 		HUD().GetUI()->ShowGameIndicators(false);
 		HUD().GetUI()->ShowCrosshair(false);
 	}
-	psActorFlags.set(AF_GODMODE_RT, TRUE);
+//	psActorFlags.set(AF_GODMODE_RT, TRUE); // ZergO - just indicators, no godmode!
 }
 
 void hide_indicators_safe()
@@ -329,7 +329,7 @@ void hide_indicators_safe()
 
 		HUD().GetUI()->OnExternalHideIndicators();
 	}
-	psActorFlags.set(AF_GODMODE_RT, TRUE);
+//	psActorFlags.set(AF_GODMODE_RT, TRUE);
 }
 
 void show_indicators()
@@ -339,7 +339,7 @@ void show_indicators()
 		HUD().GetUI()->ShowGameIndicators(true);
 		HUD().GetUI()->ShowCrosshair(true);
 	}
-	psActorFlags.set(AF_GODMODE_RT, FALSE);
+//	psActorFlags.set(AF_GODMODE_RT, FALSE);
 }
 
 void show_weapon(bool b)

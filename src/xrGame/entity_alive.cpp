@@ -285,17 +285,29 @@ void	CEntityAlive::Hit							(SHit* pHDS)
 	//изменить состояние, перед тем как родительский класс обработает хит
 	CWound* pWound = conditions().ConditionHit(&HDS);
 
-	if(pWound){
+	if(pWound)
+	{
 		if(ALife::eHitTypeBurn == HDS.hit_type)
 			StartFireParticles(pWound);
 		else if(ALife::eHitTypeWound == HDS.hit_type || ALife::eHitTypeFireWound == HDS.hit_type)
 			StartBloodDrops(pWound);
 	}
 
-	if (HDS.hit_type != ALife::eHitTypeTelepatic){
-		//добавить кровь на стены
+	// ZergO: оставлять кровь только от определенных типов ранений
+	switch (HDS.hit_type)
+	{
+	case ALife::eHitTypeWound:
+	case ALife::eHitTypeExplosion:
+	case ALife::eHitTypeFireWound:
+	case ALife::eHitTypeStrike:
+	{
 		if (!use_simplified_visual())
-			BloodyWallmarks (HDS.damage(), HDS.dir, HDS.bone(), HDS.p_in_bone_space);
+			BloodyWallmarks(HDS.damage(), HDS.dir, HDS.bone(), HDS.p_in_bone_space);
+
+		break;
+	}
+
+	default: break;
 	}
 
 	//-------------------------------------------
@@ -303,9 +315,10 @@ void	CEntityAlive::Hit							(SHit* pHDS)
 	//-------------------------------------------
 	inherited::Hit(&HDS);
 
-	if (g_Alive()&&IsGameTypeSingle()) {
+	if (g_Alive() && IsGameTypeSingle()) 
+	{
 		CEntityAlive* EA = smart_cast<CEntityAlive*>(HDS.who);
-		if(EA && EA->g_Alive() && EA->ID() != ID())
+		if (EA && EA->g_Alive() && EA->ID() != ID())
 		{
 			RELATION_REGISTRY().FightRegister(EA->ID(), ID(), this->tfGetRelationType(EA), HDS.damage());
 			RELATION_REGISTRY().Action(EA, this, RELATION_REGISTRY::ATTACK);

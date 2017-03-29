@@ -251,11 +251,12 @@ void	CCustomOutfit::OnMoveToRuck		(EItemPlace prev)
 		if (pActor)
 		{
 			CTorch* pTorch = smart_cast<CTorch*>(pActor->inventory().ItemFromSlot(TORCH_SLOT));
+
 			if(pTorch)
-			{
 				pTorch->SwitchNightVision(false);
-			}
-			ApplySkinModel(pActor, false, false);
+
+			if (m_pInventory->ItemFromSlot(OUTFIT_SLOT) == NULL) //ZergO: Фикс сброса визуала при подборе костюма
+				ApplySkinModel(pActor, false, false);
 		}
 	}
 };

@@ -20,7 +20,6 @@
 #include "resource.h"
 #include "LightAnimLibrary.h"
 #include "ispatial.h"
-#include "CopyProtection.h"
 #include "Text_Console.h"
 #include <process.h>
 #include <locale.h>
@@ -79,7 +78,6 @@ void InitEngine		()
 	Engine.Initialize			( );
 	while (!g_bIntroFinished)	Sleep	(100);
 	Device.Initialize			( );
-	CheckCopyProtection			( );
 }
 
 PROTECT_API void InitSettings	()
@@ -224,7 +222,6 @@ void Startup()
 	logoWindow					= NULL;
 
 	// Main cycle
-	CheckCopyProtection			( );
 Memory.mem_usage();
 	Device.Run					( );
 
@@ -438,9 +435,6 @@ struct damn_keys_filter {
 #undef dwStickyKeysStructSize
 #undef dwFilterKeysStructSize
 #undef dwToggleKeysStructSize
-
-// Приблудина для SecuROM-а
-#include "securom_api.h"
 
 #include "xr_ioc_cmd.h"
 
@@ -924,8 +918,6 @@ void CApplication::LoadBegin	()
 #endif
 		phase_timer.Start	();
 		load_stage			= 0;
-
-		CheckCopyProtection	();
 	}
 }
 
@@ -965,7 +957,6 @@ PROTECT_API void CApplication::LoadDraw		()
 		load_draw_internal			();
 
 	Device.End					();
-	CheckCopyProtection			();
 }
 
 void CApplication::LoadTitleInt(LPCSTR str)
@@ -1060,9 +1051,6 @@ void CApplication::Level_Set(u32 L)
 	else
 		//hLevelLogo.create	("font", "intro\\intro_no_start_picture");
 		m_pRender->setLevelLogo("intro\\intro_no_start_picture");
-		
-
-	CheckCopyProtection		();
 }
 
 int CApplication::Level_ID(LPCSTR name, LPCSTR ver, bool bSet)

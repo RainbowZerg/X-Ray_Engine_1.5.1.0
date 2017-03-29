@@ -99,6 +99,8 @@ _action  actions[]		= {
 	{ "quick_load",			kQUICK_LOAD				,_sp},		
 	{ "alife_command",		kALIFE_CMD				,_sp},		
 	
+	{ "hud_hide",			kHUD_HIDE				,_both},
+	{ "hud_show",			kHUD_SHOW				,_both},
 																
 	{ NULL, 				kLASTACTION				,_both}		
 };															

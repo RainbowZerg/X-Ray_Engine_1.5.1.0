@@ -10,9 +10,6 @@
     <Filter Include="Interfaces">
       <UniqueIdentifier>{ce85c5ee-8285-478a-8495-1f02ad6506ae}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Interfaces\Sound">
-      <UniqueIdentifier>{c324a996-2e51-4e75-a699-27b78fb3f3d3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Interfaces\Input">
       <UniqueIdentifier>{d72ec161-6bed-41af-ab0d-07d336014327}</UniqueIdentifier>
     </Filter>

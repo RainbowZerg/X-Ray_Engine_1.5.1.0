@@ -309,45 +309,34 @@ void CTorch::UpdateCL()
 
 		if (actor) 
 		{
-			m_prev_hp.x		= angle_inertion_var(m_prev_hp.x,-actor->cam_FirstEye()->yaw,TORCH_INERTION_SPEED_MIN,TORCH_INERTION_SPEED_MAX,TORCH_INERTION_CLAMP,Device.fTimeDelta);
-			m_prev_hp.y		= angle_inertion_var(m_prev_hp.y,-actor->cam_FirstEye()->pitch,TORCH_INERTION_SPEED_MIN,TORCH_INERTION_SPEED_MAX,TORCH_INERTION_CLAMP,Device.fTimeDelta);
+			if (actor->active_cam() == eacLookAt)
+			{
+				m_prev_hp.x		= angle_inertion_var(m_prev_hp.x,-actor->cam_Active()->yaw,TORCH_INERTION_SPEED_MIN,TORCH_INERTION_SPEED_MAX,TORCH_INERTION_CLAMP,Device.fTimeDelta);
+				m_prev_hp.y		= angle_inertion_var(m_prev_hp.y,-actor->cam_Active()->pitch,TORCH_INERTION_SPEED_MIN,TORCH_INERTION_SPEED_MAX,TORCH_INERTION_CLAMP,Device.fTimeDelta);
+			}
+			else
+			{
+				m_prev_hp.x		= angle_inertion_var(m_prev_hp.x,-actor->cam_FirstEye()->yaw,TORCH_INERTION_SPEED_MIN,TORCH_INERTION_SPEED_MAX,TORCH_INERTION_CLAMP,Device.fTimeDelta);
+				m_prev_hp.y		= angle_inertion_var(m_prev_hp.y,-actor->cam_FirstEye()->pitch,TORCH_INERTION_SPEED_MIN,TORCH_INERTION_SPEED_MAX,TORCH_INERTION_CLAMP,Device.fTimeDelta);
+			}
 
 			Fvector			dir,right,up;	
 			dir.setHP		(m_prev_hp.x+m_delta_h,m_prev_hp.y);
 			Fvector::generate_orthonormal_basis_normalized(dir,up,right);
 
 
-			if (true)
-			{
-				Fvector offset				= M.c; 
-				offset.mad					(M.i,TORCH_OFFSET.x);
-				offset.mad					(M.j,TORCH_OFFSET.y);
-				offset.mad					(M.k,TORCH_OFFSET.z);
-				light_render->set_position	(offset);
-
-				if(false)
-				{
-					offset						= M.c; 
-					offset.mad					(M.i,OMNI_OFFSET.x);
-					offset.mad					(M.j,OMNI_OFFSET.y);
-					offset.mad					(M.k,OMNI_OFFSET.z);
-					light_omni->set_position	(offset);
-				}
-			}//if (true)
+			Fvector offset				= M.c; 
+			offset.mad					(M.i,TORCH_OFFSET.x);
+			offset.mad					(M.j,TORCH_OFFSET.y);
+			offset.mad					(M.k,TORCH_OFFSET.z);
+			light_render->set_position	(offset);
+			
 			glow_render->set_position	(M.c);
 
-			if (true)
-			{
-				light_render->set_rotation	(dir, right);
-				
-				if(false)
-				{
-					light_omni->set_rotation	(dir, right);
-				}
-			}//if (true)
+			light_render->set_rotation	(dir, right);
 			glow_render->set_direction	(dir);
 
-		}// if(actor)
+		}
 		else 
 		{
 			if (can_use_dynamic_lights()) 
@@ -466,15 +455,10 @@ void CTorch::net_Import			(NET_Packet& P)
 
 bool  CTorch::can_be_attached		() const
 {
-//	if( !inherited::can_be_attached() ) return false;
-
 	const CActor *pA = smart_cast<const CActor *>(H_Parent());
 	if (pA) 
 	{
-//		if(pA->inventory().Get(ID(), false))
-		if((const CTorch*)smart_cast<CTorch*>(pA->inventory().m_slots[GetSlot()].m_pIItem) == this )
-			return true;
-		else
+		if ((const CTorch*)smart_cast<CTorch*>(pA->inventory().m_slots[GetSlot()].m_pIItem) != this)
 			return false;
 	}
 	return true;

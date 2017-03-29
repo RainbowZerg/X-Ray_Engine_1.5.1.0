@@ -90,7 +90,7 @@ static Fbox		bbCrouchBox;
 static Fvector	vFootCenter;
 static Fvector	vFootExt;
 
-Flags32			psActorFlags={/*AF_DYNAMIC_MUSIC|*/AF_GODMODE_RT};
+Flags32			psActorFlags={/*AF_DYNAMIC_MUSIC|*/};
 
 
 
@@ -697,30 +697,35 @@ void CActor::Die	(CObject* who)
 		{
 			if (slot_idx == inventory().GetActiveSlot()) 
 			{
-				if((*I).m_pIItem)
+				if ((*I).m_pIItem)
 				{
 					if (IsGameTypeSingle())
 						(*I).m_pIItem->SetDropManual(TRUE);
-					else
-					{
+//					else
+//					{
 						//This logic we do on a server site
 						/*
 						if ((*I).m_pIItem->object().CLS_ID != CLSID_OBJECT_W_KNIFE)
 						{
 							(*I).m_pIItem->SetDropManual(TRUE);
 						}*/							
-					}
-				};
-			continue;
+//					}
+				}
+				continue;
 			}
 			else
 			{
 				CCustomOutfit *pOutfit = smart_cast<CCustomOutfit *> ((*I).m_pIItem);
 				if (pOutfit) continue;
-			};
-			if((*I).m_pIItem) 
+
+				// ZergO: не снимаем фонарик в рюкзак
+				CTorch *pTorch = smart_cast<CTorch*> ((*I).m_pIItem);
+				if (pTorch) continue;
+			}
+
+			if ((*I).m_pIItem) 
 				inventory().Ruck((*I).m_pIItem);
-		};
+		}
 
 
 		///!!! чистка пояса
@@ -865,14 +870,12 @@ void CActor::UpdateCL	()
 		for(xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++)
 		{
 			CPhysicsShellHolder	*sh = smart_cast<CPhysicsShellHolder*>(*it);
-			if(sh&&sh->character_physics_support())
-			{
+			if (sh && sh->character_physics_support())
 				sh->character_physics_support()->movement()->UpdateObjectBox(character_physics_support()->movement()->PHCharacter());
-			}
 		}
 	}
-	if(m_holder)
-		m_holder->UpdateEx( currentFOV() );
+	if (m_holder)
+		m_holder->UpdateEx(currentFOV());
 
 	m_snd_noise -= 0.3f*Device.fTimeDelta;
 
@@ -890,14 +893,15 @@ void CActor::UpdateCL	()
 
 	cam_Update(float(Device.dwTimeDelta)/1000.0f, currentFOV());
 
-	if(Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID() )
+	if (Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID())
 	{
-		psHUD_Flags.set( HUD_CROSSHAIR_RT2, true );
-		psHUD_Flags.set( HUD_DRAW_RT, true );
+		psHUD_Flags.set(HUD_CROSSHAIR_RT2, true);
+		psHUD_Flags.set(HUD_DRAW_RT, true);
 	}
-	if(pWeapon )
+
+	if (pWeapon)
 	{
-		if(pWeapon->IsZoomed())
+		if (pWeapon->IsZoomed())
 		{
 			float full_fire_disp = pWeapon->GetFireDispersion(true);
 
@@ -905,39 +909,39 @@ void CActor::UpdateCL	()
 			if(S) 
 				S->SetParams(full_fire_disp);
 
-			SetZoomAimingMode		(true);
+			SetZoomAimingMode (true);
 		}
 
-		if(Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID() )
+		if (Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID())
 		{
 			float fire_disp_full = pWeapon->GetFireDispersion(true);
 			m_fdisp_controller.SetDispertion(fire_disp_full);
 			
-			fire_disp_full = m_fdisp_controller.GetCurrentDispertion();
+			if (!psHUD_Flags.test(HUD_CROSSHAIR_OLD)) // ZergO - круглый прицел
+			{
+				if (psHUD_Flags.test(HUD_CROSSHAIR_DYNAMIC))
+				{
+					fire_disp_full = m_fdisp_controller.GetCurrentDispertion();
+					HUD().SetCrosshairDisp(fire_disp_full);
+				}
 
-			HUD().SetCrosshairDisp(fire_disp_full, 0.02f);
-			HUD().ShowCrosshair(pWeapon->use_crosshair());
+				HUD().ShowCrosshair(pWeapon->use_crosshair());
+			}
+			else
+				HUD().ShowCrosshair(false);
+
 #ifdef DEBUG
 			HUD().SetFirstBulletCrosshairDisp(pWeapon->GetFirstBulletDisp());
 #endif
 			
-			BOOL B = ! ((mstate_real & mcLookout) && !IsGameTypeSingle());
-
-			psHUD_Flags.set( HUD_WEAPON_RT, B );
-
-			B = B && pWeapon->show_crosshair();
-
-			psHUD_Flags.set( HUD_CROSSHAIR_RT2, B );
-			
-
-			
-			psHUD_Flags.set( HUD_DRAW_RT,		pWeapon->show_indicators() );
+			psHUD_Flags.set(HUD_CROSSHAIR_RT2, pWeapon->show_crosshair());
+			psHUD_Flags.set(HUD_DRAW_RT, pWeapon->show_indicators());
 		}
 
 	}
 	else
 	{
-		if(Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID() )
+		if (Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID())
 		{
 			HUD().SetCrosshairDisp(0.f);
 			HUD().ShowCrosshair(false);
@@ -963,8 +967,8 @@ void CActor::UpdateCL	()
 		else
 			xr_delete(m_sndShockEffector);
 	}
-	Fmatrix							trans;
-	if(cam_Active() == cam_FirstEye())
+	Fmatrix trans;
+	if (cam_Active() == cam_FirstEye())
 	{
 /*
 		CCameraBase* C = cam_Active();
@@ -983,9 +987,9 @@ void CActor::UpdateCL	()
 		trans.set				(vRight, vNormal, vDirection, vPosition);
 */
 		Cameras().hud_camera_Matrix		(trans);
-	}else
+	}
+	else
 		Cameras().camera_Matrix			(trans);
-	
 	
 	if(IsFocused())
 		g_player_hud->update			(trans);
@@ -1282,9 +1286,12 @@ void CActor::renderable_Render	()
 {
 	VERIFY(_valid(XFORM()));
 	inherited::renderable_Render			();
-	if (!HUDview()){
-		CInventoryOwner::renderable_Render	();
-	}
+	// ZergO: weapon shadow in 1st face
+	if ((cam_active==eacFirstEye && ((::Render->get_generation() == ::Render->GENERATION_R2 && ::Render->active_phase() == 1) ||
+									 (::Render->get_generation() == ::Render->GENERATION_R1 && ::Render->active_phase() == 0)))
+		||
+		!(IsFocused() && (cam_active==eacFirstEye) && ((!m_holder) || (m_holder && m_holder->allowWeapon() && m_holder->HUDView()))))
+			CInventoryOwner::renderable_Render ();
 	VERIFY(_valid(XFORM()));
 }
 
