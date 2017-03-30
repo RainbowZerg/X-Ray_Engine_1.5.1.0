@@ -97,8 +97,14 @@ void CALifeSimulatorBase::reload			(LPCSTR section)
 
 CSE_Abstract *CALifeSimulatorBase::spawn_item	(LPCSTR section, const Fvector &position, u32 level_vertex_id, GameGraph::_GRAPH_ID game_vertex_id, u16 parent_id, bool registration)
 {
+	if (!pSettings->section_exist(section))
+	{
+		Msg("! Can't find section [%s]", section);
+		return 0;
+	}
+
 	CSE_Abstract				*abstract = F_entity_Create(section);
-	R_ASSERT3					(abstract,"Cannot find item with section",section);
+//	R_ASSERT3					(abstract,"Cannot find item with section",section);
 
 	abstract->s_name			= section;
 //.	abstract->s_gameid			= u8(GAME_SINGLE);
