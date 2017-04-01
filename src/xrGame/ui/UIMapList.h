@@ -14,7 +14,6 @@ class CUISpinText;
 class CUIMapInfo;
 class CUIComboBox;
 class CUIXml;
-class CExtraContentFilter;
 
 #define	MAP_ROTATION_LIST	"maprot_list.ltx"
 
@@ -77,6 +76,4 @@ private:
 	xr_vector<Sw>		m_mapWeather;
 	xr_string			m_command;
 	xr_string			m_srv_params;
-
-	CExtraContentFilter*	m_pExtraContentFilter;
 };

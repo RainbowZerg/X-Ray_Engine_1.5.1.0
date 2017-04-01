@@ -7,7 +7,6 @@
 #include "UIFrameLineWnd.h"
 #include "UIEditBox.h"
 #include "UI3tButton.h"
-#include "../battleye.h"
 
 
 class CUIXml;
@@ -30,7 +29,6 @@ public:
 	bool	with_pass;
 	bool	without_pass;
 	bool	without_ff;
-	bool	with_battleye;
 	bool	listen_servers;
 };
 

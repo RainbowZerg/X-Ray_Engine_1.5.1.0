@@ -1462,9 +1462,6 @@
     <Filter Include="Core\Client\Effects\Core">
       <UniqueIdentifier>{c066079b-45a1-4db1-b4b2-c3b6c86a8dd3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Client\BattlEye_Client">
-      <UniqueIdentifier>{c04848ce-a4cd-4f70-937c-ff00f76c46fd}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Client\Game Persistent">
       <UniqueIdentifier>{f2647976-9fc3-491a-ba0a-0641651fc748}</UniqueIdentifier>
     </Filter>
@@ -2160,9 +2157,6 @@
     </Filter>
     <Filter Include="Core\Server\xrGameSpyServer">
       <UniqueIdentifier>{2156eac0-fef2-43da-b965-717ad2b3ff76}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Server\BattlEye_Server">
-      <UniqueIdentifier>{16e6aca9-6b9e-4879-8f10-55315ea8d061}</UniqueIdentifier>
     </Filter>
     <Filter Include="Physics">
       <UniqueIdentifier>{8d605af6-de1a-49e1-b47b-1548612e717e}</UniqueIdentifier>
@@ -5364,9 +5358,6 @@
     <ClInclude Include="DynamicHeightMap.h">
       <Filter>Core\Client\Effects\Core</Filter>
     </ClInclude>
-    <ClInclude Include="xr_Client_BattlEye.h">
-      <Filter>Core\Client\BattlEye_Client</Filter>
-    </ClInclude>
     <ClInclude Include="GamePersistent.h">
       <Filter>Core\Client\Game Persistent</Filter>
     </ClInclude>
@@ -6522,15 +6513,6 @@
     <ClInclude Include="xrGameSpyServer_callbacks.h">
       <Filter>Core\Server\xrGameSpyServer</Filter>
     </ClInclude>
-    <ClInclude Include="battleye.h">
-      <Filter>Core\Server\BattlEye_Server</Filter>
-    </ClInclude>
-    <ClInclude Include="battleye_system.h">
-      <Filter>Core\Server\BattlEye_Server</Filter>
-    </ClInclude>
-    <ClInclude Include="xr_Server_BattlEye.h">
-      <Filter>Core\Server\BattlEye_Server</Filter>
-    </ClInclude>
     <ClInclude Include="CalculateTriangle.h">
       <Filter>Physics\Base</Filter>
     </ClInclude>
@@ -6881,9 +6863,6 @@
     </ClInclude>
     <ClInclude Include="poses_blending.h">
       <Filter>Physics\animation_movement_controller</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\CExtraContentFilter.h">
-      <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="MainMenu.h">
       <Filter>UI</Filter>
@@ -8951,9 +8930,6 @@
     <ClCompile Include="DynamicHeightMap.cpp">
       <Filter>Core\Client\Effects\Core</Filter>
     </ClCompile>
-    <ClCompile Include="xr_Client_BattlEye.cpp">
-      <Filter>Core\Client\BattlEye_Client</Filter>
-    </ClCompile>
     <ClCompile Include="GamePersistent.cpp">
       <Filter>Core\Client\Game Persistent</Filter>
     </ClCompile>
@@ -10178,12 +10154,6 @@
     <ClCompile Include="xrGameSpyServer_callbacks.cpp">
       <Filter>Core\Server\xrGameSpyServer</Filter>
     </ClCompile>
-    <ClCompile Include="battleye_system.cpp">
-      <Filter>Core\Server\BattlEye_Server</Filter>
-    </ClCompile>
-    <ClCompile Include="xr_Server_BattlEye.cpp">
-      <Filter>Core\Server\BattlEye_Server</Filter>
-    </ClCompile>
     <ClCompile Include="phvalide.cpp">
       <Filter>Physics\Base</Filter>
     </ClCompile>
@@ -10471,9 +10441,6 @@
     </ClCompile>
     <ClCompile Include="poses_blending.cpp">
       <Filter>Physics\animation_movement_controller</Filter>
-    </ClCompile>
-    <ClCompile Include="ui\CExtraContentFilter.cpp">
-      <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="MainMenu.cpp">
       <Filter>UI</Filter>

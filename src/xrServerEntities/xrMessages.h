@@ -66,7 +66,6 @@ enum {
 	M_CHANGE_SELF_NAME,
 	M_REMOTE_CONTROL_AUTH,
 	M_REMOTE_CONTROL_CMD,
-	M_BATTLEYE,
 
 	M_SV_MAP_NAME,				//request and responce
 	M_SV_DIGEST,				//request and responce
