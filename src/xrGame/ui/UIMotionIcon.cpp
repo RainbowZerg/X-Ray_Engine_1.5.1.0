@@ -2,9 +2,10 @@
 #include "UIMainIngameWnd.h"
 #include "UIMotionIcon.h"
 #include "UIXmlInit.h"
+
 const LPCSTR MOTION_ICON_XML = "motion_icon.xml";
 
-//--extern BOOL g_old_style_ui_hud;
+BOOL g_old_style_ui_hud = FALSE;
 
 CUIMotionIcon::CUIMotionIcon()
 {
@@ -15,7 +16,6 @@ CUIMotionIcon::CUIMotionIcon()
 
 CUIMotionIcon::~CUIMotionIcon()
 {
-
 }
 
 void CUIMotionIcon::ResetVisibility()
@@ -71,13 +71,14 @@ void CUIMotionIcon::Init()
 
 void CUIMotionIcon::ShowState(EState state)
 {
-	if(m_curren_state==state)			return;
-	if(m_curren_state!=stLast)
+	if (m_curren_state==state)			return;
+
+	if (m_curren_state!=stLast)
 	{
-	
 		m_states[m_curren_state].Show	(false);
 		m_states[m_curren_state].Enable	(false);
 	}
+
 	m_states[state].Show				(true);
 	m_states[state].Enable				(true);
 
@@ -103,22 +104,21 @@ void CUIMotionIcon::SetLuminosity(float Pos)
 
 void CUIMotionIcon::Draw()
 {
-/*if(g_old_style_ui_hud)
-	{
+	if (g_old_style_ui_hud)
 		inherited::Draw();
-	}
-	*/
 }
 
 void CUIMotionIcon::Update()
 {
-	if(m_bchanged){
+	if (m_bchanged)
+	{
 		m_bchanged = false;
-		if( m_npc_visibility.size() )
+		if (m_npc_visibility.size())
 		{
 			std::sort					(m_npc_visibility.begin(), m_npc_visibility.end());
 			SetLuminosity				(m_npc_visibility.back().value);
-		}else
+		}
+		else
 			SetLuminosity				(m_luminosity_progress.GetRange_min() );
 	}
 	inherited::Update();
@@ -127,11 +127,15 @@ void CUIMotionIcon::Update()
 	{
 		float len					= m_noise_progress.GetRange_max()-m_noise_progress.GetRange_min();
 		float cur_pos				= m_luminosity_progress.GetProgressPos();
-		if(cur_pos!=m_luminosity){
+		if (cur_pos!=m_luminosity)
+		{
 			float _diff = _abs(m_luminosity-cur_pos);
-			if(m_luminosity>cur_pos){
+			if (m_luminosity>cur_pos)
+			{
 				cur_pos				+= _min(len*Device.fTimeDelta, _diff);
-			}else{
+			}
+			else
+			{
 				cur_pos				-= _min(len*Device.fTimeDelta, _diff);
 			}
 			clamp(cur_pos, m_noise_progress.GetRange_min(), m_noise_progress.GetRange_max());
@@ -140,7 +144,7 @@ void CUIMotionIcon::Update()
 	}
 }
 
-void CUIMotionIcon::SetActorVisibility		(u16 who_id, float value)
+void CUIMotionIcon::SetActorVisibility(u16 who_id, float value)
 {
 	float v		= float(m_luminosity_progress.GetRange_max() - m_luminosity_progress.GetRange_min());
 	value		*= v;
@@ -150,17 +154,17 @@ void CUIMotionIcon::SetActorVisibility		(u16 who_id, float value)
 														m_npc_visibility.end(),
 														who_id);
 
-	if(it==m_npc_visibility.end() && value!=0)
+	if (it == m_npc_visibility.end() && value != 0)
 	{
-		m_npc_visibility.resize	(m_npc_visibility.size()+1);
+		m_npc_visibility.resize	(m_npc_visibility.size() + 1);
 		_npc_visibility& v		= m_npc_visibility.back();
 		v.id					= who_id;
 		v.value					= value;
 	}
-	else if( fis_zero(value) )
+	else if (fis_zero(value))
 	{
 		if (it!=m_npc_visibility.end())
-			m_npc_visibility.erase	(it);
+			m_npc_visibility.erase (it);
 	}
 	else
 	{

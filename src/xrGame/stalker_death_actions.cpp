@@ -69,7 +69,7 @@ void CStalkerActionDead::initialize		()
 	object().inventory().Action			(kWPN_FIRE,CMD_START);
 
 	int active_slot						= object().inventory().GetActiveSlot();
-	if (active_slot == 2) {
+	if (active_slot == RIFLE_SLOT) {
 		CInventoryItem*					item = object().inventory().m_slots[active_slot].m_pIItem;
 		if (item) {
 			CWeaponMagazined*			weapon = smart_cast<CWeaponMagazined*>(item);
