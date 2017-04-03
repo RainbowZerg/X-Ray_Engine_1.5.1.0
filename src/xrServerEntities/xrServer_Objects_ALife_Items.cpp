@@ -419,7 +419,7 @@ void CSE_ALifeItem::OnEvent					(NET_Packet &tNetPacket, u16 type, u32 time, Cli
 CSE_ALifeItemTorch::CSE_ALifeItemTorch		(LPCSTR caSection) : CSE_ALifeItem(caSection)
 {
 	m_active					= false;
-	m_nightvision_active		= false;
+	m_is_flickering				= false;
 	m_attached					= false;
 }
 
@@ -451,9 +451,9 @@ void CSE_ALifeItemTorch::UPDATE_Read		(NET_Packet	&tNetPacket)
 	inherited::UPDATE_Read		(tNetPacket);
 	
 	BYTE F = tNetPacket.r_u8();
-	m_active					= !!(F & eTorchActive);
-	m_nightvision_active		= !!(F & eNightVisionActive);
+	m_active					= !!(F & eActive);
 	m_attached					= !!(F & eAttached);
+	m_is_flickering				= !!(F & eFlickering);
 }
 
 void CSE_ALifeItemTorch::UPDATE_Write		(NET_Packet	&tNetPacket)
@@ -461,9 +461,9 @@ void CSE_ALifeItemTorch::UPDATE_Write		(NET_Packet	&tNetPacket)
 	inherited::UPDATE_Write		(tNetPacket);
 
 	BYTE F = 0;
-	F |= (m_active ? eTorchActive : 0);
-	F |= (m_nightvision_active ? eNightVisionActive : 0);
-	F |= (m_attached ? eAttached : 0);
+	F |= (m_active				? eActive : 0);
+	F |= (m_attached			? eAttached : 0);
+	F |= (m_is_flickering		? eFlickering : 0);
 	tNetPacket.w_u8(F);
 }
 

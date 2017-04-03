@@ -587,6 +587,20 @@ void	CActor::Hit							(SHit* pHDS)
 			Game().m_WeaponUsageStatistic->OnExplosionKill	(ps, HDS);
 		}
 	}
+
+	// ZergO: разбитие фонаря при попадании в голову
+	if (pHDS->boneID == m_head)
+	{
+		TIItemContainer::iterator I = inventory().m_all.begin();
+		TIItemContainer::iterator E = inventory().m_all.end();
+
+		for (; I != E; ++I)
+		{
+			CTorch* pTorch = smart_cast<CTorch*>(*I);
+			if (pTorch != NULL && attached(*I))
+				pTorch->Break();
+		}
+	}
 }
 
 void CActor::HitMark	(float P, 
@@ -1659,6 +1673,8 @@ void CActor::UpdateArtefactsOnBeltAndOutfit()
 		conditions().ChangeSatiety		(outfit->m_fSatietyRestoreSpeed   * f_update_time);
 		conditions().ChangeRadiation	(outfit->m_fRadiationRestoreSpeed * f_update_time);
 	}
+#pragma todo("ZergO: переделать под отдельный предмет ПНВ")
+/*
 	else
 	{
 		CTorch* pTorch = smart_cast<CTorch*>( inventory().ItemFromSlot(TORCH_SLOT) );
@@ -1667,6 +1683,7 @@ void CActor::UpdateArtefactsOnBeltAndOutfit()
 			pTorch->SwitchNightVision(false);
 		}
 	}
+*/
 }
 
 float	CActor::HitArtefactsOnBelt(float hit_power, ALife::EHitType hit_type)

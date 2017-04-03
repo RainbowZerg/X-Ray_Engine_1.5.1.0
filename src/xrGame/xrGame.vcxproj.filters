@@ -9542,9 +9542,6 @@
     <ClCompile Include="Torch.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\Torch</Filter>
     </ClCompile>
-    <ClCompile Include="torch_script.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Devices\Torch</Filter>
-    </ClCompile>
     <ClCompile Include="flare.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\flare</Filter>
     </ClCompile>

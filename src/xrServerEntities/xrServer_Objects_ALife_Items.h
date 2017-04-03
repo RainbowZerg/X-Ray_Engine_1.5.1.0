@@ -107,13 +107,14 @@ add_to_type_list(CSE_ALifeItem)
 SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemTorch,CSE_ALifeItem)
 //флаги
 	enum EStats{
-		eTorchActive				= (1<<0),
-		eNightVisionActive			= (1<<1),
-		eAttached					= (1<<2)
+		eActive						= (1<<0),
+		eAttached					= (1<<1),
+		eFlickering					= (1<<2), // ZergO: added
 	};
 	bool							m_active;
-	bool							m_nightvision_active;
 	bool							m_attached;
+	bool							m_is_flickering;
+
 									CSE_ALifeItemTorch	(LPCSTR caSection);
     virtual							~CSE_ALifeItemTorch	();
 	virtual BOOL					Net_Relevant			();

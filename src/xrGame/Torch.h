@@ -6,7 +6,6 @@
 #include "script_export_space.h"
 
 class CLAItem;
-class CMonsterEffector;
 
 class CTorch : public CInventoryItemObject {
 private:
@@ -15,7 +14,7 @@ private:
 protected:
 	float			fBrightness;
 	CLAItem*		lanim;
-	float			time2hide;
+	CLAItem*		lanim_flickering;
 
 	u16				guid_bone;
 	shared_str		light_trace_bone;
@@ -26,8 +25,11 @@ protected:
 	ref_light		light_render;
 	ref_light		light_omni;
 	ref_glow		glow_render;
-	Fvector			m_focus;
 private:
+	// ZergO: added
+	bool			m_is_flickering;
+	bool			m_is_broken;
+
 	inline	bool	can_use_dynamic_lights	();
 
 public:
@@ -47,29 +49,21 @@ public:
 
 			void	Switch				();
 			void	Switch				(bool light_on);
+			void	Break				();
 
 	virtual bool	can_be_attached		() const;
 
 	//CAttachableItem
 	virtual	void				enable					(bool value);
- 
-public:
-			void	SwitchNightVision		  ();
-			void	SwitchNightVision		  (bool light_on);
-			void	UpdateSwitchNightVision   ();
-			float	NightVisionBattery		  ();
 
-			bool	GetNightVisionStatus	() { return m_bNightVisionOn; }
 protected:
-	bool					m_bNightVisionEnabled;
-	bool					m_bNightVisionOn;
+	HUD_SOUND_ITEM m_FlashlightSwitchSnd;
 
-	HUD_SOUND_COLLECTION	m_sounds;
-
-	enum EStats{
-		eTorchActive				= (1<<0),
-		eNightVisionActive			= (1<<1),
-		eAttached					= (1<<2)
+	enum EStats
+	{
+		eActive		= (1<<0),
+		eAttached	= (1<<2),
+		eFlickering	= (1<<3), // ZergO: added
 	};
 
 public:

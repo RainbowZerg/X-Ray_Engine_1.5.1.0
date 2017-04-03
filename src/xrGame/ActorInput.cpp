@@ -544,6 +544,8 @@ void CActor::set_input_external_handler(CActorInputHandler *handler)
 
 void CActor::SwitchNightVision()
 {
+#pragma todo("ZergO: ןונוהוכאעü ןמה מעהוכüםûי ןנוהלוע ÏÍÂ")
+/*
 	xr_vector<CAttachableItem*> const& all = CAttachmentOwner::attached_objects();
 	xr_vector<CAttachableItem*>::const_iterator it = all.begin();
 	xr_vector<CAttachableItem*>::const_iterator it_e = all.end();
@@ -556,6 +558,7 @@ void CActor::SwitchNightVision()
 			return;
 		}
 	}
+*/
 }
 
 void CActor::SwitchTorch()
