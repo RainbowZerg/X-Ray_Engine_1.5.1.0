@@ -125,10 +125,6 @@ extern BOOL		dbg_imotion_collide_debug;
 extern float	dbg_imotion_draw_velocity_scale;
 #endif
 int g_AI_inactive_time = 0;
-Flags32 g_uCommonFlags;
-enum E_COMMON_FLAGS{
-	flAiUseTorchDynamicLights = 1
-};
 
 CUIOptConCom g_OptConCom;
 
@@ -1883,12 +1879,6 @@ CMD4(CCC_FloatBlock,		"dbg_text_height_scale",	&dbg_text_height_scale	,			0.2f	,
 	CMD1(CCC_StartTimeSingle,	"start_time_single");
 	CMD4(CCC_TimeFactorSingle,	"time_factor_single", &g_fTimeFactor, 0.f,flt_max);
 #endif // MASTER_GOLD
-
-
-	g_uCommonFlags.zero();
-	g_uCommonFlags.set(flAiUseTorchDynamicLights, TRUE);
-
-	CMD3(CCC_Mask,		"ai_use_torch_dynamic_lights",	&g_uCommonFlags, flAiUseTorchDynamicLights);
 
 #ifndef MASTER_GOLD
 	CMD4(CCC_Vector3,		"psp_cam_offset",				&CCameraLook2::m_cam_offset, Fvector().set(-1000,-1000,-1000),Fvector().set(1000,1000,1000));
