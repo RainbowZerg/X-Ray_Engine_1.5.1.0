@@ -690,7 +690,7 @@ void CWeapon::OnH_B_Independent	(bool just_before_destroy)
 
 	FireEnd						();
 	SetPending					(FALSE);
-	SwitchState					(eIdle); // eHidden
+	SwitchState					(eHidden); // eIdle in SoC and LA
 
 	m_strapped_mode					= false;
 	m_strapped_mode_rifle			= false;

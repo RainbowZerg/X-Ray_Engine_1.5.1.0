@@ -419,8 +419,8 @@ void CSE_ALifeItem::OnEvent					(NET_Packet &tNetPacket, u16 type, u32 time, Cli
 CSE_ALifeItemTorch::CSE_ALifeItemTorch		(LPCSTR caSection) : CSE_ALifeItem(caSection)
 {
 	m_active					= false;
-	m_is_flickering				= false;
 	m_attached					= false;
+	m_is_flickering				= false;
 }
 
 CSE_ALifeItemTorch::~CSE_ALifeItemTorch		()
@@ -454,6 +454,7 @@ void CSE_ALifeItemTorch::UPDATE_Read		(NET_Packet	&tNetPacket)
 	m_active					= !!(F & eActive);
 	m_attached					= !!(F & eAttached);
 	m_is_flickering				= !!(F & eFlickering);
+	tNetPacket.r_float_q8		(m_fCondition,0.0f,1.0f);
 }
 
 void CSE_ALifeItemTorch::UPDATE_Write		(NET_Packet	&tNetPacket)
@@ -461,10 +462,11 @@ void CSE_ALifeItemTorch::UPDATE_Write		(NET_Packet	&tNetPacket)
 	inherited::UPDATE_Write		(tNetPacket);
 
 	BYTE F = 0;
-	F |= (m_active				? eActive : 0);
-	F |= (m_attached			? eAttached : 0);
-	F |= (m_is_flickering		? eFlickering : 0);
-	tNetPacket.w_u8(F);
+	F |= (m_active			? eActive : 0);
+	F |= (m_attached		? eAttached : 0);
+	F |= (m_is_flickering	? eFlickering : 0);
+	tNetPacket.w_u8			(F);
+	tNetPacket.w_float_q8	(m_fCondition, 0.0f, 1.0f);
 }
 
 #ifndef XRGAME_EXPORTS

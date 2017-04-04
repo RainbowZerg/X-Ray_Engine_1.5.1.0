@@ -337,7 +337,6 @@ void CTorch::setup_physic_shell	()
 void CTorch::net_Export			(NET_Packet& P)
 {
 	inherited::net_Export		(P);
-//	P.w_u8						(m_switched_on ? 1 : 0);
 
 	BYTE F = 0;
 	F |= (m_switched_on ? eActive : 0);
@@ -346,11 +345,10 @@ void CTorch::net_Export			(NET_Packet& P)
 	if (pA)
 		F |= (pA->attached(this) ? eAttached : 0);
 
-	// ZergO: added
-	F |= (m_is_flickering	? eFlickering : 0);
+	F |= (m_is_flickering ? eFlickering : 0);
 
 	P.w_u8(F);
-//	Msg("CTorch::net_export - NV[%d]", m_bNightVisionOn);
+	P.w_float_q8(m_fCondition, 0.0f, 1.0f);
 }
 
 void CTorch::net_Import			(NET_Packet& P)
@@ -364,7 +362,8 @@ void CTorch::net_Import			(NET_Packet& P)
 
 	if (new_m_switched_on != m_switched_on)			
 		Switch (new_m_switched_on);
-//	Msg("CTorch::net_Import - NV[%d]", new_m_bNightVisionOn);
+
+	P.r_float_q8(m_fCondition, 0.0f, 1.0f);
 }
 
 bool  CTorch::can_be_attached		() const

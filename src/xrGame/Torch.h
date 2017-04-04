@@ -62,8 +62,8 @@ protected:
 	enum EStats
 	{
 		eActive		= (1<<0),
-		eAttached	= (1<<2),
-		eFlickering	= (1<<3), // ZergO: added
+		eAttached	= (1<<1),
+		eFlickering	= (1<<2), // ZergO: added
 	};
 
 public:

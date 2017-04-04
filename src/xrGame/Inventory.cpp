@@ -23,6 +23,7 @@
 #include "player_hud.h"
 
 #include "WeaponMagazined.h"
+#include "ai/stalker/ai_stalker.h"
 
 using namespace InventoryUtilities;
 
@@ -126,6 +127,7 @@ void CInventory::Take(CGameObject *pObj, bool bNotActivate, bool strict_placemen
 	Level().RemoveObject_From_4CrPr		(pObj);
 
 	// ZergO: LA code
+	/*
 	if (Level().CurrentEntity())
 	{
 		u16 actor_id = Level().CurrentEntity()->ID();
@@ -141,7 +143,7 @@ void CInventory::Take(CGameObject *pObj, bool bNotActivate, bool strict_placemen
 	
 		}
 	}
-
+	*/
 	m_all.push_back						(pIItem);
 
 	if(!strict_placement)
@@ -1329,18 +1331,38 @@ void  CInventory::AddAvailableItems(TIItemContainer& items_container, bool for_t
 				items_container.push_back(pIItem);
 		}
 	}
-	
-	if(m_bSlotsUseful)
+
+	// ZergO: show items from slots in dead body search (LA)
+	CAI_Stalker* pOwner = smart_cast<CAI_Stalker*>(m_pOwner);
+	if (pOwner && !pOwner->g_Alive())
+	{
+		TISlotArr::const_iterator slot_it = m_slots.begin();
+		TISlotArr::const_iterator slot_it_e = m_slots.end();
+		for (; slot_it != slot_it_e; ++slot_it)
+		{
+			const CInventorySlot& S = *slot_it;
+			if (S.m_pIItem && S.m_pIItem->GetSlot() != BOLT_SLOT)
+				items_container.push_back(S.m_pIItem);
+		}
+	}
+	else if (m_bSlotsUseful)
 	{
 		TISlotArr::const_iterator slot_it			= m_slots.begin();
 		TISlotArr::const_iterator slot_it_e			= m_slots.end();
-		for(;slot_it!=slot_it_e;++slot_it)
+		for (; slot_it != slot_it_e; ++slot_it)
 		{
 			const CInventorySlot& S = *slot_it;
-			if(S.m_pIItem && (!for_trade || S.m_pIItem->CanTrade())  )
+			if (S.m_pIItem && (!for_trade || S.m_pIItem->CanTrade()))
 			{
-				if(!S.m_bPersistent || S.m_pIItem->GetSlot()==GRENADE_SLOT )
+				const u32 slot = S.m_pIItem->GetSlot();
+				if (!S.m_bPersistent || slot == GRENADE_SLOT)
+				{
+					// сталкеры не должны нам продавать своё оружие в слотах
+					if (pOwner && (slot == PISTOL_SLOT || slot == RIFLE_SLOT))
+						continue;
+
 					items_container.push_back(S.m_pIItem);
+				}
 			}
 		}
 	}		
