@@ -30,16 +30,12 @@ CTorch::CTorch(void)
 	light_omni					= ::Render->light_create();
 	light_omni->set_type		(IRender_Light::POINT);
 	light_omni->set_shadow		(false);
+	light_omni->set_flare		(false);
 
 	m_switched_on				= false;
 	glow_render					= ::Render->glow_create();
 	lanim						= 0;
 	fBrightness					= 1.f;
-
-	/*m_NightVisionRechargeTime	= 6.f;
-	m_NightVisionRechargeTimeMin= 2.f;
-	m_NightVisionDischargeTime	= 10.f;
-	m_NightVisionChargeTime		= 0.f;*/
 
 	m_prev_hp.set				(0,0);
 	m_delta_h					= 0;
@@ -175,6 +171,7 @@ BOOL CTorch::net_Spawn(CSE_Abstract* DC)
 	float range				= pUserData->r_float				(torch_sect,(b_r2)?"range_r2":"range");
 	light_render->set_color	(clr);
 	light_render->set_range	(range);
+	light_render->set_flare (!!pUserData->r_bool				(torch_sect, "lens_flare"));
 
 	Fcolor clr_o			= pUserData->r_fcolor				(torch_sect,(b_r2)?"omni_color_r2":"omni_color");
 	float range_o			= pUserData->r_float				(torch_sect,(b_r2)?"omni_range_r2":"omni_range");

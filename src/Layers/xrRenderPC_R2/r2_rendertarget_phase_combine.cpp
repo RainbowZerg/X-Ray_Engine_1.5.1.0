@@ -101,16 +101,15 @@ void	CRenderTarget::phase_combine	()
 	if (!_menu_pp)
 	{
 		// Compute params
-		Fmatrix		m_v2w;			m_v2w.invert				(Device.mView		);
-		CEnvDescriptorMixer& envdesc= *g_pGamePersistent->Environment().CurrentEnv		;
+		Fmatrix		m_v2w;			m_v2w.invert				(Device.mView);
+		CEnvDescriptorMixer& envdesc= *g_pGamePersistent->Environment().CurrentEnv;
 		const float minamb			= 0.001f;
 		Fvector4	ambclr			= { _max(envdesc.ambient.x*2,minamb),	_max(envdesc.ambient.y*2,minamb),			_max(envdesc.ambient.z*2,minamb),	0	};
 					ambclr.mul		(ps_r2_sun_lumscale_amb);
 
 //.		Fvector4	envclr			= { envdesc.sky_color.x*2+EPS,	envdesc.sky_color.y*2+EPS,	envdesc.sky_color.z*2+EPS,	envdesc.weight					};
 		Fvector4	envclr			= { envdesc.hemi_color.x*2+EPS,	envdesc.hemi_color.y*2+EPS,	envdesc.hemi_color.z*2+EPS,	envdesc.weight					};
-
-		Fvector4	fogclr			= { envdesc.fog_color.x,	envdesc.fog_color.y,	envdesc.fog_color.z,		0	};
+		Fvector4	fogclr			= { envdesc.fog_color.x, envdesc.fog_color.y, envdesc.fog_color.z, 0 };
 					envclr.x		*= 2*ps_r2_sun_lumscale_hemi; 
 					envclr.y		*= 2*ps_r2_sun_lumscale_hemi; 
 					envclr.z		*= 2*ps_r2_sun_lumscale_hemi;
@@ -200,8 +199,7 @@ void	CRenderTarget::phase_combine	()
 
 	//	Igor: for volumetric lights
 	//	combine light volume here
-	if (m_bHasActiveVolumetric)
-		phase_combine_volumetric();
+	if (!_menu_pp && m_bHasActiveVolumetric) phase_combine_volumetric();
 
 	// Perform blooming filter and distortion if needed
 	RCache.set_Stencil	(FALSE);
@@ -281,6 +279,7 @@ void	CRenderTarget::phase_combine	()
 		RCache.set_c				("dof_params",	dof.x, dof.y, dof.z, ps_r2_dof_sky);
 //.		RCache.set_c				("dof_params",	ps_r2_dof.x, ps_r2_dof.y, ps_r2_dof.z, ps_r2_dof_sky);
 		RCache.set_c				("dof_kernel",	vDofKernel.x, vDofKernel.y, ps_r2_dof_kernel_size, 0);
+		RCache.set_c				("c_color_grading", ps_r2_color_grading_params);
 		
 		RCache.set_Geometry			(g_aa_AA);
 		RCache.Render				(D3DPT_TRIANGLELIST,Offset,0,4,0,2);
@@ -306,6 +305,13 @@ void	CRenderTarget::phase_combine	()
 		std::swap					(rt_LUM_pool[gpu_id*2+0],rt_LUM_pool[gpu_id*2+1]);
 		t_LUM_src->surface_set		(NULL);
 		t_LUM_dest->surface_set		(NULL);
+	}
+
+	if (ps_r2_ls_flags.test(R2FLAG_LENS_FLARES))
+	{
+		phase_flares();
+		// clear rt
+		u_setrt(Device.dwWidth, Device.dwHeight, HW.pBaseRT, NULL, NULL, HW.pBaseZB);
 	}
 
 #ifdef DEBUG

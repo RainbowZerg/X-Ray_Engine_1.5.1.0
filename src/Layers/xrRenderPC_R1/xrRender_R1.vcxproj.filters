@@ -204,9 +204,6 @@
     <ClInclude Include="..\xrRender\xrStripify.h">
       <Filter>Stripifier</Filter>
     </ClInclude>
-    <ClInclude Include="GlowManager.h">
-      <Filter>Glows</Filter>
-    </ClInclude>
     <ClInclude Include="..\xrRender\WallmarksEngine.h">
       <Filter>Wallmarks</Filter>
     </ClInclude>
@@ -594,6 +591,12 @@
     <ClInclude Include="..\..\Include\xrRender\RenderDetailModel.h">
       <Filter>Refactored\Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="..\xrRender\GlowManager.h">
+      <Filter>Glows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xrRender\r__sun_cascades.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -608,13 +611,7 @@
     <ClCompile Include="FStaticRender.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="FStaticRender_Blenders.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="FStaticRender_DetectSector.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="FStaticRender_Loader.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="FStaticRender_RenderTarget.cpp">
@@ -673,9 +670,6 @@
     </ClCompile>
     <ClCompile Include="..\xrRender\xrStripify.cpp">
       <Filter>Stripifier</Filter>
-    </ClCompile>
-    <ClCompile Include="GlowManager.cpp">
-      <Filter>Glows</Filter>
     </ClCompile>
     <ClCompile Include="..\xrRender\WallmarksEngine.cpp">
       <Filter>Wallmarks</Filter>
@@ -993,6 +987,15 @@
       <Filter>Refactored\Execution &amp; 3D\Gamma</Filter>
     </ClCompile>
     <ClCompile Include="..\xrRender\r__R_calculate.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xrRender\GlowManager.cpp">
+      <Filter>Glows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xrRender\r__blenders.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xrRender\r__loader.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2,7 +2,7 @@
 #include "../xrRender/resourcemanager.h"
 #include "blender_light_occq.h"
 #include "blender_light_mask.h"
-#include "blender_light_direct.h"
+#include "blender_light_direct_cascade.h"
 #include "blender_light_point.h"
 #include "blender_light_spot.h"
 #include "blender_light_reflected.h"
@@ -116,7 +116,7 @@ Fvector	vunpack			(s32 x, s32 y, s32 z)	{
 	pck.z	= -float(z)/255.f;
 	return	pck;
 }
-Fvector	vunpack			(Ivector src)			{
+Fvector	vunpack			(const Ivector &src)			{
 	return	vunpack	(src.x,src.y,src.z);
 }
 Ivector	vpack			(Fvector src)
@@ -186,7 +186,7 @@ CRenderTarget::CRenderTarget		()
 	param_noise_fps		= 25.f;
 	param_noise_scale	= 1.f;
 
-	im_noise_time		= 1/100;
+	im_noise_time		= 0.01f; // PVS
 	im_noise_shift_w	= 0;
 	im_noise_shift_h	= 0;
 
@@ -195,12 +195,13 @@ CRenderTarget::CRenderTarget		()
 	param_color_add.set( 0.0f, 0.0f, 0.0f );
 
 	dwAccumulatorClearMark			= 0;
+	dwFlareClearMark				= 0;
 	dxRenderDeviceRender::Instance().Resources->Evict			();
 
 	// Blenders
 	b_occq							= xr_new<CBlender_light_occq>			();
 	b_accum_mask					= xr_new<CBlender_accum_direct_mask>	();
-	b_accum_direct					= xr_new<CBlender_accum_direct>			();
+	b_accum_direct_cascade			= xr_new<CBlender_accum_direct_cascade>	();
 	b_accum_point					= xr_new<CBlender_accum_point>			();
 	b_accum_spot					= xr_new<CBlender_accum_spot>			();
 	b_accum_reflected				= xr_new<CBlender_accum_reflected>		();
@@ -211,7 +212,7 @@ CRenderTarget::CRenderTarget		()
 
 	//	NORMAL
 	{
-		u32		w=Device.dwWidth, h=Device.dwHeight;
+		u32	w = Device.dwWidth, h = Device.dwHeight;
 		rt_Position.create			(r2_RT_P,		w,h,D3DFMT_A16B16G16R16F);
 		rt_Normal.create			(r2_RT_N,		w,h,D3DFMT_A16B16G16R16F);
 
@@ -246,7 +247,13 @@ CRenderTarget::CRenderTarget		()
 		//	temp: for higher quality blends
 		if (RImplementation.o.advancedpp)
 			rt_Generic_2.create			(r2_RT_generic2,w,h,D3DFMT_A16B16G16R16F);
+
+		if (ps_r2_ls_flags.test(R2FLAG_LENS_FLARES))
+			rt_flares.create			(r2_RT_flares, (w/2), (h/2), D3DFMT_A8R8G8B8);
 	}
+
+	// FLARES
+	s_flare.create					("effects\\lens_flare", "fx\\lenslare");
 
 	// OCCLUSION
 	s_occq.create					(b_occq,		"r2\\occq");
@@ -254,31 +261,28 @@ CRenderTarget::CRenderTarget		()
 	// DIRECT (spot)
 	D3DFORMAT						depth_format	= (D3DFORMAT)RImplementation.o.HW_smap_FORMAT;
 
+	u32	size						= RImplementation.o.smapsize;
+
 	if (RImplementation.o.HW_smap)
 	{
 		D3DFORMAT	nullrt				= D3DFMT_R5G6B5;
 		if (RImplementation.o.nullrt)	nullrt	= (D3DFORMAT)MAKEFOURCC('N','U','L','L');
 
-		u32	size					=RImplementation.o.smapsize	;
 		rt_smap_depth.create		(r2_RT_smap_depth,			size,size,depth_format	);
 		rt_smap_surf.create			(r2_RT_smap_surf,			size,size,nullrt		);
 		rt_smap_ZB					= NULL;
-		s_accum_mask.create			(b_accum_mask,				"r2\\accum_mask");
-		s_accum_direct.create		(b_accum_direct,			"r2\\accum_direct");
-		if (RImplementation.o.advancedpp)
-			s_accum_direct_volumetric.create("accum_volumetric_sun");
 	}
 	else
 	{
-		u32	size					=RImplementation.o.smapsize	;
 		rt_smap_surf.create			(r2_RT_smap_surf,			size,size,D3DFMT_R32F);
 		rt_smap_depth				= NULL;
 		R_CHK						(HW.pDevice->CreateDepthStencilSurface	(size,size,D3DFMT_D24X8,D3DMULTISAMPLE_NONE,0,TRUE,&rt_smap_ZB,NULL));
-		s_accum_mask.create			(b_accum_mask,				"r2\\accum_mask");
-		s_accum_direct.create		(b_accum_direct,			"r2\\accum_direct");
-		if (RImplementation.o.advancedpp)
-			s_accum_direct_volumetric.create("accum_volumetric_sun");
 	}
+
+	s_accum_mask.create			(b_accum_mask,				"r2\\accum_mask");
+	s_accum_direct_cascade.create(b_accum_direct_cascade,	"r2\\accum_direct_cascade");
+	if (RImplementation.o.advancedpp)
+		s_accum_direct_volumetric_cascade.create("accum_volumetric_sun_cascade");
 
 	// POINT
 	{
@@ -391,6 +395,8 @@ CRenderTarget::CRenderTarget		()
 		g_combine_VP.create					(dwDecl,		RCache.Vertex.Buffer(), RCache.QuadIB);
 		g_combine.create					(FVF::F_TL,		RCache.Vertex.Buffer(), RCache.QuadIB);
 		g_combine_2UV.create				(FVF::F_TL2uv,	RCache.Vertex.Buffer(), RCache.QuadIB);
+		g_combine_cuboid.create				(FVF::F_L,		RCache.Vertex.Buffer(), RCache.Index.Buffer());
+		g_flare.create						(FVF::F_LIT,	RCache.Vertex.Buffer(), RCache.QuadIB);
 
 		u32 fvf_aa_blur				= D3DFVF_XYZRHW|D3DFVF_TEX4|D3DFVF_TEXCOORDSIZE2(0)|D3DFVF_TEXCOORDSIZE2(1)|D3DFVF_TEXCOORDSIZE2(2)|D3DFVF_TEXCOORDSIZE2(3);
 		g_aa_blur.create			(fvf_aa_blur,	RCache.Vertex.Buffer(), RCache.QuadIB);
@@ -609,16 +615,24 @@ CRenderTarget::~CRenderTarget	()
 	accum_volumetric_geom_destroy();
 
 	// Blenders
-	xr_delete					(b_combine				);
-	xr_delete					(b_luminance			);
-	xr_delete					(b_bloom				);
-	xr_delete					(b_ssao					);
-	xr_delete					(b_accum_reflected		);
-	xr_delete					(b_accum_spot			);
-	xr_delete					(b_accum_point			);
-	xr_delete					(b_accum_direct			);
-	xr_delete					(b_accum_mask			);
-	xr_delete					(b_occq					);
+	xr_delete		(b_combine				);
+	xr_delete		(b_luminance			);
+	xr_delete		(b_bloom				);
+	xr_delete		(b_ssao					);
+	xr_delete		(b_accum_reflected		);
+	xr_delete		(b_accum_spot			);
+	xr_delete		(b_accum_point			);
+	xr_delete		(b_accum_direct_cascade	);
+	xr_delete		(b_accum_mask			);
+	xr_delete		(b_occq					);
+
+	s_occq					= NULL;
+	s_accum_mask			= NULL;
+	s_accum_direct_cascade	= NULL;
+	s_accum_point			= NULL;
+	s_accum_spot			= NULL;
+	s_accum_reflected		= NULL;
+	s_bloom					= NULL;
 }
 
 void CRenderTarget::reset_light_marker( bool bResetStencil)

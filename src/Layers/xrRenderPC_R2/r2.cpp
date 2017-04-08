@@ -15,6 +15,7 @@
 CRender										RImplementation;
 
 //////////////////////////////////////////////////////////////////////////
+/*
 class CGlow				: public IRender_Glow
 {
 public:
@@ -30,7 +31,7 @@ public:
 	virtual void					set_color			(const Fcolor& C)			{ }
 	virtual void					set_color			(float r, float g, float b)	{ }
 };
-
+*/
 float		r_dtex_range		= 50.f;
 //////////////////////////////////////////////////////////////////////////
 ShaderElement*			CRender::rimp_select_sh_dynamic	(dxRender_Visual	*pVisual, float cdist_sq)
@@ -52,141 +53,61 @@ ShaderElement*			CRender::rimp_select_sh_static	(dxRender_Visual	*pVisual, float
 	}
 	return pVisual->shader->E[id]._get();
 }
-static class cl_parallax		: public R_constant_setup		{	virtual void setup	(R_constant* C)
-{
-	float			h			=	ps_r2_df_parallax_h;
-	RCache.set_c	(C,h,-h/2.f,1.f/r_dtex_range,1.f/r_dtex_range);
-}}	binder_parallax;
-
-static class cl_pos_decompress_params		: public R_constant_setup		{	virtual void setup	(R_constant* C)
-{
-	float VertTan =  -1.0f * tanf( deg2rad(Device.fFOV/2.0f ) );
-	float HorzTan =  - VertTan / Device.fASPECT;
-
-	RCache.set_c	( C, HorzTan, VertTan, ( 2.0f * HorzTan )/(float)Device.dwWidth, ( 2.0f * VertTan ) /(float)Device.dwHeight );
-
-}}	binder_pos_decompress_params;
-
-static class cl_water_intensity : public R_constant_setup		
-{	
-	virtual void setup	(R_constant* C)
-	{
-		CEnvDescriptor&	E = *g_pGamePersistent->Environment().CurrentEnv;
-		float fValue = E.m_fWaterIntensity;
-		RCache.set_c	(C, fValue, fValue, fValue, 0);
-	}
-}	binder_water_intensity;
-
-static class cl_sun_shafts_intensity : public R_constant_setup		
-{	
-	virtual void setup	(R_constant* C)
-	{
-		CEnvDescriptor&	E = *g_pGamePersistent->Environment().CurrentEnv;
-		float fValue = E.m_fSunShaftsIntensity;
-		RCache.set_c	(C, fValue, fValue, fValue, 0);
-	}
-}	binder_sun_shafts_intensity;
 
 extern ENGINE_API BOOL r2_sun_static;
 extern ENGINE_API BOOL r2_advanced_pp;	//	advanced post process and effects
 //////////////////////////////////////////////////////////////////////////
 // Just two static storage
-void					CRender::create					()
+void CRender::create					()
 {
 	Device.seqFrame.Add	(this,REG_PRIORITY_HIGH+0x12345678);
 
 	m_skinning			= -1;
 
 	// hardware
-	o.smapsize			= 2048;
+	o.smapsize			= ps_r2_smap;
+	Msg					("* Shadow map resolution: [%d]x[%d]", o.smapsize, o.smapsize);
+
 	o.mrt				= (HW.Caps.raster.dwMRT_count >= 3);
 	o.mrtmixdepth		= (HW.Caps.raster.b_MRT_mixdepth);
+	if (o.mrtmixdepth)	Msg("* MRTMIXDEPTH supported and used");
 
 	// Check for NULL render target support
 	D3DFORMAT	nullrt	= (D3DFORMAT)MAKEFOURCC('N','U','L','L');
-	o.nullrt			= HW.support	(nullrt,			D3DRTYPE_SURFACE, D3DUSAGE_RENDERTARGET);
-	/*
-	if (o.nullrt)		{
-	Msg				("* NULLRT supported and used");
-	};
-	*/
-	if (o.nullrt)		{
-		Msg				("* NULLRT supported");
-
-		//.	    _tzset			();
-		//.		??? _strdate	( date, 128 );	???
-		//.		??? if (date < 22-march-07)		
-		if (0)
-		{
-			u32 device_id	= HW.Caps.id_device;
-			bool disable_nullrt = false;
-			switch (device_id)	
-			{
-			case 0x190:
-			case 0x191:
-			case 0x192:
-			case 0x193:
-			case 0x194:
-			case 0x197:
-			case 0x19D:
-			case 0x19E:{
-				disable_nullrt = true;	//G80
-				break;
-					   }
-			case 0x400:
-			case 0x401:
-			case 0x402:
-			case 0x403:
-			case 0x404:
-			case 0x405:
-			case 0x40E:
-			case 0x40F:{
-				disable_nullrt = true;	//G84
-				break;
-					   }
-			case 0x420:
-			case 0x421:
-			case 0x422:
-			case 0x423:
-			case 0x424:
-			case 0x42D:
-			case 0x42E:
-			case 0x42F:{
-				disable_nullrt = true;	// G86
-				break;
-					   }
-			}
-			if (disable_nullrt)	o.nullrt=false;
-		};
-		if (o.nullrt)	Msg				("* ...and used");
-	};
-
+	o.nullrt			= HW.support	(nullrt, D3DRTYPE_SURFACE, D3DUSAGE_RENDERTARGET);
+	if (o.nullrt)		Msg	("* NULLRT supported and used");
 
 	// SMAP / DST
 	o.HW_smap_FETCH4	= FALSE;
 	o.HW_smap			= HW.support	(D3DFMT_D24X8,			D3DRTYPE_TEXTURE,D3DUSAGE_DEPTHSTENCIL);
-	o.HW_smap_PCF		= o.HW_smap		;
-	if (o.HW_smap)		{
+	o.HW_smap_PCF		= o.HW_smap;
+	if (o.HW_smap)		
+	{
 		o.HW_smap_FORMAT	= D3DFMT_D24X8;
 		Msg				("* HWDST/PCF supported and used");
 	}
 
 	o.fp16_filter		= HW.support	(D3DFMT_A16B16G16R16F,	D3DRTYPE_TEXTURE,D3DUSAGE_QUERY_FILTER);
 	o.fp16_blend		= HW.support	(D3DFMT_A16B16G16R16F,	D3DRTYPE_TEXTURE,D3DUSAGE_QUERY_POSTPIXELSHADER_BLENDING);
+	if (o.fp16_filter) Msg("* FP16 filtering supported and used");
+	if (o.fp16_blend) Msg("* FP16 blending supported and used");
 
 	// search for ATI formats
-	if (!o.HW_smap && (0==strstr(Core.Params,"-nodf24")) )		{
+	if (!o.HW_smap && (0==strstr(Core.Params,"-nodf24")))		
+	{
 		o.HW_smap		= HW.support	((D3DFORMAT)(MAKEFOURCC('D','F','2','4')),	D3DRTYPE_TEXTURE,D3DUSAGE_DEPTHSTENCIL);
-		if (o.HW_smap)	{
-			o.HW_smap_FORMAT= MAKEFOURCC	('D','F','2','4');
-			o.HW_smap_PCF	= FALSE			;
-			o.HW_smap_FETCH4= TRUE			;
+		if (o.HW_smap)	
+		{
+			o.HW_smap_FORMAT	= MAKEFOURCC('D','F','2','4');
+			o.HW_smap_PCF		= FALSE;
+			o.HW_smap_FETCH4	= TRUE;
 		}
 		Msg				("* DF24/F4 supported and used [%X]", o.HW_smap_FORMAT);
 	}
 
 	// emulate ATI-R4xx series
-	if (strstr(Core.Params,"-r4xx"))	{
+	if (strstr(Core.Params,"-r4xx"))	
+	{
 		o.mrtmixdepth	= FALSE;
 		o.HW_smap		= FALSE;
 		o.HW_smap_PCF	= FALSE;
@@ -194,58 +115,49 @@ void					CRender::create					()
 		o.fp16_blend	= FALSE;
 	}
 
-	VERIFY2				(o.mrt && (HW.Caps.raster.dwInstructions>=256),"Hardware doesn't meet minimum feature-level");
-	if (o.mrtmixdepth)		o.albedo_wo		= FALSE	;
-	else if (o.fp16_blend)	o.albedo_wo		= FALSE	;
-	else					o.albedo_wo		= TRUE	;
+	CHECK_OR_EXIT			(o.mrt && (HW.Caps.raster.dwInstructions>=256),"Hardware doesn't meet minimum feature-level");
+
+	if (o.mrtmixdepth)		o.albedo_wo		= FALSE;
+	else if (o.fp16_blend)	o.albedo_wo		= FALSE;
+	else					o.albedo_wo		= TRUE;
 
 	// nvstencil on NV40 and up
 	// nvstencil should be enabled only for GF 6xxx and GF 7xxx
 	// if hardware support early stencil (>= GF 8xxx) stencil reset trick only
 	// slows down.
-	o.nvstencil			= FALSE;
-	if ((HW.Caps.id_vendor==0x10DE)&&(HW.Caps.id_device>=0x40))	
+	o.nvstencil	= FALSE;
+	if (!strstr(Core.Params, "-nonvs") && (HW.Caps.id_vendor == 0x10DE) && (HW.Caps.id_device >= 0x40))
 	{
-		//o.nvstencil = HW.support	((D3DFORMAT)MAKEFOURCC('R','A','W','Z'), D3DRTYPE_SURFACE, 0);
-		//o.nvstencil = TRUE;
-		o.nvstencil = ( S_OK==HW.pD3D->CheckDeviceFormat(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8 , 0, D3DRTYPE_TEXTURE, (D3DFORMAT MAKEFOURCC('R','A','W','Z'))) );
+		o.nvstencil = (S_OK == HW.pD3D->CheckDeviceFormat(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8 , 0, D3DRTYPE_TEXTURE, (D3DFORMAT MAKEFOURCC('R','A','W','Z'))));
 	}
-
-	if (strstr(Core.Params,"-nonvs"))		o.nvstencil	= FALSE;
+	if (o.nvstencil)	Msg("* NVStencil supported and used");
 
 	// nv-dbt
 	o.nvdbt				= HW.support	((D3DFORMAT)MAKEFOURCC('N','V','D','B'), D3DRTYPE_SURFACE, 0);
 	if (o.nvdbt)		Msg	("* NV-DBT supported and used");
 
-	// options (smap-pool-size)
-	if (strstr(Core.Params,"-smap1536"))	o.smapsize	= 1536;
-	if (strstr(Core.Params,"-smap2048"))	o.smapsize	= 2048;
-	if (strstr(Core.Params,"-smap2560"))	o.smapsize	= 2560;
-	if (strstr(Core.Params,"-smap3072"))	o.smapsize	= 3072;
-	if (strstr(Core.Params,"-smap4096"))	o.smapsize	= 4096;
-
 	// gloss
 	char*	g			= strstr(Core.Params,"-gloss ");
-	o.forcegloss		= g?	TRUE	:FALSE	;
+	o.forcegloss		= g ? TRUE : FALSE;
 	if (g)				{
 		o.forcegloss_v		= float	(atoi	(g+xr_strlen("-gloss ")))/255.f;
 	}
 
 	// options
-	o.bug				= (strstr(Core.Params,"-bug"))?			TRUE	:FALSE	;
-	o.sunfilter			= (strstr(Core.Params,"-sunfilter"))?	TRUE	:FALSE	;
-	//.	o.sunstatic			= (strstr(Core.Params,"-sunstatic"))?	TRUE	:FALSE	;
+	o.bug				= (strstr(Core.Params,"-bug"))?			TRUE : FALSE;
+	o.sunfilter			= (strstr(Core.Params,"-sunfilter"))?	TRUE : FALSE;
+	//.	o.sunstatic			= (strstr(Core.Params,"-sunstatic"))?	TRUE : FALSE;
 	o.sunstatic			= r2_sun_static;
 	o.advancedpp		= r2_advanced_pp;
-	o.sjitter			= (strstr(Core.Params,"-sjitter"))?		TRUE	:FALSE	;
-	o.depth16			= (strstr(Core.Params,"-depth16"))?		TRUE	:FALSE	;
-	o.noshadows			= (strstr(Core.Params,"-noshadows"))?	TRUE	:FALSE	;
-	o.Tshadows			= (strstr(Core.Params,"-tsh"))?			TRUE	:FALSE	;
-	o.mblur				= (strstr(Core.Params,"-mblur"))?		TRUE	:FALSE	;
-	o.distortion_enabled= (strstr(Core.Params,"-nodistort"))?	FALSE	:TRUE	;
+	o.sjitter			= (strstr(Core.Params,"-sjitter"))?		TRUE : FALSE;
+	o.depth16			= (strstr(Core.Params,"-depth16"))?		TRUE : FALSE;
+	o.noshadows			= (strstr(Core.Params,"-noshadows"))?	TRUE : FALSE;
+	o.Tshadows			= (strstr(Core.Params,"-tsh"))?			TRUE : FALSE;
+	o.mblur				= (strstr(Core.Params,"-mblur"))?		TRUE : FALSE;
+	o.distortion_enabled= (strstr(Core.Params,"-nodistort"))?	FALSE : TRUE;
 	o.distortion		= o.distortion_enabled;
-	o.disasm			= (strstr(Core.Params,"-disasm"))?		TRUE	:FALSE	;
-	o.forceskinw		= (strstr(Core.Params,"-skinw"))?		TRUE	:FALSE	;
+	o.disasm			= (strstr(Core.Params,"-disasm"))?		TRUE : FALSE;
+	o.forceskinw		= (strstr(Core.Params,"-skinw"))?		TRUE : FALSE;
 	
 	o.ssao_blur_on		= ps_r2_ls_flags_ext.test(R2FLAGEXT_SSAO_BLUR) && ps_r_ssao != 0;
 	o.ssao_opt_data		= ps_r2_ls_flags_ext.test(R2FLAGEXT_SSAO_OPT_DATA) && (ps_r_ssao != 0);
@@ -257,12 +169,6 @@ void					CRender::create					()
 		o.ssao_opt_data = false;
 		o.ssao_hbao = false;
 	}
-
-	// constants
-	dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup	("parallax",	&binder_parallax);
-	dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup	("water_intensity",	&binder_water_intensity);
-	dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup	("sun_shafts_intensity",	&binder_sun_shafts_intensity);
-	dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup	("pos_decompression_params",	&binder_pos_decompress_params);
 
 	c_lmaterial					= "L_material";
 	c_sbase						= "s_base";
@@ -286,7 +192,7 @@ void					CRender::create					()
 	::PortalTraverser.initialize();
 }
 
-void					CRender::destroy				()
+void CRender::destroy()
 {
 	m_bMakeAsyncSS				= false;
 	::PortalTraverser.destroy	();
@@ -304,6 +210,7 @@ void					CRender::destroy				()
 extern u32 reset_frame;
 void CRender::reset_begin()
 {
+	o.smapsize = ps_r2_smap;
 	// Update incremental shadowmap-visibility solver
 	// BUG-ID: 10646
 	{
@@ -370,6 +277,12 @@ void CRender::OnFrame()
 	}
 }
 
+BOOL CRender::is_sun()
+{
+	if (o.sunstatic)	return FALSE;
+	Fcolor sun_color	= ((light*)Lights.sun_adapted._get())->color;
+	return				(ps_r2_ls_flags.test(R2FLAG_SUN) && (u_diffuse2s(sun_color.r, sun_color.g, sun_color.b)>EPS));
+}
 
 // Implementation
 IRender_ObjectSpecific*	CRender::ros_create				(IRenderable* parent)				{ return xr_new<CROS_impl>();			}
@@ -518,6 +431,7 @@ void					CRender::rmNormal			()
 //////////////////////////////////////////////////////////////////////
 CRender::CRender()
 {
+	init_cascades();
 }
 
 CRender::~CRender()
@@ -548,13 +462,7 @@ void	CRender::Statistics	(CGameFont* _F)
 
 /////////
 #pragma comment(lib,"d3dx9.lib")
-/*
-extern "C"
-{
-LPCSTR WINAPI	D3DXGetPixelShaderProfile	(LPDIRECT3DDEVICE9  pDevice);
-LPCSTR WINAPI	D3DXGetVertexShaderProfile	(LPDIRECT3DDEVICE9	pDevice);
-};
-*/
+
 HRESULT	CRender::shader_compile			(
 	LPCSTR							name,
 	LPCSTR                          pSrcData,
@@ -576,6 +484,9 @@ HRESULT	CRender::shader_compile			(
 	char							c_sun_shafts	[32];
 	char							c_ssao			[32];
 	char							c_sun_quality	[32];
+	char							c_parallax_h	[32];
+	char							c_ao_intensity	[32];
+	char							c_reflections	[32];
 
 	if (pDefines)	{
 		// transfer existing defines
@@ -586,7 +497,7 @@ HRESULT	CRender::shader_compile			(
 	}
 	// options
 	{
-		sprintf						(c_smapsize,"%d",u32(o.smapsize));
+		sprintf						(c_smapsize,"%f",float(o.smapsize));
 		defines[def_it].Name		=	"SMAP_size";
 		defines[def_it].Definition	=	c_smapsize;
 		def_it						++	;
@@ -772,6 +683,46 @@ HRESULT	CRender::shader_compile			(
 		def_it						++;
 	}
 
+	// ZergO start: 
+	if (ps_r2_df_parallax_h)
+	{
+		sprintf_s					(c_parallax_h,"%f",ps_r2_df_parallax_h);
+		defines[def_it].Name		=	"PARALLAX_H";
+		defines[def_it].Definition	=	c_parallax_h;
+		def_it						++;
+	}
+
+	if (ps_r2_ls_flags.test(R2FLAG_AO) && ps_r2_ao_intensity)
+	{
+		sprintf_s(c_ao_intensity, "%f", ps_r2_ao_intensity);
+		defines[def_it].Name		= "AO_INTENSITY";
+		defines[def_it].Definition	= c_ao_intensity;
+		def_it++;
+	}
+
+	if (RImplementation.o.advancedpp && ps_r2_reflections)
+	{
+		sprintf_s(c_reflections, "%d", ps_r2_reflections);
+		defines[def_it].Name		= "REFLECTIONS_QUALITY";
+		defines[def_it].Definition	= c_reflections;
+		def_it++;
+	}
+
+	if (ps_r2_ls_flags.test(R2FLAG_SOFT_SHADOWS))
+	{
+		defines[def_it].Name		= "USE_SOFT_SHADOWS";
+		defines[def_it].Definition	= "1";
+		def_it++;
+	}
+
+	if (ps_r2_ls_flags.test(R2FLAG_LENS_FLARES))		
+	{
+		defines[def_it].Name		=	"USE_LENS_FLARES";
+		defines[def_it].Definition	=	"1";
+		def_it						++;
+	}
+	// 
+
 	// finish
 	defines[def_it].Name			=	0;
 	defines[def_it].Definition		=	0;
@@ -787,12 +738,9 @@ HRESULT	CRender::shader_compile			(
 	LPD3DXBUFFER*                   ppShader		= (LPD3DXBUFFER*)		_ppShader;
 	LPD3DXBUFFER*                   ppErrorMsgs		= (LPD3DXBUFFER*)		_ppErrorMsgs;
 	LPD3DXCONSTANTTABLE*            ppConstantTable	= (LPD3DXCONSTANTTABLE*)_ppConstantTable;
-	
-#ifdef	D3DXSHADER_USE_LEGACY_D3DX9_31_DLL	//	December 2006 and later
-	HRESULT		_result	= D3DXCompileShader(pSrcData,SrcDataLen,defines,pInclude,pFunctionName,pTarget,Flags|D3DXSHADER_USE_LEGACY_D3DX9_31_DLL,ppShader,ppErrorMsgs,ppConstantTable);
-#else
-	HRESULT		_result	= D3DXCompileShader(pSrcData,SrcDataLen,defines,pInclude,pFunctionName,pTarget,Flags,ppShader,ppErrorMsgs,ppConstantTable);
-#endif
+
+	HRESULT	_result = D3DXCompileShader(pSrcData, SrcDataLen, defines, pInclude, pFunctionName, pTarget, Flags | D3DXSHADER_OPTIMIZATION_LEVEL3, ppShader, ppErrorMsgs, ppConstantTable);
+
 	if (SUCCEEDED(_result) && o.disasm)
 	{
 		ID3DXBuffer*		code	= *((LPD3DXBUFFER*)_ppShader);

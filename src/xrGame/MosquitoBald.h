@@ -21,6 +21,9 @@ protected:
 	//после того как зона перключилась в другое состояние
 	bool			m_bLastBlowoutUpdate;
 
+	//сила подбрасывания для живых существ
+	float			m_fThrowImpulseAlive;
+
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 add_to_type_list(CMosquitoBald)

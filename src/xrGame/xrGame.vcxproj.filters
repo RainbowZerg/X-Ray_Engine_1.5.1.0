@@ -1888,9 +1888,6 @@
     <Filter Include="Core\Client\Objects\searchlight">
       <UniqueIdentifier>{29b5e9bb-7dfe-467b-85e5-e08608b866c5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Client\Objects\searchlight\Trade">
-      <UniqueIdentifier>{58b923f0-f7a8-43d7-b902-faabc8238d44}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Client\Objects\zones">
       <UniqueIdentifier>{b20076fd-a274-4517-99a2-157d24e954ab}</UniqueIdentifier>
     </Filter>
@@ -2571,6 +2568,9 @@
     </Filter>
     <Filter Include="UI\Tutorial">
       <UniqueIdentifier>{17269c2e-17ec-4ab2-973e-e66121f8a79b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Client\Trade">
+      <UniqueIdentifier>{58b923f0-f7a8-43d7-b902-faabc8238d44}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -6028,7 +6028,7 @@
       <Filter>Core\Client\Objects\searchlight</Filter>
     </ClInclude>
     <ClInclude Include="trade.h">
-      <Filter>Core\Client\Objects\searchlight\Trade</Filter>
+      <Filter>Core\Client\Trade</Filter>
     </ClInclude>
     <ClInclude Include="CustomZone.h">
       <Filter>Core\Client\Objects\zones\CustomZone</Filter>
@@ -9627,10 +9627,10 @@
       <Filter>Core\Client\Objects\searchlight</Filter>
     </ClCompile>
     <ClCompile Include="trade.cpp">
-      <Filter>Core\Client\Objects\searchlight\Trade</Filter>
+      <Filter>Core\Client\Trade</Filter>
     </ClCompile>
     <ClCompile Include="trade2.cpp">
-      <Filter>Core\Client\Objects\searchlight\Trade</Filter>
+      <Filter>Core\Client\Trade</Filter>
     </ClCompile>
     <ClCompile Include="CustomZone.cpp">
       <Filter>Core\Client\Objects\zones\CustomZone</Filter>

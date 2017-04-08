@@ -6,7 +6,7 @@
 
 #include "../xrRender/hom.h"
 #include "../xrRender/detailmanager.h"
-#include "glowmanager.h"
+#include "../xrRender/glowmanager.h"
 #include "../xrRender/wallmarksengine.h"
 #include "fstaticrender_rendertarget.h"
 #include "../xrRender/modelpool.h"
@@ -84,7 +84,7 @@ public:
 	bool														m_bMakeAsyncSS;
 private:
 	// Loading / Unloading
-	void								LoadBuffers				(CStreamReader	*fs);
+	void								LoadBuffers				(CStreamReader	*fs, BOOL _alternative = FALSE);
 	void								LoadVisuals				(IReader *fs);
 	void								LoadLights				(IReader *fs);
 	void								LoadSectors				(IReader *fs);

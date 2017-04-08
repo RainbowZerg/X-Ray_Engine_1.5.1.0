@@ -51,8 +51,8 @@ void CRenderTarget::accum_spot	(light* L)
 
 	// *****************************	Minimize overdraw	*************************************
 	// Select shader (front or back-faces), *** back, if intersect near plane
-	RCache.set_ColorWriteEnable		();
-	RCache.set_CullMode				(CULL_CW);		// back
+	RCache.set_ColorWriteEnable			();
+	RCache.set_CullMode					(CULL_CW);		// back
 
 	// 2D texgens 
 	Fmatrix			m_Texgen;			u_compute_texgen_screen	(m_Texgen	);
@@ -66,7 +66,7 @@ void CRenderTarget::accum_spot	(light* L)
 		float			view_dim			= float(L->X.S.size-2)/smapsize;
 		float			view_sx				= float(L->X.S.posX+1)/smapsize;
 		float			view_sy				= float(L->X.S.posY+1)/smapsize;
-		float			fRange				= float(1.f)*ps_r2_ls_depth_scale;
+		float			fRange				= ps_r2_ls_depth_scale;
 		float			fBias				= ps_r2_ls_depth_bias;
 		Fmatrix			m_TexelAdjust		= {
 			view_dim/2.f,							0.0f,									0.0f,		0.0f,
@@ -100,13 +100,17 @@ void CRenderTarget::accum_spot	(light* L)
 	}
 
 	// Common constants
-	Fvector		L_dir,L_clr,L_pos;	float L_spec;
-	L_clr.set					(L->color.r,L->color.g,L->color.b);
-	L_clr.mul					(L->get_LOD());
-	L_spec						= u_diffuse2s	(L_clr);
-	Device.mView.transform_tiny	(L_pos,L->position);
-	Device.mView.transform_dir	(L_dir,L->direction);
-	L_dir.normalize				();
+	Fvector		L_dir,L_clr,L_pos;	
+	float		L_spec;
+	float		att_R				= L->range*0.95f;
+	float		att_factor			= 1.f/(att_R*att_R);
+
+	L_clr.set						(L->color.r,L->color.g,L->color.b);
+	L_clr.mul						(L->get_LOD());
+	L_spec							= u_diffuse2s	(L_clr);
+	Device.mView.transform_tiny		(L_pos,L->position);
+	Device.mView.transform_dir		(L_dir,L->direction);
+	L_dir.normalize					();
 
 	// Draw volume with projective texgen
 	{
@@ -124,8 +128,6 @@ void CRenderTarget::accum_spot	(light* L)
 		RCache.set_Element			(shader->E[ _id ]	);
 
 		// Constants
-		float	att_R				= L->range*.95f;
-		float	att_factor			= 1.f/(att_R*att_R);
 		RCache.set_c				("Ldynamic_pos",	L_pos.x,L_pos.y,L_pos.z,att_factor);
 		RCache.set_c				("Ldynamic_color",	L_clr.x,L_clr.y,L_clr.z,L_spec);
 		RCache.set_c				("m_texgen",		m_Texgen	);
@@ -165,6 +167,9 @@ void CRenderTarget::accum_spot	(light* L)
 	increment_light_marker();
 
 	u_DBT_disable				();
+
+	if (ps_r2_ls_flags.test(R2FLAG_LENS_FLARES) && L->flags.bFlare)
+		render_flare(L);
 }
 
 void CRenderTarget::accum_volumetric(light* L)
@@ -210,7 +215,7 @@ void CRenderTarget::accum_volumetric(light* L)
 		float			view_dim			= float(L->X.S.size-2)/smapsize;
 		float			view_sx				= float(L->X.S.posX+1)/smapsize;
 		float			view_sy				= float(L->X.S.posY+1)/smapsize;
-		float			fRange				= float(1.f)*ps_r2_ls_depth_scale;
+		float			fRange				= ps_r2_ls_depth_scale;
 		float			fBias				= ps_r2_ls_depth_bias;
 		Fmatrix			m_TexelAdjust		= {
 			view_dim/2.f,							0.0f,									0.0f,		0.0f,
@@ -247,9 +252,7 @@ void CRenderTarget::accum_volumetric(light* L)
 		ClipFrustum.CreateFromMatrix( mFrustumSrc, FRUSTUM_P_ALL);
 		//	Adjust frustum far plane
 		//	4 - far, 5 - near
-		ClipFrustum.planes[4].d -= 
-			(ClipFrustum.planes[4].d + ClipFrustum.planes[5].d)*(1-L->m_volumetric_distance);
-		
+		ClipFrustum.planes[4].d -= (ClipFrustum.planes[4].d + ClipFrustum.planes[5].d)*(1-L->m_volumetric_distance);
 	}
 
 	//	Calculate camera space AABB
@@ -344,8 +347,8 @@ void CRenderTarget::accum_volumetric(light* L)
 			BOOL		b_HW_smap	= RImplementation.o.HW_smap;
 			BOOL		b_HW_PCF	= RImplementation.o.HW_smap_PCF;
 			if (b_HW_smap)		{
-				if (b_HW_PCF)	pszSMapName = r2_RT_smap_depth;
-				else			pszSMapName = r2_RT_smap_depth;
+				//if (b_HW_PCF)	pszSMapName = r2_RT_smap_depth;
+				/*else*/		pszSMapName = r2_RT_smap_depth;
 			}
 			else				pszSMapName = r2_RT_smap_surf;
 			//s_smap
@@ -355,8 +358,8 @@ void CRenderTarget::accum_volumetric(light* L)
 			STextureList::iterator	_end	= _T->end	();
 			for (; _it!=_end; _it++)
 			{
-				std::pair<u32,ref_texture>&		loader	=	*_it;
-				u32			load_id	= loader.first;
+				std::pair<u32,ref_texture>&	loader = *_it;
+				u32	load_id	= loader.first;
 				//	Shadowmap texture always uses 0 texture unit
 				if (load_id==0)		
 				{

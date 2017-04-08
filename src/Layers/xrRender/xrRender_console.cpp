@@ -3,17 +3,36 @@
 
 #include	"xrRender_console.h"
 
-u32			ps_Preset				=	2	;
-xr_token							qpreset_token							[ ]={
-	{ "Minimum",					0											},
-	{ "Low",						1											},
-	{ "Default",					2											},
-	{ "High",						3											},
-	{ "Extreme",					4											},
-	{ 0,							0											}
+u32			ps_r2_reflections		= 1;
+xr_token							r2_reflection_token							[ ]={
+	{ "st_opt_off",					0												},
+	{ "st_opt_medium",				1												},
+	{ "st_opt_high",				2												},
+	{ 0,							0												}
 };
 
-u32			ps_r_sun_shafts				=	0;
+
+u32			ps_r2_smap				= 3072;
+xr_token							r2_shadow_map_token							[ ]={
+	{ "st_opt_minimum",				2048											},
+	{ "st_opt_low",					3072											},
+	{ "st_opt_medium",				4096											},
+	{ "st_opt_high",				6144											},
+	{ "st_opt_ultra",				8192											},
+	{ 0, 0 }
+};
+
+u32			ps_Preset				= 2;
+xr_token							qpreset_token								[ ]={
+	{ "Minimum",					0												},
+	{ "Low",						1												},
+	{ "Default",					2												},
+	{ "High",						3												},
+	{ "Extreme",					4												},
+	{ 0,							0												}
+};
+
+u32			ps_r_sun_shafts			= 0;
 xr_token							qsun_shafts_token							[ ]={
 	{ "st_opt_off",					0												},
 	{ "st_opt_low",					1												},
@@ -73,16 +92,15 @@ xr_token							qminmax_sm_token					[ ]={
 //	УDX10.1 style [Higher quality]Ф
 
 // Common
-extern int			psSkeletonUpdate;
-extern float		r__dtex_range;
+extern int	psSkeletonUpdate;
 
-//int		ps_r__Supersample			= 1		;
-int			ps_r__LightSleepFrames		= 10	;
+//int		ps_r__Supersample			= 1;
+int			ps_r__LightSleepFrames		= 10;
 
-float		ps_r__Detail_l_ambient		= 0.9f	;
-float		ps_r__Detail_l_aniso		= 0.25f	;
-float		ps_r__Detail_density		= 0.3f	;
-float		ps_r__Detail_rainbow_hemi	= 0.75f	;
+float		ps_r__Detail_l_ambient		= 0.9f;
+float		ps_r__Detail_l_aniso		= 0.25f;
+float		ps_r__Detail_density		= 0.3f;
+float		ps_r__Detail_rainbow_hemi	= 0.75f;
 
 ////////////// трава
 u32			ps_r__detail_radius			= 49;
@@ -102,50 +120,48 @@ float		ps_current_detail_density	= 0.6;
 Fvector		ps_r__details_opt			= { 150, 200, 250 };
 ///////////////////////////////////////////////////
 
-float		ps_r__Tree_w_rot			= 10.0f	;
-float		ps_r__Tree_w_speed			= 1.00f	;
+float		ps_r__Tree_w_rot			= 10.0f;
+float		ps_r__Tree_w_speed			= 1.00f;
 float		ps_r__Tree_w_amp			= 0.005f;
 Fvector		ps_r__Tree_Wave				= {.1f, .01f, .11f};
-float		ps_r__Tree_SBC				= 1.5f	;	// scale bias correct
+float		ps_r__Tree_SBC				= 1.5f;	// scale bias correct
 
-float		ps_r__WallmarkTTL			= 300.f	;
+float		ps_r__WallmarkTTL			= 300.f;
 float		ps_r__WallmarkSHIFT			= 0.0001f;
 float		ps_r__WallmarkSHIFT_V		= 0.0001f;
 
-float		ps_r__GLOD_ssa_start		= 256.f	;
-float		ps_r__GLOD_ssa_end			=  64.f	;
-float		ps_r__LOD					=  1.f	;
-//. float		ps_r__LOD_Power				=  1.5f	;
-float		ps_r__ssaDISCARD			=  3.5f	;					//RO
-float		ps_r__ssaDONTSORT			=  32.f	;					//RO
-float		ps_r__ssaHZBvsTEX			=  96.f	;					//RO
+float		ps_r__GLOD_ssa_start		= 256.f;
+float		ps_r__GLOD_ssa_end			=  64.f;
+float		ps_r__LOD					=  1.f;
+//. float		ps_r__LOD_Power			=  1.5f;
+float		ps_r__ssaDISCARD			=  3.5f;					//RO
+float		ps_r__ssaDONTSORT			=  32.f;					//RO
+float		ps_r__ssaHZBvsTEX			=  96.f;					//RO
 
-float		ps_r__ssaLOD_A				= 64.f	;
-float		ps_r__ssaLOD_B				= 48.f	;
+float		ps_r__ssaLOD_A				= 64.f;
+float		ps_r__ssaLOD_B				= 48.f;
+float		ps_r__dtex_range			= 50;
 int			ps_r__tf_Anisotropic		= 4;
 float		ps_r__tf_Mipbias			= -0.5f;
 
-// R1
-Flags32		ps_r1_flags					= { R1FLAG_DLIGHTS };		// r1-only
-float		ps_r1_lmodel_lerp			= 0.1f	;
-float		ps_r1_dlights_clip			= 30.f	;
-float		ps_r1_pps_u					= 0.f	;
-float		ps_r1_pps_v					= 0.f	;
+// R1 ///////////////////////////////////////////////////////////////////////////////
+Flags32		ps_r1_flags					= { R1FLAG_DLIGHTS  | R1FLAG_DETAIL_TEXTURES };		// r1-only
+float		ps_r1_lmodel_lerp			= 0.1f;
+float		ps_r1_dlights_clip			= 30.f;
+float		ps_r1_pps_u					= 0.f;
+float		ps_r1_pps_v					= 0.f;
+int			ps_r1_GlowsPerFrame			= 16;					// r1-only
+float		ps_r1_fog_luminance			= 1.f;					// r1-only
 
-// R1-specific
-int			ps_r1_GlowsPerFrame			= 16	;					// r1-only
-float		ps_r1_fog_luminance			= 1.f	;					// r1-only
-
-// R2-specific
-Flags32		ps_r2_ls_flags				= { R2FLAG_SUN 
+// R2 ///////////////////////////////////////////////////////////////////////////////
+Flags32		ps_r2_ls_flags				= 
+{
+		R2FLAG_SUN 
 	//| R2FLAG_SUN_IGNORE_PORTALS
-	| R2FLAG_EXP_DONT_TEST_UNSHADOWED 
-	| R2FLAG_USE_NVSTENCIL | R2FLAG_EXP_SPLIT_SCENE 
-	| R2FLAG_EXP_MT_CALC | R3FLAG_DYN_WET_SURF
-	| R3FLAG_VOLUMETRIC_SMOKE
-	//| R3FLAG_MSAA 
-	//| R3FLAG_MSAA_OPT
-	| R3FLAG_GBUFFER_OPT
+	  | R2FLAG_EXP_DONT_TEST_UNSHADOWED 
+	  | R2FLAG_USE_NVSTENCIL 
+	  | R2FLAG_EXP_SPLIT_SCENE 
+	  | R2FLAG_EXP_MT_CALC 
 	};	// r2-only
 
 Flags32		ps_r2_ls_flags_ext			= {
@@ -177,17 +193,14 @@ float		ps_r2_GI_refl				= .9f;				// .9f
 float		ps_r2_ls_depth_scale		= 1.00001f;			// 1.00001f
 float		ps_r2_ls_depth_bias			= -0.0001f;			// -0.0001f
 float		ps_r2_ls_squality			= 1.0f;				// 1.00f
-float		ps_r2_sun_tsm_projection	= 0.18f;			// 0.18f
 float		ps_r2_sun_tsm_bias			= -0.05f;			// 
 float		ps_r2_sun_near				= 12.f;				// 12.0f
 
-extern float OLES_SUN_LIMIT_27_01_07;	//	actually sun_far
+float		ps_r2_sun_far				= 100.f;			//	actually sun_far
 
 float		ps_r2_sun_near_border		= 0.75f;			// 1.0f
 float		ps_r2_sun_depth_far_scale	= 1.00000f;			// 1.00001f
-float		ps_r2_sun_depth_far_bias	= 0.00000f;			// -0.0000f
 float		ps_r2_sun_depth_near_scale	= 1.00001f;			// 1.00001f
-float		ps_r2_sun_depth_near_bias	= -0.00004f;		// -0.00005f
 float		ps_r2_sun_lumscale			= 1.0f;				// 1.0f
 float		ps_r2_sun_lumscale_hemi		= 1.0f;				// 1.0f
 float		ps_r2_sun_lumscale_amb		= 1.0f;
@@ -195,8 +208,8 @@ float		ps_r2_gmaterial				= 0.f;				//
 float		ps_r2_zfill					= 0.1f;				// .1f
 
 float		ps_r2_dhemi_sky_scale		= 0.08f;				// 1.5f
-float		ps_r2_dhemi_light_scale     = 0.2f	;
-float		ps_r2_dhemi_light_flow      = 0.1f	;
+float		ps_r2_dhemi_light_scale     = 0.2f;
+float		ps_r2_dhemi_light_flow      = 0.1f;
 int			ps_r2_dhemi_count			= 5;				// 5
 int			ps_r2_wait_sleep			= 0;
 
@@ -208,14 +221,34 @@ Fvector3	ps_r2_dof					= Fvector3().set(-1.4f, 0.0f, 250.f);
 float		ps_r2_dof_sky				= 30;				//	distance to sky
 float		ps_r2_dof_kernel_size		= 7.0f;						//	7.0f
 
+float		ps_r2_gloss_factor			= 3.0f;
+
+// ZergO:
+float		ps_r2_ao_intensity			= 1.0f;
+Fvector4	ps_r2_color_grading_params	= { 0.0, 0.0, 0.0, 0.0 };
+
+float		ps_r2_refl_intensity		= 1.8f;
+float		ps_r2_refl_env_intensity	= 0.6f;
+float		ps_r2_refl_water_gloss		= 0.2f;
+float		ps_r2_refl_fresnel1			= 0.2f;
+float		ps_r2_refl_fresnel2			= 0.2f;
+float		ps_r2_refl_fresnel3			= 4.0f;
+//
+
+// R3 ///////////////////////////////////////////////////////////////////////////////
 float		ps_r3_dyn_wet_surf_near		= 10.f;				// 10.0f
 float		ps_r3_dyn_wet_surf_far		= 30.f;				// 30.0f
 int			ps_r3_dyn_wet_surf_sm_res	= 256;				// 256
 
+Flags32 ps_r3_ls_flags =
+{
+	R3FLAG_DYN_WET_SURF
+	| R3FLAG_VOLUMETRIC_SMOKE
+	//| R3FLAG_MSAA 
+	//| R3FLAG_MSAA_OPT
+	| R3FLAG_GBUFFER_OPT
+};
 
-//- Mad Max
-float		ps_r2_gloss_factor			= 3.0f;
-//- Mad Max
 #ifndef _EDITOR
 #include	"../../xrEngine/xr_ioconsole.h"
 #include	"../../xrEngine/xr_ioc_cmd.h"
@@ -263,14 +296,15 @@ public:
 class CCC_tf_Aniso		: public CCC_Integer
 {
 public:
-	void	apply	()	{
-		if (0==HW.pDevice)	return	;
+	void	apply	()	
+	{
+		if (0==HW.pDevice)	return;
 		int	val = *value;	clamp(val,1,16);
 #ifdef	USE_DX10
 		SSManager.SetMaxAnisotropy(val);
 #else	//	USE_DX10
 		for (u32 i=0; i<HW.Caps.raster.dwStages; i++)
-			CHK_DX(HW.pDevice->SetSamplerState( i, D3DSAMP_MAXANISOTROPY, val	));
+			CHK_DX(HW.pDevice->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, val));
 #endif	//	USE_DX10
 	}
 	CCC_tf_Aniso(LPCSTR N, int*	v) : CCC_Integer(N, v, 1, 16)		{ };
@@ -288,14 +322,14 @@ public:
 class CCC_tf_MipBias: public CCC_Float
 {
 public:
-	void	apply	()	{
-		if (0==HW.pDevice)	return	;
-
+	void	apply	()	
+	{
+		if (0==HW.pDevice)	return;
 #ifdef	USE_DX10
 		SSManager.SetMipLODBias(*value);
 #else	//	USE_DX10
-		for (u32 i=0; i<HW.Caps.raster.dwStages; i++)
-			CHK_DX(HW.pDevice->SetSamplerState( i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) value)));
+		for (u32 i = 0; i < HW.Caps.raster.dwStages; i++)
+			CHK_DX(HW.pDevice->SetSamplerState(i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD)value)));
 #endif	//	USE_DX10
 	}
 
@@ -308,7 +342,7 @@ public:
 	virtual void	Status	(TStatus& S)
 	{	
 		CCC_Float::Status	(S);
-		apply				();
+//		apply				();
 	}
 };
 class CCC_R2GM		: public CCC_Float
@@ -594,26 +628,7 @@ void		xrRender_initconsole	()
 	CMD4(CCC_Float,		"r__wallmark_shift_pp",	&ps_r__WallmarkSHIFT,		0.0f,	1.f		);
 	CMD4(CCC_Float,		"r__wallmark_shift_v",	&ps_r__WallmarkSHIFT_V,		0.0f,	1.f		);
 	CMD1(CCC_ModelPoolStat,"stat_models"		);
-#endif // DEBUG
-	CMD4(CCC_Float,		"r__wallmark_ttl",		&ps_r__WallmarkTTL,			1.0f,	5.f*60.f);
-	
-	CMD4(CCC_Float,		"r__geometry_lod",		&ps_r__LOD,					0.1f,	1.2f		);
-//.	CMD4(CCC_Float,		"r__geometry_lod_pow",	&ps_r__LOD_Power,			0,		2		);
 
-	CMD4(CCC_Float,		"r__detail_density",	&ps_current_detail_density,	.2f,	0.6f	);
-	CMD4(CCC_detail_radius,	"r__detail_radius",	&ps_r__detail_radius,		49,		290		);
-	// ZergO: прорежает траву на рассто€нии (KD)
-	rp_min.set(1, 1, 1); rp_max.set(300, 300, 300);
-	CMD4(CCC_Vector3,	"r__details_opt",		&ps_r__details_opt,			rp_min, rp_max	);
-
-	CMD4(CCC_Float,		"r__dtex_range",		&r__dtex_range,		5,		175	);
-	CMD2(CCC_tf_Aniso,	"r__tf_aniso",			&ps_r__tf_Anisotropic		); //	{1..16}
-	CMD2(CCC_tf_MipBias,"r__tf_mipbias",		&ps_r__tf_Mipbias			);//	{-3 +3}
-	CMD4(CCC_Float,		"r__ssa_lod_a",			&ps_r__ssaLOD_A,			16,		96		);
-	CMD4(CCC_Float,		"r__ssa_lod_b",			&ps_r__ssaLOD_B,			16,		64		);
-	CMD4(CCC_Integer,	"r__supersample",		&ps_r__Supersample,			1,		8		);
-
-#ifdef DEBUG
 	CMD4(CCC_Float,		"r__detail_l_ambient",	&ps_r__Detail_l_ambient,	.5f,	.95f	);
 	CMD4(CCC_Float,		"r__detail_l_aniso",	&ps_r__Detail_l_aniso,		.1f,	.5f		);
 
@@ -626,21 +641,36 @@ void		xrRender_initconsole	()
 	CMD4(CCC_Vector3,	"r__d_tree_wave",		&ps_r__Tree_Wave,			tw_min, tw_max	);
 #endif // DEBUG
 
-	// R1
+	CMD4(CCC_Float,		"r__wallmark_ttl",		&ps_r__WallmarkTTL,			1.0f,	5.f*60.f);
+	
+	CMD4(CCC_Float,		"r__geometry_lod",		&ps_r__LOD,					0.1f,	1.2f		);
+//.	CMD4(CCC_Float,		"r__geometry_lod_pow",	&ps_r__LOD_Power,			0,		2		);
+
+	CMD4(CCC_Float,		"r__detail_density",	&ps_current_detail_density,	.2f,	0.6f	);
+	CMD4(CCC_detail_radius,	"r__detail_radius",	&ps_r__detail_radius,		49,		290		);
+	// ZergO: прорежает траву на рассто€нии (KD)
+	rp_min.set(1, 1, 1); rp_max.set(300, 300, 300);
+	CMD4(CCC_Vector3,	"r__details_opt",		&ps_r__details_opt,			rp_min, rp_max	);
+
+	CMD4(CCC_Float,		"r__dtex_range",		&ps_r__dtex_range,			5,		175	);
+	CMD2(CCC_tf_Aniso,	"r__tf_aniso",			&ps_r__tf_Anisotropic		); //	{1..16}
+	CMD2(CCC_tf_MipBias,"r__tf_mipbias",		&ps_r__tf_Mipbias			);//	{-3 +3}
+	CMD4(CCC_Float,		"r__ssa_lod_a",			&ps_r__ssaLOD_A,			16,		96		);
+	CMD4(CCC_Float,		"r__ssa_lod_b",			&ps_r__ssaLOD_B,			16,		64		);
+	CMD4(CCC_Integer,	"r__supersample",		&ps_r__Supersample,			1,		8		);
+
+////////////////////////////////////////////////////////////// R1
 	CMD4(CCC_Float,		"r1_lmodel_lerp",		&ps_r1_lmodel_lerp,			0,		0.333f	);
 	CMD3(CCC_Mask,		"r1_dlights",			&ps_r1_flags,				R1FLAG_DLIGHTS	);
 	CMD4(CCC_Float,		"r1_dlights_clip",		&ps_r1_dlights_clip,		10.f,	150.f	);
 	CMD4(CCC_Float,		"r1_pps_u",				&ps_r1_pps_u,				-1.f,	+1.f	);
 	CMD4(CCC_Float,		"r1_pps_v",				&ps_r1_pps_v,				-1.f,	+1.f	);
 	CMD4(CCC_Float,		"r1_dlights_clip",		&ps_r1_dlights_clip,		10.f,	150.f	);
-
-	// R1-specific
 	CMD4(CCC_Integer,	"r1_glows_per_frame",	&ps_r1_GlowsPerFrame,		2,		32		);
-	CMD3(CCC_Mask,		"r1_detail_textures",&ps_r2_ls_flags,				R1FLAG_DETAIL_TEXTURES);
-
+	CMD3(CCC_Mask,		"r1_detail_textures",	&ps_r1_flags,				R1FLAG_DETAIL_TEXTURES);
 	CMD4(CCC_Float,		"r1_fog_luminance",		&ps_r1_fog_luminance,		0.2f,	5.f	);
 
-	// R2-specific
+////////////////////////////////////////////////////////////// R2
 	CMD2(CCC_R2GM,		"r2em",					&ps_r2_gmaterial							);
 	CMD3(CCC_Mask,		"r2_tonemap",			&ps_r2_ls_flags,			R2FLAG_TONEMAP	);
 	CMD4(CCC_Float,		"r2_tonemap_middlegray",&ps_r2_tonemap_middlegray,	0.0f,	2.0f	);
@@ -656,49 +686,66 @@ void		xrRender_initconsole	()
 	CMD4(CCC_Float,		"r2_ls_dsm_kernel",		&ps_r2_ls_dsm_kernel,		.1f,	3.f		);
 	CMD4(CCC_Float,		"r2_ls_psm_kernel",		&ps_r2_ls_psm_kernel,		.1f,	3.f		);
 	CMD4(CCC_Float,		"r2_ls_ssm_kernel",		&ps_r2_ls_ssm_kernel,		.1f,	3.f		);
-	CMD4(CCC_Float,		"r2_ls_squality",		&ps_r2_ls_squality,			.5f,	1.f		);
+	CMD4(CCC_Float,		"r2_ls_squality",		&ps_r2_ls_squality,			.5f,	3.f		); // ZergO: extended max value from 1.0 to 3.0
 
 	CMD3(CCC_Mask,		"r2_zfill",				&ps_r2_ls_flags,			R2FLAG_ZFILL	);
 	CMD4(CCC_Float,		"r2_zfill_depth",		&ps_r2_zfill,				.001f,	.5f		);
 	CMD3(CCC_Mask,		"r2_allow_r1_lights",	&ps_r2_ls_flags,			R2FLAG_R1LIGHTS	);
+	// ZergO: r1-style glows
+	CMD3(CCC_Mask,		"r2_allow_r1_glows",	&ps_r2_ls_flags,			R2FLAG_R1GLOWS	);
 
-	//- Mad Max
 	CMD4(CCC_Float,		"r2_gloss_factor",		&ps_r2_gloss_factor,		.0f,	10.f	);
-	//- Mad Max
 
 #ifdef DEBUG
 	CMD3(CCC_Mask,		"r2_use_nvdbt",			&ps_r2_ls_flags,			R2FLAG_USE_NVDBT);
 	CMD3(CCC_Mask,		"r2_mt",				&ps_r2_ls_flags,			R2FLAG_EXP_MT_CALC);
 #endif // DEBUG
 
-	CMD3(CCC_Mask,		"r2_details_shadows",	&ps_r2_ls_flags,			R2FLAG_DETAILS_SHADOWS);
-
-	CMD3(CCC_Mask,		"r2_sun",				&ps_r2_ls_flags,			R2FLAG_SUN		);
-	CMD3(CCC_Mask,		"r2_sun_focus",			&ps_r2_ls_flags,			R2FLAG_SUN_FOCUS);
-//	CMD3(CCC_Mask,		"r2_sun_static",		&ps_r2_ls_flags,			R2FLAG_SUN_STATIC);
-//	CMD3(CCC_Mask,		"r2_exp_splitscene",	&ps_r2_ls_flags,			R2FLAG_EXP_SPLIT_SCENE);
-//	CMD3(CCC_Mask,		"r2_exp_donttest_uns",	&ps_r2_ls_flags,			R2FLAG_EXP_DONT_TEST_UNSHADOWED);
+	CMD3(CCC_Mask,		"r2_exp_splitscene",	&ps_r2_ls_flags,			R2FLAG_EXP_SPLIT_SCENE);
+	CMD3(CCC_Mask,		"r2_exp_donttest_uns",	&ps_r2_ls_flags,			R2FLAG_EXP_DONT_TEST_UNSHADOWED);
 	CMD3(CCC_Mask,		"r2_exp_donttest_shad",	&ps_r2_ls_flags,			R2FLAG_EXP_DONT_TEST_SHADOWED);
 	
-	CMD3(CCC_Mask,		"r2_sun_tsm",			&ps_r2_ls_flags,			R2FLAG_SUN_TSM	);
-	CMD4(CCC_Float,		"r2_sun_tsm_proj",		&ps_r2_sun_tsm_projection,	.001f,	0.8f	);
+	CMD3(CCC_Mask,		"r2_sun",				&ps_r2_ls_flags,			R2FLAG_SUN		);
 	CMD4(CCC_Float,		"r2_sun_tsm_bias",		&ps_r2_sun_tsm_bias,		-0.5,	+0.5	);
 	CMD4(CCC_Float,		"r2_sun_near",			&ps_r2_sun_near,			1.f,	50.f	);
-#if RENDER!=R_R1
-	CMD4(CCC_Float,		"r2_sun_far",			&OLES_SUN_LIMIT_27_01_07,	51.f,	180.f	);
-#endif
+	CMD4(CCC_Float,		"r2_sun_far",			&ps_r2_sun_far,				51.f,	180.f	);
 	CMD4(CCC_Float,		"r2_sun_near_border",	&ps_r2_sun_near_border,		.5f,	1.0f	);
 	CMD4(CCC_Float,		"r2_sun_depth_far_scale",&ps_r2_sun_depth_far_scale,0.5,	1.5		);
-	CMD4(CCC_Float,		"r2_sun_depth_far_bias",&ps_r2_sun_depth_far_bias,	-0.5,	+0.5	);
 	CMD4(CCC_Float,		"r2_sun_depth_near_scale",&ps_r2_sun_depth_near_scale,0.5,	1.5		);
-	CMD4(CCC_Float,		"r2_sun_depth_near_bias",&ps_r2_sun_depth_near_bias,-0.5,	+0.5	);
 	CMD4(CCC_Float,		"r2_sun_lumscale",		&ps_r2_sun_lumscale,		-1.0,	+3.0	);
 	CMD4(CCC_Float,		"r2_sun_lumscale_hemi",	&ps_r2_sun_lumscale_hemi,	0.0,	+3.0	);
 	CMD4(CCC_Float,		"r2_sun_lumscale_amb",	&ps_r2_sun_lumscale_amb,	0.0,	+3.0	);
+	CMD3(CCC_Token,		"r2_sun_shafts",		&ps_r_sun_shafts,			qsun_shafts_token);
+	CMD3(CCC_Token,		"r2_sun_quality",		&ps_r_sun_quality,			qsun_quality_token);
 
 	CMD3(CCC_Mask,		"r2_aa",				&ps_r2_ls_flags,			R2FLAG_AA);
 	CMD4(CCC_Float,		"r2_aa_kernel",			&ps_r2_aa_kernel,			0.3f,	0.7f	);
 	CMD4(CCC_Float,		"r2_mblur",				&ps_r2_mblur,				0.0f,	1.0f	);
+
+	// ZergO: отбрасывание травой теней от солнца и других источников света
+	CMD3(CCC_Mask,		"r2_details_shadows",	&ps_r2_ls_flags,			R2FLAG_DETAILS_SHADOWS);
+	// ZergO: эффект lens flares
+	CMD3(CCC_Mask,		"r2_lens_flares",		&ps_r2_ls_flags,			R2FLAG_LENS_FLARES);
+	// ZergO: смена качества теней без €рлыка и перезапуска игры
+	CMD3(CCC_Token,		"r2_smap_res",			&ps_r2_smap,				r2_shadow_map_token); 
+	// ZergO: предпросчитанный јќ (наложение лайтмапа)
+	CMD3(CCC_Mask,		"r2_ao",				&ps_r2_ls_flags,			R2FLAG_AO		);
+	CMD4(CCC_Float,		"r2_ao_intensity",		&ps_r2_ao_intensity,		0.2f,	2.0f	);
+	// ZergO: динамические отражени€ на воде
+	CMD3(CCC_Token,		"r2_reflections",		&ps_r2_reflections,			r2_reflection_token);
+	CMD4(CCC_Float,		"r2_refl_intensity",	&ps_r2_refl_intensity,		-999.f,	999.f	);
+	CMD4(CCC_Float,		"r2_refl_env_intensity",&ps_r2_refl_env_intensity,	-999.f,	999.f	);
+	CMD4(CCC_Float,		"r2_refl_water_gloss",	&ps_r2_refl_water_gloss,	-999.f,	999.f	);
+	CMD4(CCC_Float,		"r2_refl_fresnel1",		&ps_r2_refl_fresnel1,		-999.f,	999.f	);
+	CMD4(CCC_Float,		"r2_refl_fresnel2",		&ps_r2_refl_fresnel2,		-999.f,	999.f	);
+	CMD4(CCC_Float,		"r2_refl_fresnel3",		&ps_r2_refl_fresnel3,		-999.f,	999.f	);
+	// ZergO: шейдерные м€гкие тени
+	CMD3(CCC_Mask,		"r2_soft_shadows",		&ps_r2_ls_flags,			R2FLAG_SOFT_SHADOWS);
+	// ZergO: цветокоррекци€ из ќ√—≈
+	tw_min.set(0, 0, 0, 0);	tw_max.set(1.0, 1.0, 1.0, 1.0);
+	CMD4(CCC_Vector4,	"r2_color_grading",		&ps_r2_color_grading_params, tw_min, tw_max);
+
+	CMD3(CCC_Mask,		"r2_shadow_cascede_zcul",&ps_r2_ls_flags,			R2FLAG_SUN_ZCULLING);
 
 	CMD3(CCC_Mask,		"r2_gi",				&ps_r2_ls_flags,			R2FLAG_GI);
 	CMD4(CCC_Float,		"r2_gi_clip",			&ps_r2_GI_clip,				EPS,	0.1f	);
@@ -741,7 +788,6 @@ void		xrRender_initconsole	()
 	
 	CMD3(CCC_Mask,		"r2_volumetric_lights",			&ps_r2_ls_flags,			R2FLAG_VOLUMETRIC_LIGHTS);
 //	CMD3(CCC_Mask,		"r2_sun_shafts",				&ps_r2_ls_flags,			R2FLAG_SUN_SHAFTS);
-	CMD3(CCC_Token,		"r2_sun_shafts",				&ps_r_sun_shafts,			qsun_shafts_token);
 	CMD3(CCC_Token,		"r2_ssao",						&ps_r_ssao,					qssao_token);
 	CMD3(CCC_Mask,		"r2_ssao_blur",                 &ps_r2_ls_flags_ext,		R2FLAGEXT_SSAO_BLUR);//Need restart
 	CMD3(CCC_Mask,		"r2_ssao_opt_data",				&ps_r2_ls_flags_ext,		R2FLAGEXT_SSAO_OPT_DATA);//Need restart
@@ -750,8 +796,6 @@ void		xrRender_initconsole	()
 	CMD3(CCC_Mask,		"r2_ssao_hdao",					&ps_r2_ls_flags_ext,		R2FLAGEXT_SSAO_HDAO);//Need restart
 	CMD3(CCC_Mask,		"r2_steep_parallax",			&ps_r2_ls_flags,			R2FLAG_STEEP_PARALLAX);
 	CMD3(CCC_Mask,		"r2_detail_bump",				&ps_r2_ls_flags,			R2FLAG_DETAIL_BUMP);
-
-	CMD3(CCC_Token,		"r2_sun_quality",				&ps_r_sun_quality,			qsun_quality_token);
 
 	//	Igor: need restart
 	CMD3(CCC_Mask,		"r2_soft_water",				&ps_r2_ls_flags,			R2FLAG_SOFT_WATER);
@@ -766,8 +810,6 @@ void		xrRender_initconsole	()
 	//CMD3(CCC_Mask,		"r3_msaa_alphatest",			&ps_r2_ls_flags,			(u32)R3FLAG_MSAA_ALPHATEST);
 	CMD3(CCC_Token,		"r3_msaa_alphatest",			&ps_r3_msaa_atest,			qmsaa__atest_token);
 	CMD3(CCC_Token,		"r3_minmax_sm",					&ps_r3_minmax_sm,			qminmax_sm_token);
-
-
 
 	//	Allow real-time fog config reload
 #if	RENDER == R_R3

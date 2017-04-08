@@ -237,6 +237,7 @@ protected:
 	Fcolor					m_IdleLightColor;
 	float					m_fIdleLightRange;
 	float					m_fIdleLightHeight;
+	bool					m_bIdleLightFlare;
 	CLAItem*				m_pIdleLAnim;
 
 	void					StartIdleLight				();
@@ -251,6 +252,7 @@ protected:
 	float					m_fLightTime;
 	float					m_fLightTimeLeft;
 	float					m_fLightHeight;
+	bool					m_bLightFlare;
 
 	void					StartBlowoutLight			();
 	void					StopBlowoutLight			();

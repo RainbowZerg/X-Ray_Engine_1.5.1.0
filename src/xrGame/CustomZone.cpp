@@ -245,26 +245,30 @@ void CCustomZone::Load(LPCSTR section)
 
 	//загрузить параметры световой вспышки от взрыва
 	m_zone_flags.set(eBlowoutLight, pSettings->r_bool (section, "blowout_light"));
-	if(m_zone_flags.test(eBlowoutLight) ){
+	if (m_zone_flags.test(eBlowoutLight))
+	{
 		sscanf(pSettings->r_string(section,"light_color"), "%f,%f,%f", &m_LightColor.r, &m_LightColor.g, &m_LightColor.b);
 		m_fLightRange			= pSettings->r_float(section,"light_range");
 		m_fLightTime			= pSettings->r_float(section,"light_time");
 		m_fLightTimeLeft		= 0;
 
-		m_fLightHeight		= pSettings->r_float(section,"light_height");
+		m_fLightHeight			= pSettings->r_float(section,"light_height");
+		m_bLightFlare			= !!READ_IF_EXISTS(pSettings, r_bool, section, "light_flare", false);
 	}
 
 	//загрузить параметры idle подсветки
 	m_zone_flags.set(eIdleLight,	pSettings->r_bool (section, "idle_light"));
-	if( m_zone_flags.test(eIdleLight) )
+	if (m_zone_flags.test(eIdleLight))
 	{
-		m_fIdleLightRange		= pSettings->r_float(section,"idle_light_range");
-		LPCSTR light_anim		= pSettings->r_string(section,"idle_light_anim");
-		m_pIdleLAnim			= LALib.FindItem(light_anim);
-		m_fIdleLightHeight		= pSettings->r_float(section,"idle_light_height");
-		m_zone_flags.set(eIdleLightVolumetric,pSettings->r_bool (section, "idle_light_volumetric") );
-		m_zone_flags.set(eIdleLightShadow,pSettings->r_bool (section, "idle_light_shadow") );
-		m_zone_flags.set(eIdleLightR1,pSettings->r_bool (section, "idle_light_r1") );
+		m_fIdleLightRange		= pSettings->r_float			(section, "idle_light_range");
+		LPCSTR light_anim		= pSettings->r_string			(section, "idle_light_anim");
+		m_pIdleLAnim			= LALib.FindItem				(light_anim);
+		m_fIdleLightHeight		= pSettings->r_float			(section, "idle_light_height");
+		m_zone_flags.set(eIdleLightVolumetric,pSettings->r_bool	(section, "idle_light_volumetric"));
+		m_zone_flags.set(eIdleLightShadow,pSettings->r_bool		(section, "idle_light_shadow"));
+		m_zone_flags.set(eIdleLightR1,pSettings->r_bool			(section, "idle_light_r1"));
+//		m_zone_flags.set(eIdleLightFlare, pSettings->r_bool		(section, "idle_light_flare"));
+		m_bIdleLightFlare		= !!READ_IF_EXISTS(pSettings, r_bool, section, "idle_light_flare", false);
 	}
 
 	m_ef_anomaly_type			= pSettings->r_u32(section,"ef_anomaly_type");
@@ -300,14 +304,15 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 	bool br1 = (0==psDeviceFlags.test(rsR2|rsR3));
 	
 	
-	bool render_ver_allowed = !br1 || (br1&&m_zone_flags.test(eIdleLightR1)) ;
+	bool render_ver_allowed = !br1 || (br1&&m_zone_flags.test(eIdleLightR1));
 
-	if ( m_zone_flags.test(eIdleLight) && render_ver_allowed)
+	if (m_zone_flags.test(eIdleLight) && render_ver_allowed)
 	{
 		m_pIdleLight = ::Render->light_create();
 		m_pIdleLight->set_shadow(!!m_zone_flags.test(eIdleLightShadow));
+		m_pIdleLight->set_flare(m_bIdleLightFlare);
 
-		if(m_zone_flags.test(eIdleLightVolumetric))
+		if (m_zone_flags.test(eIdleLightVolumetric))
 		{
 			//m_pIdleLight->set_type				(IRender_Light::SPOT);
 			m_pIdleLight->set_volumetric		(true);
@@ -316,11 +321,13 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 	else
 		m_pIdleLight = NULL;
 
-	if ( m_zone_flags.test(eBlowoutLight) ) 
+	if (m_zone_flags.test(eBlowoutLight)) 
 	{
 		m_pLight = ::Render->light_create();
 		m_pLight->set_shadow(true);
-	}else
+		m_pLight->set_flare(m_bLightFlare);
+	}
+	else
 		m_pLight = NULL;
 
 	setEnabled					(TRUE);
@@ -335,9 +342,8 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 
 
 	if(spawn_ini() && spawn_ini()->line_exist("fast_mode","always_fast"))
-	{
 		m_zone_flags.set(eAlwaysFastmode, spawn_ini()->r_bool("fast_mode","always_fast"));
-	}
+
 	return						(TRUE);
 }
 
@@ -1126,8 +1132,7 @@ bool CCustomZone::Enable()
 {
 	if (IsEnabled()) return false;
 
-	for(OBJECT_INFO_VEC_IT it = m_ObjectInfoMap.begin(); 
-		m_ObjectInfoMap.end() != it; ++it) 
+	for(OBJECT_INFO_VEC_IT it = m_ObjectInfoMap.begin(); m_ObjectInfoMap.end() != it; ++it) 
 	{
 		CGameObject* pObject = (*it).object;
 		if (!pObject) continue;
@@ -1142,14 +1147,14 @@ bool CCustomZone::Disable()
 {
 	if (!IsEnabled()) return false;
 
-	for(OBJECT_INFO_VEC_IT it = m_ObjectInfoMap.begin(); 
-		m_ObjectInfoMap.end() != it; ++it) 
+	for(OBJECT_INFO_VEC_IT it = m_ObjectInfoMap.begin(); m_ObjectInfoMap.end() != it; ++it) 
 	{
 		CGameObject* pObject = (*it).object;
 		if (!pObject) continue;
 		StopObjectIdleParticles(pObject);
 	}
 	StopIdleParticles	();
+	StopBlowoutLight	();
 	return false;
 };
 

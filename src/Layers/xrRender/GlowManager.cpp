@@ -11,10 +11,9 @@
 #include "../../xrEngine/xr_object.h"
 
 #define FADE_SCALE_UP		4096.f
-#define FADE_SCALE_DOWN		1024.f
+#define FADE_SCALE_DOWN		FADE_SCALE_UP//1024.f // ZergO - for normal fading down
 #define MAX_GlowsDist1		float(g_pGamePersistent->Environment().CurrentEnv->far_plane)
 #define MAX_GlowsDist2		float(MAX_GlowsDist1*MAX_GlowsDist1)
-
 
 //////////////////////////////////////////////////////////////////////
 CGlow::CGlow		()		: ISpatial(g_SpatialSpace)
@@ -94,9 +93,9 @@ CGlowManager::~CGlowManager	()
 void CGlowManager::Load		(IReader* fs)
 {
 	// glows itself
-	u32 size	= fs->length();
+	const u32 size	= fs->length();
 	R_ASSERT	(size);
-	u32 one		= 4*sizeof(float)+1*sizeof(u16);
+	const u32 one		= 4*sizeof(float)+1*sizeof(u16);
 	R_ASSERT	(size%one == 0);
 	u32 count	= size/one;
 	Glows.reserve(count);
@@ -109,7 +108,7 @@ void CGlowManager::Load		(IReader* fs)
 		G->spatial.sphere.set(G->position, G->radius);
 		G->direction.set	( 0,0,0 );
 
-		u16 S				= fs->r_u16();
+		const u16 S				= fs->r_u16();
 		G->shader			= ::RImplementation.getShader(S);
 
 		G->fade				= 255.f;
@@ -149,10 +148,10 @@ void CGlowManager::add	(ref_glow G_)
 	Device.Statistic->RenderDUMP_Glows.Begin();
 #endif
 
-	float	dt		= Device.fTimeDelta;
-	float	dlim2	= MAX_GlowsDist2;
+	const float	dt		= Device.fTimeDelta;
+	const float	dlim2	= MAX_GlowsDist2;
 
-	float	range = Device.vCameraPosition.distance_to_sqr	(G->spatial.sphere.P);
+	const float	range = Device.vCameraPosition.distance_to_sqr	(G->spatial.sphere.P);
 	if (range < dlim2) 
 	{
 		// 2. Use result of test
@@ -195,10 +194,10 @@ IC void FillSprite	(FVF::LIT*& pv, const Fvector& pos, float r, u32 clr)
 
 void CGlowManager::Render			()
 {
-	if (Selected.empty())					return		;
-	RCache.set_xform_world					(Fidentity)	;
+	if (Selected.empty())					return;
+	RCache.set_xform_world					(Fidentity);
 
-	Device.Statistic->RenderDUMP_Glows.Begin	();
+	Device.Statistic->RenderDUMP_Glows.Begin();
 	render_sw								();
 	Device.Statistic->RenderDUMP_Glows.End	();
 }
@@ -213,11 +212,12 @@ void CGlowManager::render_sw		()
 	for (int i=0; i<ps_r1_GlowsPerFrame; i++,dwTestID++)
 	{
 		u32	ID		= dwTestID%Selected.size();
-		CGlow&	G	= *( (CGlow*)Selected[ID]._get() );
+		CGlow&	G	= *((CGlow*)Selected[ID]._get());
 		if (G.dwFrame=='test')	break;
 		G.dwFrame	=	'test';
 		Fvector		dir;
-		dir.sub		(G.spatial.sphere.P,start); float range = dir.magnitude();
+		dir.sub		(G.spatial.sphere.P,start); 
+		const float range = dir.magnitude();
 		if (range>EPS_S)	{
 			dir.div		(range);
 			G.bTestResult = g_pGameLevel->ObjectSpace.RayTest(start,dir,range,collide::rqtBoth,&G.RayCache,o_main);
@@ -263,7 +263,7 @@ void CGlowManager::render_selected()
 	Fplane			NP;
 	NP.build		(Device.vCameraPosition,Device.vCameraDirection);
 
-	float		dlim2	= MAX_GlowsDist2;
+	const float		dlim2	= MAX_GlowsDist2;
 	for (;pos<Selected.size();) 
 	{
 		T		= ((CGlow*)Selected[pos]._get())->shader;
@@ -271,19 +271,19 @@ void CGlowManager::render_selected()
 		while	((pos+count<Selected.size()) && (((CGlow*)Selected[pos+count]._get())->shader==T)) count++;
 
 		u32		vOffset;
-		u32		end		= pos+count;
+		const u32		end		= pos+count;
 		FVF::LIT* pvs	= pv = (FVF::LIT*) RCache.Vertex.Lock(count*4,hGeom->vb_stride,vOffset);
 		for (; pos<end; pos++)
 		{
 			// Cull invisible 
-			CGlow&	G					= *( (CGlow*)Selected[pos]._get() );
+			CGlow&	G					= *((CGlow*)Selected[pos]._get());
 			if (G.fade<=1.f)			continue;
 
 			// Now perform dotproduct if need it
-			float	scale	= 1.f, dist_sq;
+			float	scale	= 1.f;
 			Fvector	dir;
 			dir.sub			(Device.vCameraPosition,G.position);
-			dist_sq			= dir.square_magnitude();
+			const float dist_sq	= dir.square_magnitude();
 			if (G.direction.square_magnitude()>EPS)	{
 				dir.div			(_sqrt(dist_sq));
 				scale			= dir.dotproduct(G.direction);
@@ -291,18 +291,20 @@ void CGlowManager::render_selected()
 			if (G.fade*scale<=1.f)		continue;
 
 			// near fade
-			float dist_np	= NP.distance(G.position)-VIEWPORT_NEAR;
+			const float dist_np	= NP.distance(G.position)-VIEWPORT_NEAR;
 			float snear		= dist_np/0.15f;	clamp	(snear,0.f,1.f);
 			scale			*=	snear;
 			if (G.fade*scale<=1.f)		continue;
 
 			u32 C			= iFloor(G.fade*scale*(1-(dist_sq/dlim2)));
-			u32 clr			= color_rgba(C,C,C,C);
-			Fvector	gp		;
-					gp.mad	(G.position,dir,G.radius*scale);
+			
+			// ZergO - заставляем Glow учитывать его цвет, а не только цвет текстуры
+			u32 clr			= color_rgba((u32)G.color.r, (u32)G.color.g, (u32)G.color.b, (u32)G.color.a) * C;
+
+			Fvector	gp;		gp.mad (G.position,dir,G.radius*scale);
 			FillSprite		(pv,G.position,G.radius,clr);
 		}
-		int vCount				= int(pv-pvs);
+		const int vCount		= int(pv-pvs);
 		RCache.Vertex.Unlock	(vCount,hGeom->vb_stride);
 		if (vCount) {
 			RCache.set_Shader		(T);

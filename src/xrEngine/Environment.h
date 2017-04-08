@@ -160,10 +160,8 @@ public:
 	Fvector3			sun_dir;
 	float				m_fSunShaftsIntensity;
 	float				m_fWaterIntensity;
+	float				moon_road_intensity;
 
-
-//	int					lens_flare_id;
-//	int					tb_id;
 	shared_str			lens_flare_id;
 	shared_str			tb_id;
     

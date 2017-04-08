@@ -235,7 +235,9 @@ CEnvDescriptor::CEnvDescriptor	(shared_str const& identifier) :
 	sun_dir.set			(0,-1,0);
 
 	m_fSunShaftsIntensity = 0;
-	m_fWaterIntensity = 1;
+	m_fWaterIntensity	= 1;
+
+	moon_road_intensity = 1.5f;
 
     lens_flare_id		= "";
 	tb_id				= "";
@@ -284,6 +286,9 @@ void CEnvDescriptor::load	(CEnvironment& environment, CInifile& config)
 	// ZergO
 	if (config.line_exist(time_id, "auto_sun_dir"))
 		auto_sun_dir = !!config.r_bool(time_id, "auto_sun_dir");
+
+	if (config.line_exist(time_id, "moon_road_intensity"))
+		moon_road_intensity = !!config.r_float(time_id, "moon_road_intensity");
 
 #pragma todo("ZergO - баг с солнцем на r1")
 	// Баг, когда положение солнца на статике не соответствует лайтмапу.
@@ -416,45 +421,47 @@ void CEnvDescriptorMixer::lerp	(CEnvironment* , CEnvDescriptor& A, CEnvDescripto
 	clouds_r_textures.push_back	(mk_pair(1,B.clouds_texture));
 	*/
 
-	weight					=	f;
+	weight					= f;
 
 	clouds_color.lerp		(A.clouds_color,B.clouds_color,f);
 
-	sky_rotation			=	(fi*A.sky_rotation + f*B.sky_rotation);
+	sky_rotation			= (fi*A.sky_rotation + f*B.sky_rotation);
 
-//.	far_plane				=	(fi*A.far_plane + f*B.far_plane + Mdf.far_plane)*psVisDistance*modif_power;
+//.	far_plane				= (fi*A.far_plane + f*B.far_plane + Mdf.far_plane)*psVisDistance*modif_power;
 	if(Mdf.use_flags.test(eViewDist))
-		far_plane				=	(fi*A.far_plane + f*B.far_plane + Mdf.far_plane)*psVisDistance*modif_power;
+		far_plane			= (fi*A.far_plane + f*B.far_plane + Mdf.far_plane)*psVisDistance*modif_power;
 	else
-		far_plane				=	(fi*A.far_plane + f*B.far_plane)*psVisDistance;
+		far_plane			= (fi*A.far_plane + f*B.far_plane)*psVisDistance;
 	
 //.	fog_color.lerp			(A.fog_color,B.fog_color,f).add(Mdf.fog_color).mul(modif_power);
 	fog_color.lerp			(A.fog_color,B.fog_color,f);
 	if(Mdf.use_flags.test(eFogColor))
 		fog_color.add(Mdf.fog_color).mul(modif_power);
 
-//.	fog_density				=	(fi*A.fog_density + f*B.fog_density + Mdf.fog_density)*modif_power;
-	fog_density				=	(fi*A.fog_density + f*B.fog_density);
+//.	fog_density				= (fi*A.fog_density + f*B.fog_density + Mdf.fog_density)*modif_power;
+	fog_density				= (fi*A.fog_density + f*B.fog_density);
 	if(Mdf.use_flags.test(eFogDensity))
 	{
 		fog_density			+= Mdf.fog_density;
 		fog_density			*= modif_power;
 	}
 
-	fog_distance			=	(fi*A.fog_distance + f*B.fog_distance);
-	fog_near				=	(1.0f - fog_density)*0.85f * fog_distance;
-	fog_far					=	0.99f * fog_distance;
+	fog_distance			= (fi*A.fog_distance + f*B.fog_distance);
+	fog_near				= (1.0f - fog_density)*0.85f * fog_distance;
+	fog_far					= 0.99f * fog_distance;
 	
-	rain_density			=	fi*A.rain_density + f*B.rain_density;
+	rain_density			= fi*A.rain_density + f*B.rain_density;
 	rain_color.lerp			(A.rain_color,B.rain_color,f);
-	bolt_period				=	fi*A.bolt_period + f*B.bolt_period;
-	bolt_duration			=	fi*A.bolt_duration + f*B.bolt_duration;
+	bolt_period				= fi*A.bolt_period + f*B.bolt_period;
+	bolt_duration			= fi*A.bolt_duration + f*B.bolt_duration;
 	// wind
-	wind_velocity			=	fi*A.wind_velocity + f*B.wind_velocity;
-	wind_direction			=	fi*A.wind_direction + f*B.wind_direction;
+	wind_velocity			= fi*A.wind_velocity + f*B.wind_velocity;
+	wind_direction			= fi*A.wind_direction + f*B.wind_direction;
 
-	m_fSunShaftsIntensity	=	fi*A.m_fSunShaftsIntensity + f*B.m_fSunShaftsIntensity;
-	m_fWaterIntensity		=	fi*A.m_fWaterIntensity + f*B.m_fWaterIntensity;
+	m_fSunShaftsIntensity	= fi*A.m_fSunShaftsIntensity + f*B.m_fSunShaftsIntensity;
+	m_fWaterIntensity		= fi*A.m_fWaterIntensity + f*B.m_fWaterIntensity;
+
+	moon_road_intensity		= fi*A.moon_road_intensity + f*B.moon_road_intensity;
 
 	// colors
 //.	sky_color.lerp			(A.sky_color,B.sky_color,f).add(Mdf.sky_color).mul(modif_power);
