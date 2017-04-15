@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Windows.h>
+
 #include "../../xrCore/xrCore.h"
 
 #pragma warning(disable:4995)

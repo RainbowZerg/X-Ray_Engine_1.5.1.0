@@ -20,13 +20,13 @@ class CScriptThread;
 #endif // #ifndef MASTER_GOLD
 
 #ifdef XRGAME_EXPORTS
-#	ifndef MASTER_GOLD
+//#	ifndef MASTER_GOLD
 #		define PRINT_CALL_STACK
-#	endif // #ifndef MASTER_GOLD
+//#	endif // #ifndef MASTER_GOLD
 #else // #ifdef XRGAME_EXPORTS
-#	ifndef NDEBUG
+//#	ifndef NDEBUG
 #		define PRINT_CALL_STACK
-#	endif // #ifndef NDEBUG
+//#	endif // #ifndef NDEBUG
 #endif // #ifdef XRGAME_EXPORTS
 
 using namespace ScriptStorage;
@@ -76,10 +76,10 @@ public:
 	static	void				print_error					(lua_State *L,		int		iErrorCode);
 	virtual	void				on_error					(lua_State *L) = 0;
 
-#ifdef DEBUG
+//#ifdef DEBUG
 public:
 			void				flush_log					();
-#endif // DEBUG
+//#endif // DEBUG
 };
 
 #include "script_storage_inline.h"

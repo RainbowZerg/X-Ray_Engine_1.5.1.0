@@ -145,9 +145,9 @@ CScriptEngine::~CScriptEngine			()
 	while (!m_script_processes.empty())
 		remove_script_process(m_script_processes.begin()->first);
 
-#ifdef DEBUG
+//#ifdef DEBUG
 	flush_log					();
-#endif // DEBUG
+//#endif // DEBUG
 
 #ifdef USE_DEBUGGER
 #	ifndef USE_LUA_STUDIO

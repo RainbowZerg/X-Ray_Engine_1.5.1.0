@@ -6,6 +6,7 @@
 #include <mmsystem.h>
 #include <objbase.h>
 #include "xrCore.h"
+#include "blackbox/symbolengine.h"
  
 #pragma comment(lib,"winmm.lib")
 
@@ -89,15 +90,13 @@ void xrCore::_initialize	(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs,
 		strcpy_s		(g_application_path,sizeof(g_application_path),ApplicationPath);
 #endif
 
-#ifdef _EDITOR
 		// working path
-        if( strstr(Params,"-wf") )
+        if (strstr(Params,"-wf"))
         {
             string_path				c_name;
             sscanf					(strstr(Core.Params,"-wf ")+4,"%[^ ] ",c_name);
             SetCurrentDirectory     (c_name);
         }
-#endif
 
 		GetCurrentDirectory(sizeof(WorkingPath),WorkingPath);
 
@@ -156,6 +155,20 @@ void xrCore::_initialize	(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs,
 #endif // DEBUG
 	}
 	SetLogCB				(cb);
+
+	LPAPI_VERSION ver = ImagehlpApiVersion();
+	if (NULL == GetProcAddress (GetModuleHandle("dbghelp.dll"), "EnumerateLoadedModulesEx"))
+	{
+		string256 msg;		
+		DWORD dwVer[2];
+		WORD *v4 = (WORD*) &dwVer;
+		CSymbolEngine SE;
+		SE.GetInMemoryFileVersion("dbghelp.dll", dwVer[0], dwVer[1]);
+
+		sprintf_s(msg, 256, "Устаревший файл dbghelp.dll (%d.%d.%d.%d), его рекомендуется удалить.", v4[1], v4[0], v4[3], v4[2]);
+		MessageBox(NULL, msg, "DebugHlp Warning", MB_OK);
+	}
+
 	init_counter++;
 }
 

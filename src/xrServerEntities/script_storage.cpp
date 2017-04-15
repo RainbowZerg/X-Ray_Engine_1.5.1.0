@@ -733,7 +733,7 @@ void CScriptStorage::print_error(lua_State *L, int iErrorCode)
 	}
 }
 
-#ifdef DEBUG
+//#ifdef DEBUG
 void CScriptStorage::flush_log()
 {
 	string_path			log_file_name;
@@ -741,7 +741,7 @@ void CScriptStorage::flush_log()
 	FS.update_path      (log_file_name,"$logs$",log_file_name);
 	m_output.save_to	(log_file_name);
 }
-#endif // DEBUG
+//#endif // DEBUG
 
 int CScriptStorage::error_log	(LPCSTR	format, ...)
 {

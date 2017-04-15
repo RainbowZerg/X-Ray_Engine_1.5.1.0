@@ -37,7 +37,7 @@
 #	define aiAnimationStats				(1<<27)
 #endif // DEBUG
 
-#ifndef MASTER_GOLD
+//#ifndef MASTER_GOLD
 #	define aiLua						(1<<6)
 #	define aiIgnoreActor				(1<<24)
 #	define aiObstaclesAvoiding			(1<<28)
@@ -45,4 +45,4 @@
 #	define aiUseSmartCovers				(1<<30)
 #	define aiUseSmartCoversAnimationSlot (1<<31)
 	extern Flags32						psAI_Flags;
-#endif // MASTER_GOLD
+//#endif // MASTER_GOLD
