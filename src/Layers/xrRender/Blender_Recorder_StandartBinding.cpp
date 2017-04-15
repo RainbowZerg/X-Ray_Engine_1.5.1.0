@@ -286,6 +286,20 @@ static class cl_hemi_color : public R_constant_setup{
 } binder_hemi_color;
 #endif
 
+static class cl_screen_res : public R_constant_setup		
+{	
+	u32			marker;
+	Fvector4	result;
+	virtual void setup(R_constant* C)	{
+		if (marker != Device.dwFrame)	{
+			float _w = float(Device.dwWidth);
+			float _h = float(Device.dwHeight);
+			result.set(_w, _h, (float)1.0 / _w, (float)1.0 / _h);
+		}
+		RCache.set_c(C, result);
+	}
+} binder_screen_res;
+
 #if RENDER != R_R1
 extern float r_dtex_range;
 static class cl_parallax : public R_constant_setup		
@@ -295,7 +309,7 @@ static class cl_parallax : public R_constant_setup
 		float			h =	ps_r2_df_parallax_h;
 		RCache.set_c	(C,h,-h/2.f,1.f/r_dtex_range,1.f/r_dtex_range);
 	}
-}binder_parallax;
+}	binder_parallax;
 
 static class cl_pos_decompress_params		: public R_constant_setup		
 {	
@@ -327,22 +341,6 @@ static class cl_sun_shafts_intensity : public R_constant_setup
 		RCache.set_c	(C, fValue, fValue, fValue, 0);
 	}
 }	binder_sun_shafts_intensity;
-#endif
-
-static class cl_screen_res : public R_constant_setup		
-{	
-	u32			marker;
-	Fvector4	result;
-	virtual void setup(R_constant* C)	{
-		if (marker != Device.dwFrame)	{
-			float _w = float(Device.dwWidth);
-			float _h = float(Device.dwHeight);
-			result.set(_w, _h, (float)1.0 / _w, (float)1.0 / _h);
-		}
-		RCache.set_c(C, result);
-	}
-} binder_screen_res;
-
 
 static class cl_refl_params : public R_constant_setup
 {
@@ -367,6 +365,7 @@ static class cl_refl_various : public R_constant_setup
 		RCache.set_c(C, g_pGamePersistent->Environment().CurrentEnv->moon_road_intensity, sun, ps_r2_sun_near, /*actor_torch_enabled*/ 0);
 	}
 } binder_refl_various;
+#endif
 
 // Standart constant-binding
 void	CBlender_Compile::SetMapping	()
@@ -422,18 +421,18 @@ void	CBlender_Compile::SetMapping	()
 	r_Constant				("L_ambient",		&binder_amb_color);
 #endif
 
+	r_Constant				("screen_res",		&binder_screen_res);
+
 #if RENDER != R_R1
 	r_Constant				("parallax",		&binder_parallax);
 	r_Constant				("water_intensity",	&binder_water_intensity);
 	r_Constant				("sun_shafts_intensity",		&binder_sun_shafts_intensity);
 	r_Constant				("pos_decompression_params",	&binder_pos_decompress_params);
-#endif
-
-	r_Constant				("screen_res",		&binder_screen_res);
 
 	r_Constant				("refl_params",		&binder_refl_params);
 	r_Constant				("refl_params2",	&binder_refl_params2);
 	r_Constant				("refl_various",	&binder_refl_various);
+#endif
 
 	// detail
 	//if (bDetail	&& detail_scaler)

@@ -26,8 +26,6 @@ ICF bool pred_sp_sort (ISpatial* _1, ISpatial* _2)
 }
 #endif
 
-float				g_fSCREEN;
-
 extern float		r_ssaDISCARD;
 extern float		r_ssaDONTSORT;
 extern float		r_ssaLOD_A;
@@ -43,18 +41,18 @@ void CRender::Calculate		()
 	Device.Statistic->RenderCALC.Begin();
 
 	// Transfer to global space to avoid deep pointer access
-	IRender_Target* T				=	getTarget	();
-	float	fov_factor				=	_sqr		(90.f / Device.fFOV);
-	g_fSCREEN						=	float(T->get_width()*T->get_height())*fov_factor*(EPS_S+ps_r__LOD);
-	r_ssaDISCARD					=	_sqr(ps_r__ssaDISCARD)		/g_fSCREEN;
-	r_ssaDONTSORT					=	_sqr(ps_r__ssaDONTSORT/3)	/g_fSCREEN;
-	r_ssaLOD_A						=	_sqr(ps_r__ssaLOD_A/3)		/g_fSCREEN;
-	r_ssaLOD_B						=	_sqr(ps_r__ssaLOD_B/3)		/g_fSCREEN;
-	r_ssaGLOD_start					=	_sqr(ps_r__GLOD_ssa_start/3)/g_fSCREEN;
-	r_ssaGLOD_end					=	_sqr(ps_r__GLOD_ssa_end/3)	/g_fSCREEN;
-	r_ssaHZBvsTEX					=	_sqr(ps_r__ssaHZBvsTEX/3)	/g_fSCREEN;
+	IRender_Target* T				= getTarget	();
+	float fov_factor				= _sqr (90.f / Device.fFOV);
+	float g_fSCREEN					= float(T->get_width()*T->get_height())*fov_factor*(EPS_S + ps_r__LOD);
+	r_ssaDISCARD					= _sqr(ps_r__ssaDISCARD)		/g_fSCREEN;
+	r_ssaDONTSORT					= _sqr(ps_r__ssaDONTSORT/3)		/g_fSCREEN;
+	r_ssaLOD_A						= _sqr(ps_r__ssaLOD_A/3)		/g_fSCREEN;
+	r_ssaLOD_B						= _sqr(ps_r__ssaLOD_B/3)		/g_fSCREEN;
+	r_ssaGLOD_start					= _sqr(ps_r__GLOD_ssa_start/3)	/g_fSCREEN;
+	r_ssaGLOD_end					= _sqr(ps_r__GLOD_ssa_end/3)	/g_fSCREEN;
+	r_ssaHZBvsTEX					= _sqr(ps_r__ssaHZBvsTEX/3)		/g_fSCREEN;
 #if RENDER != R_R1
-	r_dtex_range					=	ps_r2_df_parallax_range * g_fSCREEN / (1024.f * 768.f);
+	r_dtex_range					= ps_r2_df_parallax_range * g_fSCREEN / (1024.f * 768.f);
 #else
 	// Frustum & HOM rendering
 	ViewBase.CreateFromMatrix		(Device.mFullTransform,FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
@@ -80,7 +78,11 @@ void CRender::Calculate		()
 	// Check if camera is too near to some portal - if so force DualRender
 	if (rmPortals) 
 	{
+#if RENDER != R_R1
 		float	eps			= VIEWPORT_NEAR+EPS_L;
+#else
+		float	eps			= EPS_L * 2;
+#endif
 		Fvector box_radius; box_radius.set(eps,eps,eps);
 		Sectors_xrc.box_options	(CDB::OPT_FULL_TEST);
 		Sectors_xrc.box_query	(rmPortals,Device.vCameraPosition,box_radius);
@@ -157,8 +159,9 @@ void CRender::Calculate		()
 
 			// Determine visibility for dynamic part of scene
 			set_Object							(0);
-			g_pGameLevel->pHUD->Render_First	( );	// R1 shadows
-			g_pGameLevel->pHUD->Render_Last		( );	
+			g_hud->Render_First					();	// R1 shadows
+			g_hud->Render_Last					();
+
 			u32 uID_LTRACK						= 0xffffffff;
 			if (phase==PHASE_NORMAL)			{
 				uLastLTRACK	++;

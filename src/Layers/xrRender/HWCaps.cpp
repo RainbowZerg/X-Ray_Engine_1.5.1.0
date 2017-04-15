@@ -76,7 +76,8 @@ u32 GetATIGpuNum()
 	if (iGpuNum <= 0)
 		return 0;		// Fix in-game flickering of screen
 
-	Msg	("* ATI MGPU: %d-Way CrossFire detected.", iGpuNum);
+	if (iGpuNum > 1)
+		Msg	("* ATI MGPU: %d-Way CrossFire detected.", iGpuNum);
 
 	return iGpuNum;
 }
