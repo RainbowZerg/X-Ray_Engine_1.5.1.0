@@ -1,11 +1,9 @@
 #include "stdafx.h"
 #include "igame_level.h"
 
-//#include "xr_effgamma.h"
 #include "x_ray.h"
 #include "xr_ioconsole.h"
 #include "xr_ioc_cmd.h"
-//#include "fbasicvisual.h"
 #include "cameramanager.h"
 #include "environment.h"
 #include "xr_input.h"
@@ -15,6 +13,30 @@
 
 #include "xr_object.h"
 
+//-----------------------------------------------------------------------
+void IConsole_Command::add_to_LRU(shared_str const& arg)
+{
+	if (arg.size() == 0 || bEmptyArgsHandled) return;
+
+	bool dup = (std::find(m_LRU.begin(), m_LRU.end(), arg) != m_LRU.end());
+	if (!dup)
+	{
+		m_LRU.push_back(arg);
+		if (m_LRU.size() > LRU_MAX_COUNT)
+			m_LRU.erase(m_LRU.begin());
+	}
+}
+
+void  IConsole_Command::add_LRU_to_tips(vecTips& tips)
+{
+	vecLRU::reverse_iterator	it_rb = m_LRU.rbegin();
+	vecLRU::reverse_iterator	it_re = m_LRU.rend();
+	for (; it_rb != it_re; ++it_rb)
+		tips.push_back((*it_rb));
+}
+
+// =======================================================
+
 xr_token*							vid_quality_token = NULL;
 
 xr_token							vid_bpp_token							[ ]={
@@ -22,7 +44,7 @@ xr_token							vid_bpp_token							[ ]={
 	{ "32",							32											},
 	{ 0,							0											}
 };
-//-----------------------------------------------------------------------
+
 class CCC_Quit : public IConsole_Command
 {
 public:
@@ -531,6 +553,11 @@ public:
 		GetToken				();
 		if(!tokens)				return;
 		inherited::Save			(F);
+	}
+	virtual void fill_tips(vecTips& tips, u32 mode)
+	{
+		if (strstr(Core.Params, "-nosound")) return;
+		inherited::fill_tips(tips, mode);
 	}
 };
 #endif

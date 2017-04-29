@@ -29,6 +29,15 @@ private:
 	// ZergO: added
 	bool			m_is_flickering;
 	bool			m_is_broken;
+	bool			m_light_is_volumetric;
+
+	float			m_light_range;
+	float			m_light_volumetric_intensity;
+
+	Fvector			m_light_offset;
+	Fvector			m_light_omni_offset;
+	Fcolor			m_light_color;
+	//
 
 	inline	bool	can_use_dynamic_lights	();
 
@@ -47,9 +56,33 @@ public:
 
 	virtual void	UpdateCL			();
 
+			bool	Enabled				()				const;
+			bool	Broken				(bool fatal)	const;
+
 			void	Switch				();
 			void	Switch				(bool light_on);
-			void	Break				();
+			void	Break				(bool fatal);
+
+	IRender_Light  *GetLight(int target = 0);
+
+	void			SetAngle			(float angle, int target = 0);
+	void			SetAnimation		(LPCSTR name);
+	void			SetBrightness		(float brightness);
+	void			SetDirection		(const Fvector &v, float bank);
+	void			SetColor			(const Fcolor &color, int target = 0);
+	void			SetRGB				(float r, float g, float b, int target = 0);
+		
+	void			SetPosition			(const Fvector &v);
+	void			SetRange			(float range, int target = 0);
+	void			SetTexture			(LPCSTR texture, int target = 0);
+	void			SetVirtualSize		(float size, int target = 0);
+	
+	void			SetFlare			(bool b, int target = 0);
+
+	void			SetVolumetric				(bool b, int target = 0);
+	void			SetVolumetricIntensity		(float f, int target = 0);
+	void			SetVolumetricQuality		(float f, int target = 0);
+	void			SetVolumetricDistance		(float f, int target = 0);
 
 	virtual bool	can_be_attached		() const;
 

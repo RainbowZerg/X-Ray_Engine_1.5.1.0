@@ -97,22 +97,18 @@ PROTECT_API void InitSettings	()
 PROTECT_API void InitConsole	()
 {
 #ifdef DEDICATED_SERVER
-	{
-		Console						= xr_new<CTextConsole>	();		
-	}
+		Console					= xr_new<CTextConsole>	();		
 #else
-	//	else
-	{
-		Console						= xr_new<CConsole>	();
-	}
+		Console					= xr_new<CConsole>	();
 #endif
-	Console->Initialize			( );
+	Console->Initialize			();
 
-	strcpy_s						(Console->ConfigFile,"user.ltx");
-	if (strstr(Core.Params,"-ltx ")) {
+	strcpy_s					(Console->ConfigFile,"user.ltx");
+	if (strstr(Core.Params,"-ltx ")) 
+	{
 		string64				c_name;
 		sscanf					(strstr(Core.Params,"-ltx ")+5,"%[^ ] ",c_name);
-		strcpy_s					(Console->ConfigFile,c_name);
+		strcpy_s				(Console->ConfigFile,c_name);
 	}
 }
 
@@ -857,7 +853,7 @@ void CApplication::OnEvent(EVENT E, u64 P1, u64 P2)
 		{		
 			Console->Execute("main_menu off");
 			Console->Hide();
-			Device.Reset					(false);
+//			Device.Reset					(false);
 			//-----------------------------------------------------------
 			g_pGamePersistent->PreStart		(op_server);
 			//-----------------------------------------------------------

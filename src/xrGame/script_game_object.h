@@ -75,6 +75,7 @@ class CScriptIniFile;
 class CPhysicsShell;
 class CHelicopter;
 class CHangingLamp;
+class CTorch;
 class CHolderCustom;
 struct ScriptCallbackInfo;
 struct STasks;
@@ -537,6 +538,9 @@ public:
 			CCar*				get_car					();
 			//LAMP
 			CHangingLamp*		get_hanging_lamp		();
+			//TORCH
+			CTorch*				get_torch				();
+
 			CHolderCustom*		get_custom_holder		();
 			CHolderCustom*		get_current_holder		(); //actor only
 

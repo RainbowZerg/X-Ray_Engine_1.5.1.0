@@ -18,8 +18,8 @@ static const float		TIME_2_HIDE					= 5.f;
 static const float		TORCH_INERTION_CLAMP		= PI_DIV_6;
 static const float		TORCH_INERTION_SPEED_MAX	= 7.5f;
 static const float		TORCH_INERTION_SPEED_MIN	= 0.5f;
-static		 Fvector	TORCH_OFFSET				= {0,0,0};
-static const Fvector	OMNI_OFFSET					= {-0.2f,+0.1f,-0.1f};
+//static		 Fvector	TORCH_OFFSET				= {0,0,0};
+//static		 Fvector	OMNI_OFFSET					= {-0.2f,+0.1f,-0.1f};
 static const float		OPTIMIZATION_DISTANCE		= 100.f;
 
 CTorch::CTorch(void) 
@@ -27,6 +27,8 @@ CTorch::CTorch(void)
 	light_render				= ::Render->light_create();
 	light_render->set_type		(IRender_Light::SPOT);
 	light_render->set_shadow	(true);
+	light_render->set_volumetric_quality(1.0f);
+
 	light_omni					= ::Render->light_create();
 	light_omni->set_type		(IRender_Light::POINT);
 	light_omni->set_shadow		(false);
@@ -35,6 +37,7 @@ CTorch::CTorch(void)
 	m_switched_on				= false;
 	glow_render					= ::Render->glow_create();
 	lanim						= 0;
+	lanim_flickering			= 0;
 	fBrightness					= 1.f;
 
 	m_prev_hp.set				(0,0);
@@ -42,13 +45,14 @@ CTorch::CTorch(void)
 	m_is_flickering				= false;
 	m_is_broken					= false;
 
-	// Disabling shift by x and z axes for 1st render, 
-	// because we don't have dynamic lighting in it. 
-	if (::Render->get_generation() == ::Render->GENERATION_R1)
-	{
-		TORCH_OFFSET.x = 0;
-		TORCH_OFFSET.z = 0;
-	}
+	m_light_offset.set			(0,0,0);
+	m_light_omni_offset.set		(0,0,0);
+
+	m_light_color.set			(1, 1, 1, 1);
+	m_light_range				= 0;
+
+	m_light_is_volumetric		= false;
+	m_light_volumetric_intensity = 0;
 }
 
 CTorch::~CTorch(void) 
@@ -80,7 +84,7 @@ void CTorch::Load(LPCSTR section)
 	HUD_SOUND_ITEM::LoadSound(section, "snd_switch", m_FlashlightSwitchSnd, SOUND_TYPE_ITEM_USING);
 }
 
-void CTorch::Break()
+void CTorch::Break(bool fatal)
 {
 	if (OnClient()) return;
 	if (m_is_broken) return;
@@ -88,30 +92,34 @@ void CTorch::Break()
 	if (m_switched_on)
 		Switch (false);
 
-	if (!m_is_flickering)
-	{
-		if (Random.randI(2) == 1)
-		{
-			m_is_flickering = true;
-			return;
-		}
-	}
+	if (fatal)	
+		m_is_broken = true;
+	else		
+		m_is_flickering = true;
 
 //	sndBreaking.play_at_pos(0, Position());
-	m_is_broken = true;
+}
+
+bool CTorch::Enabled() const
+{
+	return m_switched_on;
+}
+
+bool CTorch::Broken(bool fatal) const
+{
+	return fatal ? m_is_broken : m_is_flickering;
 }
 
 void CTorch::Switch()
 {
 	if (OnClient()) return;
-	if (!m_switched_on && m_is_broken) return;
 
-	bool bActive			= !m_switched_on;
-	Switch					(bActive);
+	Switch (!m_switched_on);
 }
 
 void CTorch::Switch	(bool light_on)
 {
+	if (!m_switched_on && m_is_broken) return;
 	m_switched_on = light_on;
 	if (can_use_dynamic_lights())
 	{
@@ -166,11 +174,8 @@ BOOL CTorch::net_Spawn(CSE_Abstract* DC)
 	lanim_flickering		= LALib.FindItem(pUserData->r_string(torch_sect,"color_animator_f"));
 	guid_bone				= K->LL_BoneID	(pUserData->r_string(torch_sect,"guide_bone"));	VERIFY(guid_bone!=BI_NONE);
 
-	Fcolor clr				= pUserData->r_fcolor				(torch_sect,(b_r2)?"color_r2":"color");
-	fBrightness				= clr.intensity();
-	float range				= pUserData->r_float				(torch_sect,(b_r2)?"range_r2":"range");
-	light_render->set_color	(clr);
-	light_render->set_range	(range);
+	m_light_color			= pUserData->r_fcolor				(torch_sect,(b_r2)?"color_r2":"color");
+	m_light_range			= pUserData->r_float(torch_sect, (b_r2) ? "range_r2" : "range");
 	light_render->set_flare (!!pUserData->r_bool				(torch_sect, "lens_flare"));
 
 	Fcolor clr_o			= pUserData->r_fcolor				(torch_sect,(b_r2)?"omni_color_r2":"omni_color");
@@ -178,18 +183,24 @@ BOOL CTorch::net_Spawn(CSE_Abstract* DC)
 	light_omni->set_color	(clr_o);
 	light_omni->set_range	(range_o);
 
+	if (::Render->get_generation() != ::Render->GENERATION_R1)
+		m_light_offset		= pUserData->r_fvector3(torch_sect, "light_offset");
+
+	m_light_omni_offset		= pUserData->r_fvector3(torch_sect, "light_omni_offset");
+
 	light_render->set_cone	(deg2rad(pUserData->r_float			(torch_sect,"spot_angle")));
-	light_render->set_texture(pUserData->r_string				(torch_sect,"spot_texture"));
+
+	if (pUserData->line_exist(torch_sect, "spot_texture"))
+		light_render->set_texture(pUserData->r_string				(torch_sect,"spot_texture"));
 
 	glow_render->set_texture(pUserData->r_string				(torch_sect,"glow_texture"));
-	glow_render->set_color	(clr);
 	glow_render->set_radius	(pUserData->r_float					(torch_sect,"glow_radius"));
 
 	//включить/выключить фонарик
 	Switch					(torch->m_active);
 	VERIFY					(!torch->m_active || (torch->ID_Parent != 0xffff));
 
-	m_delta_h				= PI_DIV_2-atan((range*0.5f)/_abs(TORCH_OFFSET.x));
+	m_delta_h				= PI_DIV_2-atan((m_light_range*0.5f)/_abs(m_light_offset.x));
 
 	return					(TRUE);
 }
@@ -224,8 +235,10 @@ void CTorch::UpdateCL()
 
 	if (H_Parent()) 
 	{
-		CActor*			actor = smart_cast<CActor*>(H_Parent());
-		if (actor)		smart_cast<IKinematics*>(H_Parent()->Visual())->CalculateBones_Invalidate	();
+		CActor*	actor = smart_cast<CActor*>(H_Parent());
+
+#pragma todo("ZergO: исправить кривое положение фонарика на голове ГГ от 3-го лица")	
+		smart_cast<IKinematics*>(H_Parent()->Visual())->CalculateBones_Invalidate();
 
 		if (H_Parent()->XFORM().c.distance_to_sqr(Device.vCameraPosition)<_sqr(OPTIMIZATION_DISTANCE) || GameID() != eGameIDSingle) {
 			// near camera
@@ -259,9 +272,9 @@ void CTorch::UpdateCL()
 			glow_render->set_direction	(dir);
 
 			Fvector offset				= M.c; 
-			offset.mad					(M.i,TORCH_OFFSET.x);
-			offset.mad					(M.j,TORCH_OFFSET.y);
-			offset.mad					(M.k,TORCH_OFFSET.z);
+			offset.mad					(M.i,m_light_offset.x);
+			offset.mad					(M.j,m_light_offset.y);
+			offset.mad					(M.k,m_light_offset.z);
 			light_render->set_position	(offset);
 			light_render->set_rotation	(dir, right);
 		}
@@ -292,6 +305,17 @@ void CTorch::UpdateCL()
 
 	if (!m_switched_on)					return;
 
+	// ZergO: update light params
+	light_render->set_range					(m_light_range);
+
+	light_render->set_volumetric			(m_light_is_volumetric);
+	light_render->set_volumetric_distance	(1.0f);
+	light_render->set_volumetric_intensity	(m_light_volumetric_intensity);
+
+	fBrightness = m_light_color.intensity();
+
+	Fcolor fclr;
+
 	// calc color animator
 	if ((lanim_flickering && m_is_flickering) || lanim)
 	{
@@ -303,16 +327,15 @@ void CTorch::UpdateCL()
 		else if (lanim)
 			clr = lanim->CalculateBGR(Device.fTimeGlobal, frame);
 
-		Fcolor fclr;
 		fclr.set		((float)color_get_B(clr), (float)color_get_G(clr), (float)color_get_R(clr), 1.f);
 		fclr.mul_rgb	(fBrightness / 255.f);
-		if (can_use_dynamic_lights())
-		{
-			light_render->set_color(fclr);
-			light_omni->set_color(fclr);
-		}
-		glow_render->set_color(fclr);
 	}
+	else
+		fclr = m_light_color;
+
+	light_render->set_color					(fclr);
+	light_omni->set_color					(fclr);
+	glow_render->set_color					(fclr);
 }
 
 
@@ -334,6 +357,8 @@ void CTorch::setup_physic_shell	()
 void CTorch::net_Export			(NET_Packet& P)
 {
 	inherited::net_Export		(P);
+
+#pragma todo ("ZergO: сохранять радиус, цвет и еще что-нибудь (аниматор? )")
 
 	BYTE F = 0;
 	F |= (m_switched_on ? eActive : 0);
@@ -392,14 +417,46 @@ void CTorch::enable(bool value)
 
 }
 
+#define  CLASS_IMPL		CTorch
+#define  target_0		light_render
+#define  target_1		light_omni
+#define	 target_2		glow_render		
+#include "script_light_ext.h"
+#undef   target_0
+#undef	 target_1
+#undef	 target_2 
+#undef CLASS_IMPL
+
 using namespace luabind;
 
 #pragma optimize("s",on)
 void CTorch::script_register(lua_State *L)
 {
 	module(L)
-		[
-			class_<CTorch, CGameObject>("CTorch")
-			.def(constructor<>())
-		];
+	[
+		class_<CTorch,					CGameObject>("CTorch")
+		.def(							constructor<>())
+		.def("on",						&CTorch::Enabled)
+		.def("broken",					&CTorch::Broken)
+		.def("break",					&CTorch::Break)
+		.def("enable",					(void (CTorch::*)(bool)) (&CTorch::Switch))
+		.def("switch",					(void (CTorch::*)())	 (&CTorch::Switch))		
+
+		.def("get_light",				&CTorch::GetLight)
+		.def("set_animation",			&CTorch::SetAnimation)
+		.def("set_angle",				&CTorch::SetAngle)
+		.def("set_brightness",			&CTorch::SetBrightness)
+		.def("set_color",				&CTorch::SetColor)
+		.def("set_rgb",					&CTorch::SetRGB)
+		.def("set_range",				&CTorch::SetRange)			
+		.def("set_texture",				&CTorch::SetTexture)
+		.def("set_virtual_size",		&CTorch::SetVirtualSize)
+
+		.def("set_flare",				&CTorch::SetFlare)
+
+		.def("set_volumetric",			&CTorch::SetVolumetric)
+		.def("set_volumetric_intensity",&CTorch::SetVolumetricIntensity)
+		.def("set_volumetric_quality",	&CTorch::SetVolumetricQuality)
+		.def("set_volumetric_distance", &CTorch::SetVolumetricDistance)
+	];
 }

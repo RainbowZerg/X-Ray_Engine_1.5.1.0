@@ -280,7 +280,7 @@ void CRender::OnFrame()
 BOOL CRender::is_sun()
 {
 	if (o.sunstatic)	return FALSE;
-	Fcolor sun_color	= ((light*)Lights.sun_adapted._get())->color;
+	Fcolor sun_color	= ((light*)Lights.sun._get())->color;
 	return				(ps_r2_ls_flags.test(R2FLAG_SUN) && (u_diffuse2s(sun_color.r, sun_color.g, sun_color.b)>EPS));
 }
 

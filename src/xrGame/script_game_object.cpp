@@ -25,6 +25,7 @@
 #include "script_ini_file.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "HangingLamp.h"
+#include "Torch.h"
 #include "patrol_path_manager.h"
 #include "ai_object_location.h"
 #include "custommonster.h"
@@ -180,6 +181,16 @@ CHangingLamp* CScriptGameObject::get_hanging_lamp()
 		NODEFAULT;
 	}
 	return lamp;
+}
+
+CTorch* CScriptGameObject::get_torch()
+{
+	CTorch*	torch = smart_cast<CTorch*>(&object());
+	if (!torch) {
+		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CGameObject : it is not a torch!");
+		NODEFAULT;
+	}
+	return torch;
 }
 
 CHolderCustom* CScriptGameObject::get_custom_holder()

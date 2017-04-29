@@ -9,7 +9,14 @@ class CFlare :public CHudItemObject
 {
 private:
 	typedef			CHudItemObject	inherited;
-	enum FlareStates{eFlareHidden,eFlareShowing,eFlareIdle,eFlareHiding,eFlareDropping};
+	enum FlareStates
+	{
+		eFlareHidden,
+		eFlareShowing,
+		eFlareIdle,
+		eFlareHiding,
+		eFlareDropping
+	};
 
 	CLAItem*					light_lanim;
 	ref_light					light_render;

@@ -251,8 +251,8 @@ void CCustomZone::Load(LPCSTR section)
 		m_fLightRange			= pSettings->r_float(section,"light_range");
 		m_fLightTime			= pSettings->r_float(section,"light_time");
 		m_fLightTimeLeft		= 0;
-
 		m_fLightHeight			= pSettings->r_float(section,"light_height");
+		m_LightTexture			= READ_IF_EXISTS(pSettings, r_string, section, "light_texture", "");
 		m_bLightFlare			= !!READ_IF_EXISTS(pSettings, r_bool, section, "light_flare", false);
 	}
 
@@ -268,6 +268,7 @@ void CCustomZone::Load(LPCSTR section)
 		m_zone_flags.set(eIdleLightShadow,pSettings->r_bool		(section, "idle_light_shadow"));
 		m_zone_flags.set(eIdleLightR1,pSettings->r_bool			(section, "idle_light_r1"));
 //		m_zone_flags.set(eIdleLightFlare, pSettings->r_bool		(section, "idle_light_flare"));
+		m_IdleLightTexture		= READ_IF_EXISTS(pSettings, r_string, section, "idle_light_texture", "");
 		m_bIdleLightFlare		= !!READ_IF_EXISTS(pSettings, r_bool, section, "idle_light_flare", false);
 	}
 
@@ -310,6 +311,9 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 	{
 		m_pIdleLight = ::Render->light_create();
 		m_pIdleLight->set_shadow(!!m_zone_flags.test(eIdleLightShadow));
+		if (xr_strlen(m_IdleLightTexture))
+			m_pIdleLight->set_texture(m_IdleLightTexture);
+
 		m_pIdleLight->set_flare(m_bIdleLightFlare);
 
 		if (m_zone_flags.test(eIdleLightVolumetric))
@@ -325,6 +329,9 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 	{
 		m_pLight = ::Render->light_create();
 		m_pLight->set_shadow(true);
+		if (xr_strlen(m_LightTexture))
+			m_pLight->set_texture(m_LightTexture);
+
 		m_pLight->set_flare(m_bLightFlare);
 	}
 	else

@@ -12,66 +12,66 @@ CLight_DB::~CLight_DB()
 {
 }
 
-void CLight_DB::Load			(IReader *fs) 
+void CLight_DB::Load(IReader *fs)
 {
-	IReader* F	= 0;
+	IReader* F = 0;
 
 	// Lights itself
-	sun_adapted			= NULL;
-	{
-		F				= fs->open_chunk		(fsL_LIGHT_DYNAMIC);
+	sun = NULL;
 
-		u32 size		= F->length();
-		u32 element		= sizeof(Flight)+4;
-		u32 count		= size/element;
-		VERIFY			(count*element == size);
-		v_static.reserve(count);
-		for (u32 i=0; i<count; i++) 
-		{
-			Flight		Ldata;
-			light*		L				= Create	();
-			L->flags.bStatic			= true;
-			L->set_type					(IRender_Light::POINT);
+	F = fs->open_chunk(fsL_LIGHT_DYNAMIC);
+
+	u32 size	= F->length();
+	u32 element = sizeof(Flight) + 4;
+	u32 count	= size / element;
+	VERIFY(count*element == size);
+	v_static.reserve(count);
+	for (u32 i = 0; i < count; i++)
+	{
+		Flight Ldata;
+		light* L			= Create();
+		L->flags.bStatic	= true;
+		L->set_type			(IRender_Light::POINT);
 
 #if RENDER==R_R1
-			L->set_shadow				(false);
+		L->set_shadow				(false);
 #else
-			L->set_shadow				(true);
+		L->set_shadow(true);
 #endif
-			u32 controller				= 0;
-			F->r						(&controller,4);
-			F->r						(&Ldata,sizeof(Flight));
-			if (Ldata.type==D3DLIGHT_DIRECTIONAL)	
-			{
-				Fvector tmp_R;		tmp_R.set(1,0,0);
+		u32 controller	= 0;
+		F->r			(&controller, 4);
+		F->r			(&Ldata, sizeof(Flight));
+		if (Ldata.type == D3DLIGHT_DIRECTIONAL)
+		{
+			Fvector tmp_R;		tmp_R.set(1, 0, 0);
 
-				// directional (base)
-				sun_adapted			=	L		= Create();
-				L->flags.bStatic	=	true;
-				L->set_type			(IRender_Light::DIRECT);
-				L->set_shadow		(true);
-				L->set_rotation		(Ldata.direction,tmp_R);
-			}
-			else
-			{
-				Fvector tmp_D,tmp_R;
-				tmp_D.set			(0,0,-1);	// forward
-				tmp_R.set			(1,0,0);	// right
-
-				// point
-				v_static.push_back	(L);
-				L->set_position		(Ldata.position		);
-				L->set_rotation		(tmp_D, tmp_R		);
-				L->set_range		(Ldata.range		);
-				L->set_color		(Ldata.diffuse		);
-				L->set_active		(true				);
-//				R_ASSERT			(L->spatial.sector	);
-			}
+			// directional (base)
+			sun					= L = Create();
+			L->flags.bStatic	= true;
+			L->set_type			(IRender_Light::DIRECT);
+			L->set_shadow		(true);
+			L->set_rotation		(Ldata.direction, tmp_R);
 		}
+		else
+		{
+			Fvector tmp_D, tmp_R;
+			tmp_D.set			(0, 0, -1);	// forward
+			tmp_R.set			(1, 0, 0);	// right
 
-		F->close			();
+			// point
+			v_static.push_back	(L);
+			L->set_position		(Ldata.position);
+			L->set_rotation		(tmp_D, tmp_R);
+			L->set_range		(Ldata.range);
+			L->set_color		(Ldata.diffuse);
+			L->set_active		(true);
+			//R_ASSERT			(L->spatial.sector	);
+		}
 	}
-	R_ASSERT2(sun_adapted,"Where is sun?");
+
+	F->close();
+
+	R_ASSERT2(sun, "Where is sun?");
 }
 
 #if RENDER != R_R1
@@ -131,7 +131,7 @@ void			CLight_DB::Unload	()
 {
 	v_static.clear			();
 	v_hemi.clear			();
-	sun_adapted.destroy		();
+	sun.destroy				();
 }
 
 light*			CLight_DB::Create	()
@@ -167,9 +167,9 @@ void			CLight_DB::add_light		(light* L)
 void			CLight_DB::Update			()
 {
 	// set sun params
-	if (sun_adapted)
+	if (sun)
 	{
-		light*	_sun_adapted		= (light*) sun_adapted._get();
+		light*	_sun				= (light*) sun._get();
 		CEnvDescriptor&	E			= *g_pGamePersistent->Environment().CurrentEnv;
 		VERIFY						(_valid(E.sun_dir));
 #ifdef DEBUG
@@ -191,16 +191,16 @@ void			CLight_DB::Update			()
 		}
 #endif
 
-		VERIFY2						(E.sun_dir.y<0,"Invalid sun direction settings in evironment-config");
-		Fvector						OD,OP;
-		OD.set						(E.sun_dir).normalize			();
-		OP.mad						(Device.vCameraPosition,OD,-500.f);
+		VERIFY2				(E.sun_dir.y<0,"Invalid sun direction settings in evironment-config");
+		Fvector				OD,OP;
+		OD.set				(E.sun_dir).normalize			();
+		OP.mad				(Device.vCameraPosition,OD,-500.f);
 
 
-		sun_adapted->set_rotation	(OD, _sun_adapted->right);
-		sun_adapted->set_position	(OP);
-		sun_adapted->set_color		(E.sun_color.x*ps_r2_sun_lumscale,E.sun_color.y*ps_r2_sun_lumscale,E.sun_color.z*ps_r2_sun_lumscale);
-		sun_adapted->set_range		(600.f);
+		sun->set_rotation	(OD, _sun->right);
+		sun->set_position	(OP);
+		sun->set_color		(E.sun_color.x*ps_r2_sun_lumscale,E.sun_color.y*ps_r2_sun_lumscale,E.sun_color.z*ps_r2_sun_lumscale);
+		sun->set_range		(600.f);
 	}
 
 	// Clear selection

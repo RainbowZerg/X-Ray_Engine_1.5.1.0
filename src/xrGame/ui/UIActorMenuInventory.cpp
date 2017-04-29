@@ -28,6 +28,7 @@
 #include "../MPPlayersBag.h"
 #include "../HUDManager.h"
 #include "../player_hud.h"
+#include "../Torch.h"
 
 
 void move_item_from_to(u16 from_id, u16 to_id, u16 what_id);
@@ -676,51 +677,51 @@ void CUIActorMenu::TryHidePropertiesBox()
 void CUIActorMenu::ActivatePropertiesBox()
 {
 	TryHidePropertiesBox();
-	if ( !(m_currMenuMode == mmInventory || m_currMenuMode == mmDeadBodySearch || m_currMenuMode == mmUpgrade) )
-	{
-		return;
-	}
+	if (!(m_currMenuMode == mmInventory || m_currMenuMode == mmDeadBodySearch || m_currMenuMode == mmUpgrade)) return;
 	
 	PIItem item = CurrentIItem();
-	if ( !item ) 
-	{
-		return;
-	}
+	if (!item) return;
 
 	CUICellItem* cell_item = CurrentItem();
 	m_UIPropertiesBox->RemoveAll();
 	bool b_show = false;
 
-	if ( m_currMenuMode == mmInventory )
+	switch (m_currMenuMode)
 	{
-		PropertiesBoxForSlots( item, b_show );
-		PropertiesBoxForWeapon( cell_item, item, b_show );
-		PropertiesBoxForAddon( item, b_show );
-		PropertiesBoxForUsing( item, b_show );
-		PropertiesBoxForDrop( cell_item, item, b_show );
+	case mmInventory:
+	{
+		PropertiesBoxForSlots	(item, b_show);
+		PropertiesBoxForWeapon	(cell_item, item, b_show);
+		PropertiesBoxForAddon	(item, b_show);
+		PropertiesBoxForUsing	(item, b_show);
+		PropertiesBoxForDrop	(cell_item, item, b_show);
+		break;
 	}
-	else if ( m_currMenuMode == mmDeadBodySearch )
+	case mmUpgrade:
 	{
-		PropertiesBoxForUsing( item, b_show );
+		PropertiesBoxForRepair	(item, b_show);
+		break;
 	}
-	else if ( m_currMenuMode == mmUpgrade )
+	case mmDeadBodySearch:
 	{
-		PropertiesBoxForRepair( item, b_show );
+		PropertiesBoxForUsing	(item, b_show);
+		break;
+	}
 	}
 	
-	if ( b_show )
+	if (b_show)
 	{
 		m_UIPropertiesBox->AutoUpdateSize();
 		m_UIPropertiesBox->BringAllToTop();
 
 		Fvector2 cursor_pos;
 		Frect    vis_rect;
-		GetAbsoluteRect				( vis_rect );
+		GetAbsoluteRect				(vis_rect);
 
 		cursor_pos					= GetUICursor()->GetCursorPosition();
-		cursor_pos.sub				( vis_rect.lt );
-		m_UIPropertiesBox->Show		( vis_rect, cursor_pos );
-		PlaySnd						( eProperties );
+		cursor_pos.sub				(vis_rect.lt);
+		m_UIPropertiesBox->Show		(vis_rect, cursor_pos);
+		PlaySnd						(eProperties);
 	}
 }
 
@@ -869,31 +870,45 @@ void CUIActorMenu::PropertiesBoxForAddon( PIItem item, bool& b_show )
 
 void CUIActorMenu::PropertiesBoxForUsing( PIItem item, bool& b_show )
 {
-	CMedkit*		pMedkit			= smart_cast<CMedkit*>		(item);
-	CAntirad*		pAntirad		= smart_cast<CAntirad*>		(item);
-	CEatableItem*	pEatableItem	= smart_cast<CEatableItem*>	(item);
-	CBottleItem*	pBottleItem		= smart_cast<CBottleItem*>	(item);
+	CTorch*			pTorch			= smart_cast<CTorch*>		(item);
 
 	LPCSTR act_str = NULL;
-	if ( pMedkit || pAntirad )
+
+	if (smart_cast<CEatableItemObject*>(item))
 	{
-		act_str = "st_use";
-	}
-	else if ( pEatableItem )
-	{
-		if ( pBottleItem )
+		CMedkit*		pMedkit			= smart_cast<CMedkit*>		(item);
+		CAntirad*		pAntirad		= smart_cast<CAntirad*>		(item);
+		CEatableItem*	pEatableItem	= smart_cast<CEatableItem*>	(item);
+		CBottleItem*	pBottleItem		= smart_cast<CBottleItem*>	(item);
+
+		if (pMedkit || pAntirad)
 		{
-			act_str = "st_drink";
+			act_str = "st_use";
 		}
+		else if (pEatableItem)
+		{
+			if (pBottleItem)
+				act_str = "st_drink";
+			else
+				act_str = "st_eat";
+		}
+		m_UIPropertiesBox->AddItem(act_str, NULL, INVENTORY_EAT_ACTION);
+		b_show = true;
+	}
+	else if (pTorch)
+	{
+		CInventory*	inv = &m_pPartnerInvOwner->inventory();
+		if (!inv->m_slots[TORCH_SLOT].m_pIItem || inv->m_slots[TORCH_SLOT].m_pIItem != item) return;
+		if (!pTorch->enabled()) return; // if not attached
+		if (pTorch->Broken(true)) return;
+
+		if (pTorch->Enabled())
+			act_str = "st_disable";
 		else
-		{
-			act_str = "st_eat";
-		}
-	}
-	if ( act_str )
-	{
-		m_UIPropertiesBox->AddItem( act_str,  NULL, INVENTORY_EAT_ACTION );
-		b_show			= true;
+			act_str = "st_enable";
+
+		m_UIPropertiesBox->AddItem(act_str, NULL, INVENTORY_SWITCH_TORCH);
+		b_show = true;
 	}
 }
 
@@ -932,7 +947,7 @@ void CUIActorMenu::ProcessPropertiesBoxClicked( CUIWindow* w, void* d )
 		return;
 	}
 	CWeapon* weapon = smart_cast<CWeapon*>( item );
-	
+
 	switch ( m_UIPropertiesBox->GetClickedItem()->GetTAG() )
 	{
 	case INVENTORY_TO_SLOT_ACTION:	ToSlot( cell_item, true  );		break;
@@ -1002,6 +1017,12 @@ void CUIActorMenu::ProcessPropertiesBoxClicked( CUIWindow* w, void* d )
 		{
 			TryRepairItem(this,0);
 			return;
+			break;
+		}
+	case INVENTORY_SWITCH_TORCH:
+		{
+			CTorch* torch = smart_cast<CTorch*>(item);
+			torch->Switch();
 			break;
 		}
 	}//switch

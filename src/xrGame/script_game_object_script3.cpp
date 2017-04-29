@@ -24,6 +24,7 @@
 #include "PhysicsShell.h"
 #include "helicopter.h"
 #include "HangingLamp.h"
+#include "Torch.h"
 #include "holder_custom.h"
 #include "script_zone.h"
 #include "relation_registry.h"
@@ -235,6 +236,7 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("get_helicopter",              &CScriptGameObject::get_helicopter)
 		.def("get_car",						&CScriptGameObject::get_car)
 		.def("get_hanging_lamp",            &CScriptGameObject::get_hanging_lamp)
+		.def("get_torch",					&CScriptGameObject::get_torch)
 		.def("get_physics_shell",			&CScriptGameObject::get_physics_shell)
 		.def("get_holder_class",			&CScriptGameObject::get_custom_holder)
 		.def("get_current_holder",			&CScriptGameObject::get_current_holder)

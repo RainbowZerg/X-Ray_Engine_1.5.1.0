@@ -367,13 +367,13 @@ void CROS_impl::calc_sun_value(Fvector& position, CObject* _object)
 {
 
 #if RENDER==R_R1
-	light*	sun		=		(light*)RImplementation.L_DB->sun_adapted._get()	;
+	light*	sun		=		(light*)RImplementation.L_DB->sun._get();
 #else
-	light*	sun		=		(light*)RImplementation.Lights.sun_adapted._get()	;
+	light*	sun		=		(light*)RImplementation.Lights.sun._get();
 #endif
 	if	(MODE & IRender_ObjectSpecific::TRACE_SUN)	{
 		if  (--result_sun	< 0)	{
-			result_sun		+=		::Random.randI(lt_hemisamples/4,lt_hemisamples/2)	;
+			result_sun		+=		::Random.randI(lt_hemisamples/4,lt_hemisamples/2);
 			Fvector	direction;	direction.set	(sun->direction).invert().normalize	();
 			sun_value		=	!(g_pGameLevel->ObjectSpace.RayTest(position,direction,500.f,collide::rqtBoth,&cache_sun,_object))?1.f:0.f;
 		}
@@ -494,7 +494,7 @@ void CROS_impl::prepare_lights(Fvector& position, IRenderable* O)
 		}
 
 #if RENDER==R_R1
-		light*	sun		=		(light*)RImplementation.L_DB->sun_adapted._get()	;
+		light* sun		=		(light*)RImplementation.L_DB->sun._get();
 
 		// Sun
 		float	E			=	sun_smooth * sun->color.intensity	();

@@ -10,6 +10,13 @@ class CPoltergeisMovementManager;
 class CPolterSpecialAbility;
 
 //////////////////////////////////////////////////////////////////////////
+enum EPolterSounds
+{
+	eSndDeath,
+	eSndDeathHidden,
+	eSndHit,
+	eSndHitHidden,
+};
 
 class CPoltergeist :	public CBaseMonster ,
 						public CTelekinesis,
@@ -23,16 +30,32 @@ class CPoltergeist :	public CBaseMonster ,
 	float					m_height;
 	bool					m_disable_hide;
 
-	SMotionVel				invisible_vel;
+	float					m_ability_impulse;
+	float					m_ability_impulse_radius;
+	u32						m_ability_trace_attempts;
+	float					m_ability_trace_distance;
+	ref_sound				m_strange_sound;
 
+	SMotionVel				invisible_vel;
 
 	CPolterSpecialAbility	*m_flame;
 	CPolterSpecialAbility	*m_tele;
-
-
 public:
+	CSoundPlayer			*m_sound_player;
+
+	struct SScareDelay
+	{
+		u32 min;
+		u32 normal;
+		u32 aggressive;
+	} m_scare_delay;
+
 					CPoltergeist		();
 	virtual			~CPoltergeist		();	
+
+	// Poltergeist ability
+			void	PhysicalImpulse		(const Fvector &position);
+			void	StrangeSounds		(const Fvector &position);
 
 	virtual void	Load				(LPCSTR section);
 	virtual void	reload				(LPCSTR section);
@@ -58,15 +81,7 @@ public:
 
 	IC		CPolterSpecialAbility		*ability() {return (m_flame ? m_flame : m_tele);}
 	
-	
 	IC		bool	is_hidden			() {return state_invisible;}
-
-	
-	// Poltergeist ability
-			void	PhysicalImpulse		(const Fvector &position);
-			void	StrangeSounds		(const Fvector &position);
-			
-			ref_sound m_strange_sound;
 	
 	// Movement
 			Fvector m_current_position;		// Позиция на ноде
@@ -110,12 +125,14 @@ class CPolterSpecialAbility {
 	CParticlesObject	*m_particles_object;
 	CParticlesObject	*m_particles_object_electro;
 
+	LPCSTR				m_particles_show;
 	LPCSTR				m_particles_hidden;
 	LPCSTR				m_particles_damage;
 	LPCSTR				m_particles_death;
 	LPCSTR				m_particles_idle;
 
 	ref_sound			m_sound_base;
+
 	u32					m_last_hit_frame;
 
 protected:
@@ -249,6 +266,7 @@ class CPolterTele : public CPolterSpecialAbility {
 	ref_sound			m_sound_tele_hold;
 	ref_sound			m_sound_tele_throw;
 
+	CEntityAlive*		curr_enemy;
 
 	enum ETeleState {
 		eStartRaiseObjects,

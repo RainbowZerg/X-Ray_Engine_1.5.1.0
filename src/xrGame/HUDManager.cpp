@@ -335,20 +335,19 @@ void CHUDManager::SetGrenadeMarkType( LPCSTR tex_name )
 #include "ui\UIMainInGameWnd.h"
 extern CUIXml*			pWpnScopeXml;
 
-void CHUDManager::OnScreenRatioChanged()
+void CHUDManager::OnScreenResolutionChanged()
 {
-	if(pUI->UIGame())
-		pUI->UIGame()->HideShownDialogs	();
+	if (pUI->UIGame())
+		pUI->UIGame()->HideShownDialogs();
 
-	xr_delete							(pWpnScopeXml);
-	xr_delete							(pUI->UIMainIngameWnd);
+	xr_delete(pWpnScopeXml);
+	xr_delete(pUI->UIMainIngameWnd);
 
-	pUI->UIMainIngameWnd				= xr_new<CUIMainIngameWnd>	();
-	pUI->UIMainIngameWnd->Init			();
-	pUI->UnLoad							();
-	pUI->Load							(pUI->UIGame());
-	pUI->OnConnected					();
-	GetUICursor()->OnScreenRatioChanged	();
+	pUI->UIMainIngameWnd = xr_new<CUIMainIngameWnd>();
+	pUI->UIMainIngameWnd->Init();
+	pUI->UnLoad();
+	pUI->Load(pUI->UIGame());
+	pUI->OnConnected();
 }
 
 void CHUDManager::OnDisconnected()

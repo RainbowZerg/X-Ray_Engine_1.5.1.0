@@ -32,7 +32,7 @@ void CRenderTarget::accum_direct_cascade(u32 sub_phase, Fmatrix& xform, Fmatrix&
 	phase_accumulator					();
 
 	// *** assume accumulator setted up ***
-	light* fuckingsun			= (light*)RImplementation.Lights.sun_adapted._get();
+	light* fuckingsun			= (light*)RImplementation.Lights.sun._get();
 
 	// Common calc for quad-rendering
 	u32		Offset;
@@ -323,7 +323,7 @@ void CRenderTarget::accum_direct_lum	()
 	phase_accumulator					();
 
 	// *** assume accumulator setted up ***
-	light*			fuckingsun			= (light*)RImplementation.Lights.sun_adapted._get()	;
+	light*			fuckingsun			= (light*)RImplementation.Lights.sun._get();
 
 	// Common calc for quad-rendering
 	u32		Offset;
@@ -445,7 +445,7 @@ void CRenderTarget::accum_direct_volumetric	(u32 sub_phase, const u32 Offset, co
 	{
 
 		// *** assume accumulator setted up ***
-		light* fuckingsun			= (light*)RImplementation.Lights.sun_adapted._get();
+		light* fuckingsun			= (light*)RImplementation.Lights.sun._get();
 
 		// Common constants (light-related)
 		Fvector L_clr; 

@@ -286,7 +286,7 @@ CRenderTarget::CRenderTarget		()
 
 	// POINT
 	{
-		s_accum_point.create		(b_accum_point,				"r2\\accum_point_s");
+		s_accum_point.create		(b_accum_point,				"r2\\accum_point_s", "internal\\internal_light_attpoint");
 		accum_point_geom_create		();
 		g_accum_point.create		(D3DFVF_XYZ,				g_accum_point_vb, g_accum_point_ib);
 		accum_omnip_geom_create		();

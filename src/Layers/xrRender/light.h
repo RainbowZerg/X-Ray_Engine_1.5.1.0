@@ -102,6 +102,19 @@ public:
 #endif	//	(RENDER==R_R2) || (RENDER==R_R3)
 
 public:
+	// alpet: для сохраняемости конфигурации источников света
+	virtual float							get_cone() { return cone; }
+	virtual Fcolor							get_color() { return color; }
+	virtual float							get_range() { return range; }
+	virtual float							get_virtual_size()
+	{
+#if RENDER==R_R2
+		return virtual_size; 
+#else
+		return 0.0;
+#endif
+	}
+
 	virtual void	set_type				(LT type)						{ flags.type = type;		}
 	virtual void	set_active				(bool b);
 	virtual bool	get_active				()								{ return flags.bActive;		}

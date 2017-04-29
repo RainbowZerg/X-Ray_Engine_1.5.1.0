@@ -5,9 +5,6 @@
 #include "IInputReceiver.h"
 #include "../include/editor/ide.hpp"
 
-#ifndef _EDITOR
-#	include "xr_input_xinput.h"
-#endif
 CInput *	pInput	= NULL;
 IInputReceiver		dummyController;
 

@@ -21,7 +21,8 @@ class CUI;
 
 class ENGINE_API CCustomHUD:
 	public DLL_Pure,
-	public IEventReceiver	
+	public IEventReceiver,
+	public pureScreenResolutionChanged
 {
 public:
 					CCustomHUD				();
@@ -37,7 +38,6 @@ public:
 	virtual		void		OnEvent					(EVENT E, u64 P1, u64 P2){;}
 
 	virtual IC	CUI*		GetUI					()=0;
-	virtual void			OnScreenRatioChanged	()=0;
 	virtual void			OnDisconnected			()=0;
 	virtual void			OnConnected				()=0;
 	virtual	void			RenderActiveItemUI		()=0;

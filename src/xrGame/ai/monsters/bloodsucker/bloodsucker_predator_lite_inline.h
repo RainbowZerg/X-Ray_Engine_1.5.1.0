@@ -223,8 +223,9 @@ void CStateBloodsuckerPredatorLiteAbstract::select_camp_point()
 TEMPLATE_SPECIALIZATION
 bool CStateBloodsuckerPredatorLiteAbstract::enemy_see_me()
 {
-	//if (object->EnemyMan.get_enemy() == Actor()) 
-	//	return (Actor()->memory().visual().visible_now(object));
+	// ZergO: correct check?
+	if (object->EnemyMan.get_enemy() == Actor()) 
+		return (Actor()->memory().visual().visible_now(object));
 
 	// if I see enemy then probably enemy see me :-)
 	return object->EnemyMan.enemy_see_me_now();

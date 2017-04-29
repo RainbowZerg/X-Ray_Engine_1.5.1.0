@@ -291,32 +291,35 @@ void CWeaponMagazined::ReloadMagazine()
 	m_dwAmmoCurrentCalcFrame = 0;	
 
 	//устранить осечку при перезарядке
-	if(IsMisfire())	bMisfire = false;
+	if (IsMisfire())	
+		bMisfire = false;
 	
-	if (!m_bLockType) {
+	if (!m_bLockType) 
+	{
 		m_ammoName	= NULL;
 		m_pAmmo		= NULL;
 	}
 	
 	if (!m_pInventory) return;
 
-	if(m_set_next_ammoType_on_reload != u32(-1)){		
+	if (m_set_next_ammoType_on_reload != u32(-1))
+	{		
 		m_ammoType						= m_set_next_ammoType_on_reload;
 		m_set_next_ammoType_on_reload	= u32(-1);
 	}
 	
-	if(!unlimited_ammo()) 
+	if (!unlimited_ammo()) 
 	{
 		//попытаться найти в инвентаре патроны текущего типа 
 		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(*m_ammoTypes[m_ammoType]));
 		
-		if(!m_pAmmo && !m_bLockType) 
+		if (!m_pAmmo && !m_bLockType) 
 		{
-			for(u32 i = 0; i < m_ammoTypes.size(); ++i) 
+			for (u32 i = 0; i < m_ammoTypes.size(); ++i) 
 			{
 				//проверить патроны всех подходящих типов
 				m_pAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(*m_ammoTypes[i]));
-				if(m_pAmmo) 
+				if (m_pAmmo) 
 				{ 
 					m_ammoType = i; 
 					break; 
@@ -329,20 +332,19 @@ void CWeaponMagazined::ReloadMagazine()
 
 
 	//нет патронов для перезарядки
-	if(!m_pAmmo && !unlimited_ammo() ) return;
+	if (!m_pAmmo && !unlimited_ammo() ) return;
 
 	//разрядить магазин, если загружаем патронами другого типа
-	if(!m_bLockType && !m_magazine.empty() && 
-		(!m_pAmmo || xr_strcmp(m_pAmmo->cNameSect(), 
-					 *m_magazine.back().m_ammoSect)))
+	if (!m_bLockType && !m_magazine.empty() && (!m_pAmmo || xr_strcmp(m_pAmmo->cNameSect(), *m_magazine.back().m_ammoSect)))
 		UnloadMagazine();
 
 	VERIFY((u32)iAmmoElapsed == m_magazine.size());
 
 	if (m_DefaultCartridge.m_LocalAmmoType != m_ammoType)
 		m_DefaultCartridge.Load(*m_ammoTypes[m_ammoType], u8(m_ammoType));
+
 	CCartridge l_cartridge = m_DefaultCartridge;
-	while(iAmmoElapsed < iMagazineSize)
+	while (iAmmoElapsed < iMagazineSize)
 	{
 		if (!unlimited_ammo())
 		{
@@ -357,10 +359,10 @@ void CWeaponMagazined::ReloadMagazine()
 	VERIFY((u32)iAmmoElapsed == m_magazine.size());
 
 	//выкинуть коробку патронов, если она пустая
-	if(m_pAmmo && !m_pAmmo->m_boxCurr && OnServer()) 
+	if (m_pAmmo && !m_pAmmo->m_boxCurr && OnServer()) 
 		m_pAmmo->SetDropManual(TRUE);
 
-	if(iMagazineSize > iAmmoElapsed) 
+	if (iMagazineSize > iAmmoElapsed) 
 	{ 
 		m_bLockType = true; 
 		ReloadMagazine(); 

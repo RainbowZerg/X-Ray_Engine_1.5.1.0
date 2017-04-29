@@ -661,6 +661,22 @@ void CScriptGameObject::SetCharacterCommunity	(LPCSTR comm, int squad, int group
 		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"SetCharacterCommunity available only for InventoryOwner");
 		return;
 	}
+
+	// ZergO: проверка существует ли группировка
+	LPCSTR sect = "game_relations";
+	LPCSTR line = "communities";
+	LPCSTR line_val = "";
+
+	if (pSettings->line_exist(sect, line))
+		line_val = pSettings->r_string(sect, line);
+
+	if (!strstr(line_val, comm))
+	{
+		Msg("! Can't find community [%s] in section [%s], line [%s]", comm, sect, line);
+		return;
+	}
+	//
+
 	CHARACTER_COMMUNITY	community;
 	community.set(comm);
 	pInventoryOwner->SetCommunity(community.index());

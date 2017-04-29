@@ -36,7 +36,7 @@ void CZoneCampfire::GoEnabledState()
 {
 	inherited::GoEnabledState();
 	
-	if(m_pDisabledParticles)
+	if (m_pDisabledParticles)
 	{
 		m_pDisabledParticles->Stop	(FALSE);
 		CParticlesObject::Destroy	(m_pDisabledParticles);
@@ -93,7 +93,17 @@ bool CZoneCampfire::is_on()
 	return m_turned_on;
 }
 
-void CZoneCampfire::shedule_Update(u32	dt	)
+IRender_Light  *CZoneCampfire::GetLight(int target) const
+{
+	switch (target)
+	{
+	case 0: return m_pIdleLight._get();
+	case 1: return m_pLight._get();
+	default: return NULL;
+	}
+}
+
+void CZoneCampfire::shedule_Update(u32 dt)
 {
 	if (m_pIdleParticles)
 	{
@@ -107,7 +117,7 @@ void CZoneCampfire::shedule_Update(u32	dt	)
 
 void CZoneCampfire::PlayIdleParticles(bool bIdleLight)
 {
-	if(m_turn_time==0 || m_turn_time-Device.dwTimeGlobal<(OVL_TIME-2000))
+	if (m_turn_time == 0 || m_turn_time-Device.dwTimeGlobal < (OVL_TIME - 2000))
 	{
 		inherited::PlayIdleParticles(bIdleLight);
 		if(m_pEnablingParticles)
@@ -120,39 +130,40 @@ void CZoneCampfire::PlayIdleParticles(bool bIdleLight)
 
 void CZoneCampfire::StopIdleParticles(bool bIdleLight)
 {
-	if(m_turn_time==0 || m_turn_time-Device.dwTimeGlobal<(OVL_TIME-500))
+	if (m_turn_time == 0 || m_turn_time-Device.dwTimeGlobal<(OVL_TIME - 500))
 		inherited::StopIdleParticles(bIdleLight);
 }
 
 BOOL CZoneCampfire::AlwaysTheCrow()
 {
-	if(m_turn_time)
+	if (m_turn_time)
 		return TRUE;
-	else
-		return inherited::AlwaysTheCrow();
+
+	return inherited::AlwaysTheCrow();
 }
 
 void CZoneCampfire::UpdateWorkload(u32 dt)
 {
 	inherited::UpdateWorkload(dt);
-	if(m_turn_time>Device.dwTimeGlobal)
+	if (m_turn_time>Device.dwTimeGlobal)
 	{
 		float k = float(m_turn_time-Device.dwTimeGlobal)/float(OVL_TIME);
 
-		if(m_turned_on)
+		if (m_turned_on)
 		{
 			k = 1.0f-k;
 			PlayIdleParticles	(true);
 			StartIdleLight		();
-		}else
+		}
+		else
 		{
 			StopIdleParticles(false);
 		}
 
-		if(m_pIdleLight && m_pIdleLight->get_active())
+		if (m_pIdleLight && m_pIdleLight->get_active())
 		{
-			VERIFY(m_pIdleLAnim);
-			int frame = 0;
+			VERIFY		(m_pIdleLAnim);
+			int frame	= 0;
 			u32 clr		= m_pIdleLAnim->CalculateBGR(Device.fTimeGlobal,frame);
 			Fcolor		fclr;
 			fclr.set	(	((float)color_get_B(clr)/255.f)*k,
@@ -160,24 +171,18 @@ void CZoneCampfire::UpdateWorkload(u32 dt)
 							((float)color_get_R(clr)/255.f)*k,
 							1.f);
 			
-			float range = m_fIdleLightRange + 0.25f*::Random.randF(-1.f,1.f);
-			range	*= k;
+			float range = (m_fIdleLightRange + 0.25f * Random.randF(-1.f,1.f)) * k;
 
 			m_pIdleLight->set_range	(range);
 			m_pIdleLight->set_color	(fclr);
 		}
-
-
-	}else
-	if(m_turn_time)
+	}
+	else if (m_turn_time)
 	{
 		m_turn_time = 0;
-		if(m_turned_on)
-		{
+		if (m_turned_on)
 			PlayIdleParticles(true);
-		}else
-		{
+		else
 			StopIdleParticles(true);
-		}
 	}
 }

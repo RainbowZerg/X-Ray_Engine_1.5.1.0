@@ -46,6 +46,11 @@ public:
 		REFLECTED	= 4,
 	};
 public:
+	virtual float					get_cone			()									= 0;
+	virtual Fcolor					get_color			()									= 0;
+	virtual float					get_range			()									= 0;	
+	virtual float					get_virtual_size	()									= 0;
+
 	virtual void					set_type			(LT type)							= 0;
 	virtual void					set_active			(bool)								= 0;
 	virtual bool					get_active			()									= 0;

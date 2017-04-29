@@ -17,6 +17,9 @@
 #include "../xrRender/light_DB.h"
 #include "../../xrEngine/fmesh.h"
 
+#define		r__T_sky0			"$user$sky0" 
+#define		r__T_sky1			"$user$sky1" 
+
 class dxRender_Visual;
 
 // definition

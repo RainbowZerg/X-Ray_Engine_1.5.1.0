@@ -28,6 +28,8 @@ _action  actions[]		= {
 	{ "llookout",			kL_LOOKOUT				,_both},	
 	{ "rlookout",			kR_LOOKOUT				,_both},	
 																
+//	{ "turn_engine",		kENGINE					,_sp},	 // use kDETECTOR instead
+
 	{ "cam_1",				kCAM_1					,_both},	
 	{ "cam_2",				kCAM_2					,_both},	
 	{ "cam_3",				kCAM_3					,_both},	
@@ -35,6 +37,7 @@ _action  actions[]		= {
 	{ "cam_zoom_in",		kCAM_ZOOM_IN			,_both},	
 	{ "cam_zoom_out",		kCAM_ZOOM_OUT			,_both},	
 															
+	{"flare",				kFLARE					,_sp},
 	{ "torch",				kTORCH					,_both},	
 	{ "night_vision",		kNIGHT_VISION			,_both},	
 	{ "show_detector",		kDETECTOR				,_sp},		
@@ -45,7 +48,7 @@ _action  actions[]		= {
 	{ "wpn_4",				kWPN_4					,_both},	
 	{ "wpn_5",				kWPN_5					,_both},	
 	{ "wpn_6",				kWPN_6					,_both},	
-	{ "artefact",			kARTEFACT				,_both/*_mp*/},		
+	{ "artefact",			kARTEFACT				,_both},		
 	{ "wpn_next",			kWPN_NEXT				,_both},	
 	{ "wpn_fire",			kWPN_FIRE				,_both},	
 	{ "wpn_zoom",			kWPN_ZOOM				,_both},	
@@ -102,6 +105,8 @@ _action  actions[]		= {
 	{ "hud_hide",			kHUD_HIDE				,_both},
 	{ "hud_show",			kHUD_SHOW				,_both},
 																
+	{ "kick",				kKICK					,_both},
+
 	{ NULL, 				kLASTACTION				,_both}		
 };															
 

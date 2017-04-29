@@ -323,7 +323,9 @@ void CAI_Stalker::Hit			(SHit* pHDS)
 			CTorch* torch = smart_cast<CTorch*>(*it);
 			if (torch)
 			{
-				torch->Break();
+				// если фонарь уже мигает, то разбить полностью, иначе шанс 50%
+				bool fatal = torch->Broken(false) ? true : Random.randI(2) == 1;
+				torch->Break(fatal);
 				//torch->SetBatteryStatus(0);
 				break;
 			}

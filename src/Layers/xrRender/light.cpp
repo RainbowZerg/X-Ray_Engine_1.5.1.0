@@ -70,11 +70,13 @@ void light::set_texture		(LPCSTR name)
 	}
 
 #pragma todo				("Only shadowed spot implements projective texture")
-	string256				temp;
-	
-	strconcat(sizeof(temp),temp,"r2\\accum_spot_",name);
+	string256 temp_spot, temp_point;
+	strconcat(sizeof(temp_spot), temp_spot, "r2\\accum_spot_", name);
+	strconcat(sizeof(temp_point), temp_point, "r2\\accum_point_", name);
+
 	//strconcat(sizeof(temp),temp,"_nomsaa",name);
-	s_spot.create			(RImplementation.Target->b_accum_spot,temp,name);
+	s_spot.create(RImplementation.Target->b_accum_spot, temp_spot, name);
+	s_point.create(RImplementation.Target->b_accum_point, temp_point, name);
 
 #if	RENDER!=R_R3
 	s_volumetric.create		("accum_volumetric", name);

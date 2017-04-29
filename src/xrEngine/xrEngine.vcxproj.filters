@@ -285,9 +285,6 @@
     <ClInclude Include="xr_input.h">
       <Filter>Interfaces\Input</Filter>
     </ClInclude>
-    <ClInclude Include="xr_input_xinput.h">
-      <Filter>Interfaces\Input</Filter>
-    </ClInclude>
     <ClInclude Include="ISheduled.h">
       <Filter>Interfaces\Sheduler</Filter>
     </ClInclude>
@@ -644,9 +641,6 @@
     <ClCompile Include="Xr_input.cpp">
       <Filter>Interfaces\Input</Filter>
     </ClCompile>
-    <ClCompile Include="xr_input_xinput.cpp">
-      <Filter>Interfaces\Input</Filter>
-    </ClCompile>
     <ClCompile Include="ISheduled.cpp">
       <Filter>Interfaces\Sheduler</Filter>
     </ClCompile>
@@ -994,6 +988,9 @@
     </ClCompile>
     <ClCompile Include="xrSASH.cpp">
       <Filter>OpenAutomate</Filter>
+    </ClCompile>
+    <ClCompile Include="XR_IOConsole_control.cpp">
+      <Filter>Engine\Console</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -361,7 +361,12 @@ float CInventoryOwner::GetWeaponAccuracy	() const
 	return 0.f;
 }
 
-//максимальный переносимы вес
+float CInventoryOwner::GetCarryWeight() const
+{
+	return inventory().TotalWeight();
+}
+
+//максимальный переносимый вес
 float  CInventoryOwner::MaxCarryWeight () const
 {
 	float ret =  inventory().GetMaxWeight();

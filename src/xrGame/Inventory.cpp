@@ -29,7 +29,7 @@ using namespace InventoryUtilities;
 
 // what to block
 u32	INV_STATE_LADDER		= (/*1 << PISTOL_SLOT |*/ 1 << RIFLE_SLOT | 1 << APPARATUS_SLOT);
-u32	INV_STATE_CAR			= INV_STATE_LADDER;
+u32	INV_STATE_CAR			= (1 << KNIFE_SLOT | 1 << PISTOL_SLOT | 1 << RIFLE_SLOT | 1 << APPARATUS_SLOT);
 u32	INV_STATE_BLOCK_ALL		= 0xffffffff;
 u32	INV_STATE_INV_WND		= INV_STATE_BLOCK_ALL;
 u32	INV_STATE_BUY_MENU		= INV_STATE_BLOCK_ALL;
@@ -127,7 +127,7 @@ void CInventory::Take(CGameObject *pObj, bool bNotActivate, bool strict_placemen
 	Level().RemoveObject_From_4CrPr		(pObj);
 
 	// ZergO: LA code
-	/*
+	
 	if (Level().CurrentEntity())
 	{
 		u16 actor_id = Level().CurrentEntity()->ID();
@@ -143,7 +143,7 @@ void CInventory::Take(CGameObject *pObj, bool bNotActivate, bool strict_placemen
 	
 		}
 	}
-	*/
+	
 	m_all.push_back						(pIItem);
 
 	if(!strict_placement)

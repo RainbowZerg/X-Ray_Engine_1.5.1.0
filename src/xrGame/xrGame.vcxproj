@@ -967,7 +967,7 @@
     <ClInclude Include="file_transfer.h" />
     <ClInclude Include="fire_disp_controller.h" />
     <ClInclude Include="first_bullet_controller.h" />
-    <ClInclude Include="flare.h" />
+    <ClInclude Include="Flare.h" />
     <ClInclude Include="FoodItem.h" />
     <ClInclude Include="FryupZone.h" />
     <ClInclude Include="fs_registrator.h" />
@@ -1350,6 +1350,7 @@
     <ClInclude Include="rat_state_base_inline.h" />
     <ClInclude Include="rat_state_manager.h" />
     <ClInclude Include="rat_state_manager_inline.h" />
+    <ClInclude Include="RayPick.h" />
     <ClInclude Include="refreshable_obstacles_query.h" />
     <ClInclude Include="refreshable_obstacles_query_inline.h" />
     <ClInclude Include="RegistryFuncs.h" />
@@ -1409,6 +1410,7 @@
     <ClInclude Include="script_hit.h" />
     <ClInclude Include="script_hit_inline.h" />
     <ClInclude Include="script_lanim.h" />
+    <ClInclude Include="script_light_ext.h" />
     <ClInclude Include="script_monster_action.h" />
     <ClInclude Include="script_monster_action_inline.h" />
     <ClInclude Include="script_monster_hit_info.h" />
@@ -3122,7 +3124,7 @@
     <ClCompile Include="file_transfer.cpp" />
     <ClCompile Include="fire_disp_controller.cpp" />
     <ClCompile Include="first_bullet_controller.cpp" />
-    <ClCompile Include="flare.cpp" />
+    <ClCompile Include="Flare.cpp" />
     <ClCompile Include="FoodItem.cpp" />
     <ClCompile Include="FryupZone.cpp" />
     <ClCompile Include="fs_registrator_script.cpp">
@@ -3914,6 +3916,7 @@
     <ClCompile Include="rat_states.cpp" />
     <ClCompile Include="rat_state_base.cpp" />
     <ClCompile Include="rat_state_manager.cpp" />
+    <ClCompile Include="RayPick.cpp" />
     <ClCompile Include="RegistryFuncs.cpp" />
     <ClCompile Include="relation_registry.cpp" />
     <ClCompile Include="relation_registry_actions.cpp">

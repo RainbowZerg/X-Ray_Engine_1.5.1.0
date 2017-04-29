@@ -165,8 +165,8 @@ void dxEnvDescriptorRender::OnDeviceDestroy()
 
 dxEnvironmentRender::dxEnvironmentRender()
 {
-	tsky0	= DEV->_CreateTexture("$user$sky0");
-	tsky1	= DEV->_CreateTexture("$user$sky1");
+	tsky0.create(r__T_sky0);
+	tsky1.create(r__T_sky1);
 }
 
 void dxEnvironmentRender::OnFrame(CEnvironment &env)

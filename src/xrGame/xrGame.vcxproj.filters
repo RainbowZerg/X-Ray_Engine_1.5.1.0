@@ -1858,9 +1858,6 @@
     <Filter Include="Core\Client\Objects\items &amp; weapons\Devices\Torch">
       <UniqueIdentifier>{feeea62b-d450-47c7-9363-44d543041e81}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Client\Objects\items &amp; weapons\Devices\flare">
-      <UniqueIdentifier>{7a070e95-413b-451a-8e11-948b8b3b7402}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Client\Objects\items &amp; weapons\PDA &amp; information">
       <UniqueIdentifier>{e4acd7b6-36f7-48ec-929a-fa89c938ef79}</UniqueIdentifier>
     </Filter>
@@ -2571,6 +2568,12 @@
     </Filter>
     <Filter Include="Core\Client\Trade">
       <UniqueIdentifier>{58b923f0-f7a8-43d7-b902-faabc8238d44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Client\Level\RayPick">
+      <UniqueIdentifier>{d59e19b7-8313-4741-bcab-3d32b0a427e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Client\Objects\items &amp; weapons\Devices\Flare">
+      <UniqueIdentifier>{7a070e95-413b-451a-8e11-948b8b3b7402}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -5955,9 +5958,6 @@
     <ClInclude Include="Torch.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\Torch</Filter>
     </ClInclude>
-    <ClInclude Include="flare.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Devices\flare</Filter>
-    </ClInclude>
     <ClInclude Include="PDA.h">
       <Filter>Core\Client\Objects\items &amp; weapons\PDA &amp; information</Filter>
     </ClInclude>
@@ -7451,6 +7451,15 @@
     </ClInclude>
     <ClInclude Include="ui\UIGameTutorial.h">
       <Filter>UI\Tutorial</Filter>
+    </ClInclude>
+    <ClInclude Include="RayPick.h">
+      <Filter>Core\Client\Level\RayPick</Filter>
+    </ClInclude>
+    <ClInclude Include="Flare.h">
+      <Filter>Core\Client\Objects\items &amp; weapons\Devices\Flare</Filter>
+    </ClInclude>
+    <ClInclude Include="script_light_ext.h">
+      <Filter>Core\Client\Objects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -9542,9 +9551,6 @@
     <ClCompile Include="Torch.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\Torch</Filter>
     </ClCompile>
-    <ClCompile Include="flare.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Devices\flare</Filter>
-    </ClCompile>
     <ClCompile Include="PDA.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\PDA &amp; information</Filter>
     </ClCompile>
@@ -11086,6 +11092,12 @@
     </ClCompile>
     <ClCompile Include="ui\UIGameTutorialVideoItem.cpp">
       <Filter>UI\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="RayPick.cpp">
+      <Filter>Core\Client\Level\RayPick</Filter>
+    </ClCompile>
+    <ClCompile Include="Flare.cpp">
+      <Filter>Core\Client\Objects\items &amp; weapons\Devices\Flare</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -55,13 +55,8 @@ void CHW::Reset		(HWND hwnd)
 	_RELEASE			(pBaseRT);
 
 #ifndef _EDITOR
-//#ifndef DEDICATED_SERVER
-//	BOOL	bWindowed		= !psDeviceFlags.is	(rsFullscreen);
-//#else
-//	BOOL	bWindowed		= TRUE;
-//#endif
-	BOOL	bWindowed		= TRUE;
-	if (!g_dedicated_server)
+	BOOL bWindowed		= TRUE;
+	if (!g_dedicated_server && !strstr(Core.Params, "-editor"))
 		bWindowed		= !psDeviceFlags.is	(rsFullscreen);
 
 	selectResolution		(DevPP.BackBufferWidth, DevPP.BackBufferHeight, bWindowed);
@@ -221,17 +216,10 @@ void		CHW::CreateDevice		(HWND m_hWnd, bool move_window)
 	m_move_window			= move_window;
 	CreateD3D				();
 
-	// General - select adapter and device
-//#ifdef DEDICATED_SERVER
-//	BOOL  bWindowed			= TRUE;
-//#else
-//	BOOL  bWindowed			= !psDeviceFlags.is(rsFullscreen);
-//#endif
-
 	BOOL  bWindowed			= TRUE;
 	
 #ifndef _EDITOR
-	if (!g_dedicated_server)
+	if (!g_dedicated_server && !strstr(Core.Params, "-editor"))
 		bWindowed			= !psDeviceFlags.is(rsFullscreen);
 #else
 	bWindowed				= 1;
@@ -473,16 +461,9 @@ BOOL	CHW::support	(D3DFORMAT fmt, DWORD type, DWORD usage)
 
 void	CHW::updateWindowProps	(HWND m_hWnd)
 {
-//	BOOL	bWindowed				= strstr(Core.Params,"-dedicated") ? TRUE : !psDeviceFlags.is	(rsFullscreen);
-//#ifndef DEDICATED_SERVER
-//	BOOL	bWindowed				= !psDeviceFlags.is	(rsFullscreen);
-//#else
-//	BOOL	bWindowed				= TRUE;
-//#endif
-
 	BOOL	bWindowed				= TRUE;
 #ifndef _EDITOR
-	if (!g_dedicated_server)
+	if (!g_dedicated_server && !strstr(Core.Params, "-editor"))
 		bWindowed			= !psDeviceFlags.is(rsFullscreen);
 #endif	
 

@@ -26,7 +26,9 @@ public:
 				void		turn_on_script				();
 				void		turn_off_script				();
 				bool		is_on						();
-	virtual		void		shedule_Update				(u32	dt	);
+	IRender_Light*			GetLight					(int target) const;
+
+	virtual		void		shedule_Update				(u32 dt);
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 add_to_type_list(CZoneCampfire)

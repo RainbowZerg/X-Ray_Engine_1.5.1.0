@@ -63,8 +63,10 @@
 #include "Game_Object_Space.h"
 #include "script_callback_ex.h"
 #include "InventoryBox.h"
+#include "HangingLamp.h"
 #include "location_manager.h"
 #include "player_hud.h"
+#include "PHCapture.h"
 
 #include "../Include/xrRender/UIRender.h"
 
@@ -410,6 +412,8 @@ if(!g_dedicated_server)
 	m_sCarCharacterUseAction		= "car_character_use";
 	m_sInventoryItemUseAction		= "inventory_item_use";
 	m_sInventoryBoxUseAction		= "inventory_box_use";
+//	m_sHangingLampEnableAction		= "hanging_lamp_enable";
+//	m_sHangingLampDisableAction		= "hanging_lamp_disable";
 	//---------------------------------------------------------------------
 	m_sHeadShotParticle	= READ_IF_EXISTS(pSettings,r_string,section,"HeadShotParticle",0);
 
@@ -598,7 +602,11 @@ void	CActor::Hit							(SHit* pHDS)
 		{
 			CTorch* pTorch = smart_cast<CTorch*>(*I);
 			if (pTorch != NULL && attached(*I))
-				pTorch->Break();
+			{
+				// если фонарь уже мигает, то разбить полностью, иначе шанс 50%
+				bool fatal = pTorch->Broken(false) ? true : Random.randI(2) == 1;
+				pTorch->Break(fatal);
+			}
 		}
 	}
 }
@@ -1235,7 +1243,7 @@ void CActor::shedule_Update	(u32 DT)
 	collide::rq_result& RQ				= HUD().GetCurrentRayQuery();
 	
 
-	if(!input_external_handler_installed() && RQ.O && RQ.O->getVisible() &&  RQ.range<2.0f) 
+	if (!input_external_handler_installed() && RQ.O && RQ.O->getVisible() && RQ.range < 2.0f) 
 	{
 		m_pObjectWeLookingAt			= smart_cast<CGameObject*>(RQ.O);
 		
@@ -1244,35 +1252,40 @@ void CActor::shedule_Update	(u32 DT)
 		m_pInvBoxWeLookingAt			= smart_cast<CInventoryBox*>(game_object);
 		m_pPersonWeLookingAt			= smart_cast<CInventoryOwner*>(game_object);
 		m_pVehicleWeLookingAt			= smart_cast<CHolderCustom*>(game_object);
+		m_pHangingLampWeLookingAt		= smart_cast<CHangingLamp*>(game_object);
 		CEntityAlive* pEntityAlive		= smart_cast<CEntityAlive*>(game_object);
 		
 		if (GameID() == eGameIDSingle )
 		{
 			if (m_pUsableObject && m_pUsableObject->tip_text())
 			{
-				m_sDefaultObjAction = CStringTable().translate( m_pUsableObject->tip_text() );
+				m_sDefaultObjAction = CStringTable().translate(m_pUsableObject->tip_text());
 			}
 			else
 			{
 				if (m_pPersonWeLookingAt && pEntityAlive->g_Alive() && m_pPersonWeLookingAt->IsTalkEnabled())
 					m_sDefaultObjAction = m_sCharacterUseAction;
-
 				else if (pEntityAlive && !pEntityAlive->g_Alive())
 				{
 					bool b_allow_drag = !!pSettings->line_exist("ph_capture_visuals",pEntityAlive->cNameVisual());
 				
-					if(b_allow_drag)
+					if (b_allow_drag)
 						m_sDefaultObjAction = m_sDeadCharacterUseOrDragAction;
 					else
 						m_sDefaultObjAction = m_sDeadCharacterUseAction;
 
-				}else if (m_pVehicleWeLookingAt)
+				}
+				else if (m_pVehicleWeLookingAt)
 					m_sDefaultObjAction = m_sCarCharacterUseAction;
-
-				else if (	m_pObjectWeLookingAt && 
-							m_pObjectWeLookingAt->cast_inventory_item() && 
-							m_pObjectWeLookingAt->cast_inventory_item()->CanTake() )
+				else if (m_pObjectWeLookingAt && m_pObjectWeLookingAt->cast_inventory_item() && m_pObjectWeLookingAt->cast_inventory_item()->CanTake())
 					m_sDefaultObjAction = m_sInventoryItemUseAction;
+				else if (m_pHangingLampWeLookingAt && m_pHangingLampWeLookingAt->Usable() && m_pHangingLampWeLookingAt->Alive())
+				{
+					if (m_pHangingLampWeLookingAt->Enabled())
+						m_sDefaultObjAction = m_pHangingLampWeLookingAt->disable_tip;
+					else
+						m_sDefaultObjAction = m_pHangingLampWeLookingAt->enable_tip;
+				}
 				else 
 					m_sDefaultObjAction = NULL;
 			}
@@ -1286,6 +1299,7 @@ void CActor::shedule_Update	(u32 DT)
 		m_pObjectWeLookingAt	= NULL;
 		m_pVehicleWeLookingAt	= NULL;
 		m_pInvBoxWeLookingAt	= NULL;
+		m_pHangingLampWeLookingAt = NULL;
 	}
 
 //	UpdateSleep									();
@@ -1878,6 +1892,23 @@ void CActor::OnDifficultyChanged	()
 CVisualMemoryManager	*CActor::visual_memory	() const
 {
 	return							(&memory().visual());
+}
+
+float		CActor::GetCarryWeight() const
+{
+	float add = 0;
+	CPHCapture* capture = character_physics_support()->movement()->PHCapture();
+	if (capture && capture->taget_object())
+	{
+		CPhysicsShellHolder *obj = capture->taget_object();
+		CInventoryOwner *io = smart_cast<CInventoryOwner *> (obj);
+		if (io)
+			add += io->GetCarryWeight();
+
+		add += READ_IF_EXISTS(pSettings, r_float, *obj->cNameSect(), "ph_mass", 0) * 0.1f;
+	}
+	
+	return CInventoryOwner::GetCarryWeight() + add;
 }
 
 float		CActor::GetMass				()

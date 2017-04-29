@@ -349,7 +349,7 @@ void CRender::render_sun_cascades ()
 
 void CRender::render_sun_cascade (u32 cascade_ind)
 {
-	light* fuckingsun = (light*)Lights.sun_adapted._get();
+	light* fuckingsun = (light*)Lights.sun._get();
 
 	// calculate view-frustum bounds in world space
 	Fmatrix	ex_project, ex_full, ex_full_inverse;
