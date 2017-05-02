@@ -117,7 +117,7 @@ private:
 
 	// Accum
 	ref_shader					s_accum_mask	;
-	ref_shader					s_accum_direct	;
+	ref_shader					s_accum_direct;
 	ref_shader					s_accum_direct_volumetric;
 	ref_shader					s_accum_direct_volumetric_minmax;
 	ref_shader					s_accum_point	;
@@ -161,34 +161,36 @@ private:
 	// Bloom
 	ref_geom					g_bloom_build;
 	ref_geom					g_bloom_filter;
-	ref_shader				s_bloom_dbg_1;
-	ref_shader				s_bloom_dbg_2;
-	ref_shader				s_bloom;
-   ref_shader				s_bloom_msaa;
-	float							f_bloom_factor;
+	ref_shader					s_bloom_dbg_1;
+	ref_shader					s_bloom_dbg_2;
+	ref_shader					s_bloom;
+	ref_shader					s_bloom_msaa;
+	float						f_bloom_factor;
 
 	// Luminance
-	ref_shader			s_luminance;
+	ref_shader					s_luminance;
 	float						f_luminance_adapt;
 
 	// Combine
 	ref_geom					g_combine;
 	ref_geom					g_combine_VP;		// xy=p,zw=tc
 	ref_geom					g_combine_2UV;
+	ref_geom					g_combine_cuboid;
 	ref_geom					g_aa_blur;
 	ref_geom					g_aa_AA;
-	ref_shader				s_combine_dbg_0;
-	ref_shader				s_combine_dbg_1;
-	ref_shader				s_combine_dbg_Accumulator;
-	ref_shader				s_combine;
-   ref_shader				s_combine_msaa[8];
-	ref_shader				s_combine_volumetric;
+	ref_shader					s_combine_dbg_0;
+	ref_shader					s_combine_dbg_1;
+	ref_shader					s_combine_dbg_Accumulator;
+	ref_shader					s_combine;
+	ref_shader					s_combine_msaa[8];
+	ref_shader					s_combine_volumetric;
 public:
-	ref_shader				s_postprocess;
-   ref_shader           s_postprocess_msaa;
+	ref_shader					s_postprocess;
+	ref_shader					s_postprocess_msaa;
 	ref_geom					g_postprocess;
-	ref_shader				s_menu;
+	ref_shader					s_menu;
 	ref_geom					g_menu;
+	ref_geom					g_flare;
 private:
 	float						im_noise_time;
 	u32							im_noise_shift_w;
@@ -265,8 +267,7 @@ public:
 	void						disable_aniso			();
 
 	void						draw_volume				(light* L);
-	void						accum_direct			(u32	sub_phase);
-	void						accum_direct_f			(u32	sub_phase);
+	void						accum_direct_cascade	(u32	sub_phase, Fmatrix& xform, Fmatrix& xform_prev, float fBias);
 	void						accum_direct_lum		();
 	void						accum_direct_blend		();
 	void						accum_direct_volumetric	(u32	sub_phase, const u32 Offset, const Fmatrix &mShadow);

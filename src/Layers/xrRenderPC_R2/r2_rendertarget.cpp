@@ -2,7 +2,7 @@
 #include "../xrRender/resourcemanager.h"
 #include "blender_light_occq.h"
 #include "blender_light_mask.h"
-#include "blender_light_direct_cascade.h"
+#include "blender_light_direct.h"
 #include "blender_light_point.h"
 #include "blender_light_spot.h"
 #include "blender_light_reflected.h"
@@ -201,7 +201,7 @@ CRenderTarget::CRenderTarget		()
 	// Blenders
 	b_occq							= xr_new<CBlender_light_occq>			();
 	b_accum_mask					= xr_new<CBlender_accum_direct_mask>	();
-	b_accum_direct_cascade			= xr_new<CBlender_accum_direct_cascade>	();
+	b_accum_direct					= xr_new<CBlender_accum_direct>			();
 	b_accum_point					= xr_new<CBlender_accum_point>			();
 	b_accum_spot					= xr_new<CBlender_accum_spot>			();
 	b_accum_reflected				= xr_new<CBlender_accum_reflected>		();
@@ -279,14 +279,14 @@ CRenderTarget::CRenderTarget		()
 		R_CHK						(HW.pDevice->CreateDepthStencilSurface	(size,size,D3DFMT_D24X8,D3DMULTISAMPLE_NONE,0,TRUE,&rt_smap_ZB,NULL));
 	}
 
-	s_accum_mask.create			(b_accum_mask,				"r2\\accum_mask");
-	s_accum_direct_cascade.create(b_accum_direct_cascade,	"r2\\accum_direct_cascade");
+	s_accum_mask.create				(b_accum_mask,				"r2\\accum_mask");
+	s_accum_direct.create			(b_accum_direct,			"r2\\accum_direct_cascade");
 	if (RImplementation.o.advancedpp)
-		s_accum_direct_volumetric_cascade.create("accum_volumetric_sun_cascade");
+		s_accum_direct_volumetric.create("accum_volumetric_sun_cascade");
 
 	// POINT
 	{
-		s_accum_point.create		(b_accum_point,				"r2\\accum_point_s", "internal\\internal_light_attpoint");
+		s_accum_point.create		(b_accum_point,				"r2\\accum_point_s", "internal\\internal_light_point");
 		accum_point_geom_create		();
 		g_accum_point.create		(D3DFVF_XYZ,				g_accum_point_vb, g_accum_point_ib);
 		accum_omnip_geom_create		();
@@ -622,17 +622,9 @@ CRenderTarget::~CRenderTarget	()
 	xr_delete		(b_accum_reflected		);
 	xr_delete		(b_accum_spot			);
 	xr_delete		(b_accum_point			);
-	xr_delete		(b_accum_direct_cascade	);
+	xr_delete		(b_accum_direct			);
 	xr_delete		(b_accum_mask			);
 	xr_delete		(b_occq					);
-
-	s_occq					= NULL;
-	s_accum_mask			= NULL;
-	s_accum_direct_cascade	= NULL;
-	s_accum_point			= NULL;
-	s_accum_spot			= NULL;
-	s_accum_reflected		= NULL;
-	s_bloom					= NULL;
 }
 
 void CRenderTarget::reset_light_marker( bool bResetStencil)

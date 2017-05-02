@@ -96,47 +96,6 @@ void CRenderTarget::accum_reflected		(light* L)
       }
 	}
 
-	// blend-copy
-	if (!RImplementation.o.fp16_blend)	{
-      if( ! RImplementation.o.dx10_msaa )
-   		u_setrt						(rt_Accumulator,NULL,NULL,HW.pBaseZB);
-      else
-		   u_setrt						(rt_Accumulator,NULL,NULL,rt_MSAADepth->pZRT);
-		RCache.set_Element	(s_accum_mask->E[SE_MASK_ACCUM_VOL]	);
-		RCache.set_c				("m_texgen",		m_Texgen);
-      if( ! RImplementation.o.dx10_msaa )
-      {
-		   // per pixel
-		   RCache.set_Stencil	(TRUE,D3DCMP_LESSEQUAL,0x01,0xff,0x00);		
-		   draw_volume				(L);
-      }
-      else // checked holger
-      {
-         // per pixel
-         RCache.set_Stencil	(TRUE,D3DCMP_EQUAL,0x01,0x81,0x00);		
-         draw_volume				(L);
-         // per sample
-         if( RImplementation.o.dx10_msaa_opt )
-         {
-		      RCache.set_Element	(s_accum_mask_msaa[0]->E[SE_MASK_ACCUM_VOL]	);
-            RCache.set_Stencil	(TRUE,D3DCMP_EQUAL,0x81,0x81,0x00);		
-            draw_volume				(L);
-         }
-         else// checked holger
-         {
-		      for( u32 i = 0; i < RImplementation.o.dx10_msaa_samples; ++i )
-			      {
-			      RCache.set_Element	      (s_accum_mask_msaa[i]->E[SE_MASK_ACCUM_VOL]	);
-               RCache.set_Stencil	      (TRUE,D3DCMP_EQUAL,0x81,0x81,0x00);		
-               StateManager.SetSampleMask ( u32(1) << i );
-               draw_volume					   (L);
-			      }
-		      StateManager.SetSampleMask( 0xffffffff );
-         }
-		   RCache.set_Stencil	(TRUE,D3DCMP_LESSEQUAL,0x01,0xff,0x00);		
-      }
-	}
-
 	// 
 	u_DBT_disable	();
 }

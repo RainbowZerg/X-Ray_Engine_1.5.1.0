@@ -20,7 +20,7 @@ public:
 	// 
 	IBlender*					b_occq;
 	IBlender*					b_accum_mask;
-	IBlender*					b_accum_direct_cascade;
+	IBlender*					b_accum_direct;
 	IBlender*					b_accum_point;
 	IBlender*					b_accum_spot;
 	IBlender*					b_accum_reflected;
@@ -91,8 +91,8 @@ private:
 
 	// Accum
 	ref_shader					s_accum_mask	;
-	ref_shader					s_accum_direct_cascade;
-	ref_shader					s_accum_direct_volumetric_cascade;
+	ref_shader					s_accum_direct;
+	ref_shader					s_accum_direct_volumetric;
 	ref_shader					s_accum_point	;
 	ref_shader					s_accum_spot	;
 	ref_shader					s_accum_reflected;

@@ -288,15 +288,12 @@ static class cl_hemi_color : public R_constant_setup{
 
 static class cl_screen_res : public R_constant_setup		
 {	
-	u32			marker;
 	Fvector4	result;
-	virtual void setup(R_constant* C)	{
-		if (marker != Device.dwFrame)	{
-			float _w = float(Device.dwWidth);
-			float _h = float(Device.dwHeight);
-			result.set(_w, _h, (float)1.0 / _w, (float)1.0 / _h);
-		}
-		RCache.set_c(C, result);
+	virtual void setup(R_constant* C)	
+	{
+		float _w = float(Device.dwWidth);
+		float _h = float(Device.dwHeight);
+		RCache.set_c(C, _w, _h, 1.f/_w, 1.f/_h);
 	}
 } binder_screen_res;
 
@@ -342,6 +339,17 @@ static class cl_sun_shafts_intensity : public R_constant_setup
 	}
 }	binder_sun_shafts_intensity;
 
+#if RENDER == R_R3
+static class cl_alpha_ref : public R_constant_setup
+{
+	virtual void setup(R_constant* C)
+	{
+		StateManager.BindAlphaRef(C);
+	}
+}	binder_alpha_ref;
+#endif
+
+
 static class cl_refl_params : public R_constant_setup
 {
 	virtual void setup(R_constant* C)	{
@@ -362,7 +370,7 @@ static class cl_refl_various : public R_constant_setup
 {
 	virtual void setup(R_constant* C)	{
 		BOOL sun = RImplementation.is_sun();
-		RCache.set_c(C, g_pGamePersistent->Environment().CurrentEnv->moon_road_intensity, sun, ps_r2_sun_near, /*actor_torch_enabled*/ 0);
+		RCache.set_c(C, g_pGamePersistent->Environment().CurrentEnv->moon_road_intensity, (float)sun, ps_r2_sun_near, /*actor_torch_enabled*/ 0);
 	}
 } binder_refl_various;
 #endif
@@ -428,6 +436,10 @@ void	CBlender_Compile::SetMapping	()
 	r_Constant				("water_intensity",	&binder_water_intensity);
 	r_Constant				("sun_shafts_intensity",		&binder_sun_shafts_intensity);
 	r_Constant				("pos_decompression_params",	&binder_pos_decompress_params);
+
+#if RENDER == R_R3
+	r_Constant				("m_AlphaRef",		&binder_alpha_ref);
+#endif
 
 	r_Constant				("refl_params",		&binder_refl_params);
 	r_Constant				("refl_params2",	&binder_refl_params2);

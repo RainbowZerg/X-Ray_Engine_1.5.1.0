@@ -1,6 +1,6 @@
 #pragma once
 
-class CBlender_accum_direct_cascade : public IBlender  
+class CBlender_accum_direct : public IBlender  
 {
 public:
 	virtual		LPCSTR		getComment()	{ return "INTERNAL: accumulate direct light";	}
@@ -9,6 +9,6 @@ public:
 
 	virtual		void		Compile			(CBlender_Compile& C);
 
-	CBlender_accum_direct_cascade();
-	virtual ~CBlender_accum_direct_cascade();
+	CBlender_accum_direct();
+	virtual ~CBlender_accum_direct();
 };

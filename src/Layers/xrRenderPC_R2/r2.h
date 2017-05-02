@@ -2,7 +2,7 @@
 
 #include "../xrRender/r__dsgraph_structure.h"
 #include "../xrRender/r__occlusion.h"
-#include "../xrRender/r__sun_cascades.h"
+#include "../xrRender_R2-R3/r__sun_cascades.h"
 
 #include "../xrRender/PSLibrary.h"
 

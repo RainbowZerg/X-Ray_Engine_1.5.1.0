@@ -37,8 +37,8 @@ void	CBlender_combine::Compile(CBlender_Compile& C)
 		C.r_dx10Texture		("s_material",		r2_material			);
 		C.r_dx10Texture		("env_s0",			r2_T_envs0			);
 		C.r_dx10Texture		("env_s1",			r2_T_envs1			);
-		C.r_dx10Texture		("sky_s0",			r2_T_sky0			);
-		C.r_dx10Texture		("sky_s1",			r2_T_sky1			);
+		C.r_dx10Texture		("sky_s0",			r__T_sky0			);
+		C.r_dx10Texture		("sky_s1",			r__T_sky1			);
 		C.r_dx10Texture		("s_occ",			r2_RT_ssao_temp		);
 		C.r_dx10Texture		("s_half_depth",	r2_RT_half_depth	);
 
@@ -170,8 +170,8 @@ void	CBlender_combine_msaa::Compile(CBlender_Compile& C)
 	  C.r_dx10Texture		("s_half_depth",	r2_RT_half_depth	);
       C.r_dx10Texture		("env_s0",			r2_T_envs0			);
       C.r_dx10Texture		("env_s1",			r2_T_envs1			);
-      C.r_dx10Texture		("sky_s0",			r2_T_sky0			);
-      C.r_dx10Texture		("sky_s1",			r2_T_sky1			);
+      C.r_dx10Texture		("sky_s0",			r__T_sky0			);
+      C.r_dx10Texture		("sky_s1",			r__T_sky1			);
 
       jitter(C);
 

@@ -114,10 +114,8 @@ void	CBlender_deffer_model::Compile(CBlender_Compile& C)
 		case SE_R2_SHADOW:				// smap
 			if (bAref)
 			{
-				//if (RImplementation.o.HW_smap)	C.r_Pass	("shadow_direct_model_aref","shadow_direct_base_aref",	FALSE,TRUE,TRUE,FALSE,D3DBLEND_ZERO,D3DBLEND_ONE,TRUE,220);
-				//else							C.r_Pass	("shadow_direct_model_aref","shadow_direct_base_aref",	FALSE);
 				//C.r_Sampler		("s_base",C.L_textures[0]);
-				C.r_Pass	("shadow_direct_model_aref","shadow_direct_base_aref",	FALSE,TRUE,TRUE,FALSE,D3DBLEND_ZERO,D3DBLEND_ONE,TRUE,220);
+				C.r_Pass			("shadow_direct_model_aref","shadow_direct_base_aref",	FALSE,TRUE,TRUE,FALSE,D3DBLEND_ZERO,D3DBLEND_ONE,TRUE,220);
 				C.r_dx10Texture		("s_base",C.L_textures[0]);
 				C.r_dx10Sampler		("smp_base");
 				C.r_dx10Sampler		("smp_linear");
@@ -127,9 +125,7 @@ void	CBlender_deffer_model::Compile(CBlender_Compile& C)
 			} 
 			else 
 			{
-				//if (RImplementation.o.HW_smap)	C.r_Pass	("shadow_direct_model","dumb",	FALSE,TRUE,TRUE,FALSE);
-				//else							C.r_Pass	("shadow_direct_model","shadow_direct_base",FALSE);
-				C.r_Pass	("shadow_direct_model","dumb",	FALSE,TRUE,TRUE,FALSE);
+				C.r_Pass			("shadow_direct_model","dumb",	FALSE,TRUE,TRUE,FALSE);
 				//C.r_Sampler		("s_base",C.L_textures[0]);
 				C.r_dx10Texture		("s_base",C.L_textures[0]);
 				C.r_dx10Sampler		("smp_base");

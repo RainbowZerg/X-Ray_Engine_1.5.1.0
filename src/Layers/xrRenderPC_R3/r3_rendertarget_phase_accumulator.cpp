@@ -3,32 +3,30 @@
 void	CRenderTarget::phase_accumulator()
 {
 	// Targets
-	if (dwAccumulatorClearMark==Device.dwFrame)	{
+	if (dwAccumulatorClearMark == Device.dwFrame)	
+	{
 		// normal operation - setup
-      if( !RImplementation.o.dx10_msaa )
-      {
-		   if (RImplementation.o.fp16_blend)	u_setrt	(rt_Accumulator,		NULL,NULL,HW.pBaseZB);
-		   else								u_setrt	(rt_Accumulator_temp,	NULL,NULL,HW.pBaseZB);
-      }
-      else
-      {
-         if (RImplementation.o.fp16_blend)	u_setrt	(rt_Accumulator,		NULL,NULL, rt_MSAADepth->pZRT);
-         else								u_setrt	(rt_Accumulator_temp,	NULL,NULL, rt_MSAADepth->pZRT);
-      }
-	} else {
+		if (!RImplementation.o.dx10_msaa)
+			u_setrt	(rt_Accumulator, NULL, NULL, HW.pBaseZB);
+		else
+			u_setrt	(rt_Accumulator, NULL, NULL, rt_MSAADepth->pZRT);
+	} 
+	else 
+	{
 		// initial setup
 		dwAccumulatorClearMark				= Device.dwFrame;
 
 		// clear
-      if( !RImplementation.o.dx10_msaa )
-   		u_setrt								(rt_Accumulator,		NULL,NULL,HW.pBaseZB);
-      else
-         u_setrt								(rt_Accumulator,		NULL,NULL,rt_MSAADepth->pZRT);
+		if (!RImplementation.o.dx10_msaa)
+			u_setrt	(rt_Accumulator, NULL, NULL, HW.pBaseZB);
+		else
+			u_setrt	(rt_Accumulator, NULL, NULL, rt_MSAADepth->pZRT);
+
 		//dwLightMarkerID						= 5;					// start from 5, increment in 2 units
 		reset_light_marker();
 		//	Igor: AMD bug workaround. Should be fixed in 8.7 catalyst
 		//	Need for MSAA to work correctly.
-		if( RImplementation.o.dx10_msaa )
+		if (RImplementation.o.dx10_msaa)
 		{
 			HW.pDevice->OMSetRenderTargets(1, &(rt_Accumulator->pRT), 0);
 		}

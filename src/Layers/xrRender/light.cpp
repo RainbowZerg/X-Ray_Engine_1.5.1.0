@@ -81,18 +81,22 @@ void light::set_texture		(LPCSTR name)
 #if	RENDER!=R_R3
 	s_volumetric.create		("accum_volumetric", name);
 #else	//	RENDER!=R_R3
+	string256 temp_vol_msaa;
+	strconcat(sizeof(temp_vol_msaa), temp_vol_msaa, "r2\\accum_volumetric_", name);
+
 	s_volumetric.create		("accum_volumetric_nomsaa", name);
-	if( RImplementation.o.dx10_msaa )
+	if (RImplementation.o.dx10_msaa)
 	{
 		int bound = 1;
 
-		if( !RImplementation.o.dx10_msaa_opt )
+		if (!RImplementation.o.dx10_msaa_opt)
 			bound = RImplementation.o.dx10_msaa_samples;
 
-		for( int i = 0; i < bound; ++i )
+		for (int i = 0; i < bound; ++i)
 		{
-			s_spot_msaa[i].create				(RImplementation.Target->b_accum_spot_msaa[i],strconcat(sizeof(temp),temp,"r2\\accum_spot_",name),name);
-			s_volumetric_msaa[i].create	(RImplementation.Target->b_accum_volumetric_msaa[i],strconcat(sizeof(temp),temp,"r2\\accum_volumetric_",name),name);
+			s_spot_msaa[i].create		(RImplementation.Target->b_accum_spot_msaa[i], temp_spot, name);
+			s_point_msaa[i].create		(RImplementation.Target->b_accum_point_msaa[i], temp_point, name);
+			s_volumetric_msaa[i].create	(RImplementation.Target->b_accum_volumetric_msaa[i], temp_vol_msaa, name);
 		}
 	}
 #endif	//	RENDER!=R_R3

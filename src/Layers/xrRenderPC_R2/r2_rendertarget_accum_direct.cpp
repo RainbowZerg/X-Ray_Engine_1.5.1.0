@@ -194,7 +194,7 @@ void CRenderTarget::accum_direct_cascade(u32 sub_phase, Fmatrix& xform, Fmatrix&
 		RCache.set_Geometry			(g_combine_cuboid);
 
 		// setup
-		RCache.set_Element			(s_accum_direct_cascade->E[sub_phase]);
+		RCache.set_Element			(s_accum_direct->E[sub_phase]);
 
 		RCache.set_c				("m_texgen",			m_Texgen);
 		RCache.set_c				("Ldynamic_dir",		L_dir.x,L_dir.y,L_dir.z,0		);
@@ -389,7 +389,7 @@ void CRenderTarget::accum_direct_lum	()
 		RCache.set_Geometry			(g_aa_AA);
 
 		// setup
-		RCache.set_Element			(s_accum_direct_cascade->E[SE_SUN_LUMINANCE]);
+		RCache.set_Element			(s_accum_direct->E[SE_SUN_LUMINANCE]);
 		RCache.set_c				("Ldynamic_dir",		L_dir.x,L_dir.y,L_dir.z,0		);
 		RCache.set_c				("Ldynamic_color",		L_clr.x,L_clr.y,L_clr.z,L_spec	);
 
@@ -424,7 +424,7 @@ void CRenderTarget::accum_direct_volumetric	(u32 sub_phase, const u32 Offset, co
 		if (RImplementation.o.HW_smap)	pszSMapName = r2_RT_smap_depth;
 		else							pszSMapName = r2_RT_smap_surf;
 
-		STextureList* _T = &*s_accum_direct_volumetric_cascade->E[0]->passes[0]->T;
+		STextureList* _T = &*s_accum_direct_volumetric->E[0]->passes[0]->T;
 
 		STextureList::iterator	_it		= _T->begin	();
 		STextureList::iterator	_end	= _T->end	();
@@ -456,7 +456,7 @@ void CRenderTarget::accum_direct_volumetric	(u32 sub_phase, const u32 Offset, co
 
 		// setup
 
-		RCache.set_Element			(s_accum_direct_volumetric_cascade->E[0]);
+		RCache.set_Element			(s_accum_direct_volumetric->E[0]);
 		RCache.set_CullMode			(CULL_CCW);
 
 //		RCache.set_c				("Ldynamic_dir",		L_dir.x,L_dir.y,L_dir.z,0 );
@@ -485,8 +485,7 @@ void CRenderTarget::accum_direct_volumetric	(u32 sub_phase, const u32 Offset, co
 			zMax = ps_r2_sun_far;
 		}
 
-		// ZergO: not used
-//		RCache.set_c("volume_range", zMin, zMax, 0, 0);
+		RCache.set_c("volume_range", zMin, zMax, 0, 0);
 
 		Fvector	center_pt;
 		center_pt.mad(Device.vCameraPosition,Device.vCameraDirection,zMin);	

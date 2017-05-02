@@ -6,21 +6,16 @@
 CBlender_accum_direct::CBlender_accum_direct	()	{ description.CLS		= 0;	}
 CBlender_accum_direct::~CBlender_accum_direct	()	{	}
 
-void	CBlender_accum_direct::Compile(CBlender_Compile& C)
+void CBlender_accum_direct::Compile(CBlender_Compile& C)
 {
 	IBlender::Compile		(C);
-
-//	BOOL	b_HW_smap		= RImplementation.o.HW_smap;
-//	BOOL	b_HW_PCF		= RImplementation.o.HW_smap_PCF;
-	BOOL		blend		= FALSE;	//RImplementation.o.fp16_blend;
-	D3DBLEND	dest		= blend?D3DBLEND_ONE:D3DBLEND_ZERO;
-	if (RImplementation.o.sunfilter)	{ blend = FALSE; dest = D3DBLEND_ZERO; }
 
 	switch (C.iElement)
 	{
 	case SE_SUN_NEAR:		// near pass - enable Z-test to perform depth-clipping
+	case SE_SUN_MIDDLE:		// middle pass - enable Z-test to perform depth-clipping
 		//	FVF::TL2uv
-		C.r_Pass			("stub_notransform_2uv","accum_sun_near_nomsaa_nominmax",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
+		C.r_Pass			("accum_sun", "accum_sun_near_nomsaa_nominmax", false, TRUE, FALSE, TRUE, D3DBLEND_ONE, D3DBLEND_ONE);
 
 		C.r_CullMode		(D3DCULL_NONE);
 		C.PassSET_ZB		(TRUE,FALSE,TRUE	);	// force inverted Z-Buffer
@@ -43,8 +38,8 @@ void	CBlender_accum_direct::Compile(CBlender_Compile& C)
 		break;
 	case SE_SUN_FAR:		// far pass, only stencil clipping performed
 		//	FVF::TL2uv
-		//C.r_Pass			("null",			"accum_sun_far",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
-		C.r_Pass			("stub_notransform_2uv","accum_sun_far_nomsaa",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
+		//C.r_Pass			("null",			"accum_sun_far",	false,	TRUE,	FALSE,TRUE,D3DBLEND_ONE,D3DBLEND_ONE);
+		C.r_Pass			("accum_sun", "accum_sun_far_nomsaa", false, TRUE, FALSE, TRUE, D3DBLEND_ONE, D3DBLEND_ONE);
 		C.r_CullMode		(D3DCULL_NONE);
 		//C.r_Sampler_rtf		("s_position",		r2_RT_P			);
 		//C.r_Sampler_rtf		("s_normal",		r2_RT_N			);
@@ -71,7 +66,11 @@ void	CBlender_accum_direct::Compile(CBlender_Compile& C)
 		C.r_dx10Sampler		("smp_material");
 		C.r_dx10Sampler		("smp_linear");
 		jitter				(C);
-		C.r_dx10Sampler		("smp_smap");
+		{
+			u32 s = C.r_dx10Sampler("smp_smap");
+			C.i_dx10Address		(s, D3DTADDRESS_BORDER);
+			C.i_dx10BorderColor	(s, D3DCOLOR_ARGB(255, 255, 255, 255));
+		}
 
 		C.r_End				();
 		break;
@@ -99,7 +98,7 @@ void	CBlender_accum_direct::Compile(CBlender_Compile& C)
 		//	SE_SUN_NEAR for min/max
 	case SE_SUN_NEAR_MINMAX:		// near pass - enable Z-test to perform depth-clipping
 		//	FVF::TL2uv
-		C.r_Pass			("stub_notransform_2uv","accum_sun_near_nomsaa_minmax",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
+		C.r_Pass			("accum_sun", "accum_sun_near_nomsaa_minmax", false, TRUE, FALSE, TRUE, D3DBLEND_ONE, D3DBLEND_ONE);
 		C.r_CullMode		(D3DCULL_NONE);
 		C.PassSET_ZB		(TRUE,FALSE,TRUE	);	// force inverted Z-Buffer
 
@@ -123,7 +122,7 @@ void	CBlender_accum_direct::Compile(CBlender_Compile& C)
 	//	SE_SUN_FAR for min/max
 	case 5:		// far pass, only stencil clipping performed
 		//	FVF::TL2uv
-		C.r_Pass			("stub_notransform_2uv","accum_sun_far_nomsaa",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
+		C.r_Pass			("stub_notransform_2uv","accum_sun_far_nomsaa",	false,	TRUE,	FALSE,TRUE,D3DBLEND_ONE,D3DBLEND_ONE);
 		C.r_CullMode		(D3DCULL_NONE);
 
 		C.r_dx10Texture		("s_position",		r2_RT_P);
@@ -154,23 +153,15 @@ void	CBlender_accum_direct_msaa::Compile(CBlender_Compile& C)
 {
 	IBlender::Compile		(C);
 
-   if( Name )
-      ::Render->m_MSAASample = atoi( Definition );
-   else
-      ::Render->m_MSAASample = -1;
-
-//	BOOL	b_HW_smap		= RImplementation.o.HW_smap;
-//	BOOL	b_HW_PCF		= RImplementation.o.HW_smap_PCF;
-	BOOL		blend		= FALSE;	//RImplementation.o.fp16_blend;
-	D3DBLEND	dest		= blend?D3DBLEND_ONE:D3DBLEND_ZERO;
-	if (RImplementation.o.sunfilter)	{ blend = FALSE; dest = D3DBLEND_ZERO; }
+	::Render->m_MSAASample = (Name) ? atoi(Definition) : -1;
 
 	switch (C.iElement)
 	{
 	case SE_SUN_NEAR:		// near pass - enable Z-test to perform depth-clipping
+	case SE_SUN_MIDDLE:		// middle pass - enable Z-test to perform depth-clipping
 		//	FVF::TL2uv
-		//C.r_Pass			("null",			"accum_sun_near",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
-		C.r_Pass			("stub_notransform_2uv","accum_sun_near_msaa_nominmax",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
+		//C.r_Pass			("null",			"accum_sun_near",	false,	TRUE,	FALSE,TRUE,D3DBLEND_ONE,D3DBLEND_ONE);
+		C.r_Pass			("accum_sun","accum_sun_near_msaa_nominmax",	false,	TRUE,	FALSE,TRUE,D3DBLEND_ONE,D3DBLEND_ONE);
 		C.r_CullMode		(D3DCULL_NONE);
 		C.PassSET_ZB		(TRUE,FALSE,TRUE	);	// force inverted Z-Buffer
 		//C.r_Sampler_rtf		("s_position",		r2_RT_P			);
@@ -204,8 +195,8 @@ void	CBlender_accum_direct_msaa::Compile(CBlender_Compile& C)
 		break;
 	case SE_SUN_FAR:		// far pass, only stencil clipping performed
 		//	FVF::TL2uv
-		//C.r_Pass			("null",			"accum_sun_far",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
-		C.r_Pass			("stub_notransform_2uv","accum_sun_far_msaa",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
+		//C.r_Pass			("null",			"accum_sun_far",	false,	TRUE,	FALSE,TRUE,D3DBLEND_ONE,D3DBLEND_ONE);
+		C.r_Pass			("accum_sun","accum_sun_far_msaa",	false,	TRUE,	FALSE,TRUE,D3DBLEND_ONE,D3DBLEND_ONE);
 		C.r_CullMode		(D3DCULL_NONE);
 		//C.r_Sampler_rtf		("s_position",		r2_RT_P			);
 		//C.r_Sampler_rtf		("s_normal",		r2_RT_N			);
@@ -232,7 +223,11 @@ void	CBlender_accum_direct_msaa::Compile(CBlender_Compile& C)
 		C.r_dx10Sampler		("smp_material");
 		C.r_dx10Sampler		("smp_linear");
 		jitter				(C);
-		C.r_dx10Sampler		("smp_smap");
+		{
+			u32 s = C.r_dx10Sampler("smp_smap");
+			C.i_dx10Address		(s, D3DTADDRESS_BORDER);
+			C.i_dx10BorderColor	(s, D3DCOLOR_ARGB(255, 255, 255, 255));
+		}
 
 		C.r_End				();
 		break;
@@ -261,7 +256,7 @@ void	CBlender_accum_direct_msaa::Compile(CBlender_Compile& C)
 		//	SE_SUN_NEAR for minmax
 	case SE_SUN_NEAR_MINMAX:		// near pass - enable Z-test to perform depth-clipping
 		//	FVF::TL2uv
-		C.r_Pass			("stub_notransform_2uv","accum_sun_near_msaa_minmax",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
+		C.r_Pass			("accum_sun","accum_sun_near_msaa_minmax",	false,	TRUE,	FALSE,TRUE,D3DBLEND_ONE,D3DBLEND_ONE);
 		C.r_CullMode		(D3DCULL_NONE);
 		C.PassSET_ZB		(TRUE,FALSE,TRUE	);	// force inverted Z-Buffer
 
@@ -294,32 +289,23 @@ void	CBlender_accum_direct_volumetric_msaa::Compile(CBlender_Compile& C)
 {
 	IBlender::Compile		(C);
 
-   if( Name )
-      ::Render->m_MSAASample = atoi( Definition );
-   else
-      ::Render->m_MSAASample = -1;
-
-	//	BOOL	b_HW_smap		= RImplementation.o.HW_smap;
-	//	BOOL	b_HW_PCF		= RImplementation.o.HW_smap_PCF;
-	BOOL		blend		= FALSE;	//RImplementation.o.fp16_blend;
-	D3DBLEND	dest		= blend?D3DBLEND_ONE:D3DBLEND_ZERO;
-	if (RImplementation.o.sunfilter)	{ blend = FALSE; dest = D3DBLEND_ZERO; }
+	::Render->m_MSAASample = (Name) ? atoi(Definition) : -1;
 
 	switch (C.iElement)
-		{
-		case 0:		// near pass - enable Z-test to perform depth-clipping
-			C.r_Pass			("stub_notransform_2uv","accum_volumetric_sun_msaa",	false,	TRUE,	FALSE,blend,D3DBLEND_ONE,dest);
-				C.r_dx10Texture		("s_lmap",			C.L_textures[0]);
-				C.r_dx10Texture	("s_smap",			r2_RT_smap_depth);
-				 C.r_dx10Texture	("s_noise", "fx\\fx_noise");
+	{
+	case 0:		// near pass - enable Z-test to perform depth-clipping
+		C.r_Pass			("accum_sun","accum_volumetric_sun_msaa",	false,	TRUE,	FALSE,TRUE,D3DBLEND_ONE,D3DBLEND_ONE);
+		C.r_dx10Texture		("s_lmap",			C.L_textures[0]);
+		C.r_dx10Texture		("s_smap",			r2_RT_smap_depth);
+		C.r_dx10Texture		("s_noise", "fx\\fx_noise");
 
-         C.r_dx10Sampler		("smp_rtlinear");
-				 C.r_dx10Sampler		("smp_linear");
-				 C.r_dx10Sampler		("smp_smap");
-         C.r_End				();
-			break;
-		}
-   ::Render->m_MSAASample = -1;
+		C.r_dx10Sampler		("smp_rtlinear");
+		C.r_dx10Sampler		("smp_linear");
+		C.r_dx10Sampler		("smp_smap");
+		C.r_End				();
+		break;
+	}
+	::Render->m_MSAASample = -1;
 }
 
 CBlender_accum_direct_volumetric_sun_msaa::CBlender_accum_direct_volumetric_sun_msaa	()	{		Name = 0; Definition = 0; description.CLS		= 0;	}
@@ -330,24 +316,21 @@ void	CBlender_accum_direct_volumetric_sun_msaa::Compile(CBlender_Compile& C)
 {
 	IBlender::Compile		(C);
 
-   if( Name )
-      ::Render->m_MSAASample = atoi( Definition );
-   else
-      ::Render->m_MSAASample = -1;
+	::Render->m_MSAASample = (Name) ? atoi(Definition) : -1;
 
 	switch (C.iElement)
-		{
-		case 0:		// near pass - enable Z-test to perform depth-clipping
-			C.r_Pass			("stub_notransform_2uv","accum_volumetric_sun_msaa",	false,	false,	false, true,D3DBLEND_ONE,D3DBLEND_ONE,false,0);
-         C.r_dx10Texture		("s_smap",			r2_RT_smap_depth);
-         C.r_dx10Texture		("s_position",		r2_RT_P);
-         jitter				(C);
+	{
+	case 0:		// near pass - enable Z-test to perform depth-clipping
+		C.r_Pass			("accum_sun","accum_volumetric_sun_msaa",	false,	false,	false, true,D3DBLEND_ONE,D3DBLEND_ONE,false,0);
+		C.r_dx10Texture		("s_smap",			r2_RT_smap_depth);
+		C.r_dx10Texture		("s_position",		r2_RT_P);
+		jitter				(C);
 
-         C.r_dx10Sampler		("smp_nofilter");
-         C.r_dx10Sampler		("smp_smap");
-         C.r_End				();
-			break;
-		}
-   ::Render->m_MSAASample = -1;
+		C.r_dx10Sampler		("smp_nofilter");
+		C.r_dx10Sampler		("smp_smap");
+		C.r_End				();
+		break;
+	}
+	::Render->m_MSAASample = -1;
 }
 

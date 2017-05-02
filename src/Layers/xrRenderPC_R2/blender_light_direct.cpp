@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "blender_light_direct_cascade.h"
+#include "blender_light_direct.h"
 
-CBlender_accum_direct_cascade::CBlender_accum_direct_cascade	()	{	description.CLS		= 0;	}
-CBlender_accum_direct_cascade::~CBlender_accum_direct_cascade	()	{	}
+CBlender_accum_direct::CBlender_accum_direct	()	{	description.CLS		= 0;	}
+CBlender_accum_direct::~CBlender_accum_direct	()	{	}
 
-void	CBlender_accum_direct_cascade::Compile(CBlender_Compile& C)
+void	CBlender_accum_direct::Compile(CBlender_Compile& C)
 {
 	IBlender::Compile		(C);
 

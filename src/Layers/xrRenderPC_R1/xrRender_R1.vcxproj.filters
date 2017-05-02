@@ -594,9 +594,6 @@
     <ClInclude Include="..\xrRender\GlowManager.h">
       <Filter>Glows</Filter>
     </ClInclude>
-    <ClInclude Include="..\xrRender\r__sun_cascades.h">
-      <Filter>Core</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -609,9 +606,6 @@
       <Filter>Kernel</Filter>
     </ClCompile>
     <ClCompile Include="FStaticRender.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="FStaticRender_DetectSector.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="FStaticRender_RenderTarget.cpp">
@@ -986,9 +980,6 @@
     <ClCompile Include="..\xrRender\xr_effgamma.cpp">
       <Filter>Refactored\Execution &amp; 3D\Gamma</Filter>
     </ClCompile>
-    <ClCompile Include="..\xrRender\r__R_calculate.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="..\xrRender\GlowManager.cpp">
       <Filter>Glows</Filter>
     </ClCompile>
@@ -996,6 +987,12 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\xrRender\r__loader.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xrRender\r__calculate.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xrRender\r__sector_detect.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

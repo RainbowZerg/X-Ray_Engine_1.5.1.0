@@ -719,7 +719,9 @@
     <ClCompile Include="xrSheduler.cpp" />
     <ClCompile Include="xrTheora_Stream.cpp" />
     <ClCompile Include="xrTheora_Surface.cpp" />
-    <ClCompile Include="xrTheora_Surface_mmx.cpp" />
+    <ClCompile Include="xrTheora_Surface_mmx.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Dedicated|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="xrXRC.cpp" />
     <ClCompile Include="xr_area.cpp" />
     <ClCompile Include="xr_area_query.cpp" />

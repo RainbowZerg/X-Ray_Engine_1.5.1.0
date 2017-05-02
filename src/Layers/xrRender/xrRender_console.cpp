@@ -425,7 +425,7 @@ public:
 };
 
 #if RENDER!=R_R1
-#include "r__pixel_calculator.h"
+#include "../xrRender_R2-R3/r__pixel_calculator.h"
 class CCC_BuildSSA : public IConsole_Command
 {
 public:

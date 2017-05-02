@@ -15,8 +15,8 @@
 #define		r2_T_envs0			"$user$env_s0"			// ---
 #define		r2_T_envs1			"$user$env_s1"			// ---
 
-#define		r2_T_sky0			"$user$sky0" 
-#define		r2_T_sky1			"$user$sky1" 
+#define		r__T_sky0			"$user$sky0" 
+#define		r__T_sky1			"$user$sky1" 
 
 #define		r2_RT_ssao_temp		"$user$ssao_temp"		//temporary rt for ssao calculation
 #define		r2_RT_half_depth	"$user$half_depth"		//temporary rt for ssao calculation
@@ -85,15 +85,15 @@ const		u32					LUMINANCE_size		= 16	;
 #define		SE_MASK_DIRECT		2
 #define		SE_MASK_ACCUM_VOL	3
 #define		SE_MASK_ACCUM_2D	4
-#define		SE_MASK_ALBEDO		5
 
 // sun
 #define		SE_SUN_NEAR			0
-#define		SE_SUN_FAR			1
-#define		SE_SUN_LUMINANCE	2
-#define		SE_SUN_NEAR_MINMAX	3
+#define		SE_SUN_MIDDLE		1
+#define		SE_SUN_FAR			2
+#define		SE_SUN_LUMINANCE	3
+#define		SE_SUN_NEAR_MINMAX	4
 //	For rain R3 rendering
-#define		SE_SUN_RAIN_SMAP	3
+#define		SE_SUN_RAIN_SMAP	5
 
 extern		float	ps_r2_gloss_factor;
 IC	float	u_diffuse2s	(float x, float y, float z)	{ float	v = (x+y+z)/3.f;	return ps_r2_gloss_factor * ((v<1)?powf(v,2.f/3.f):v); }

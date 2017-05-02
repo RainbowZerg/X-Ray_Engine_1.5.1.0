@@ -185,7 +185,7 @@ BOOL CTextureDescrMngr::GetDetailTexture(const shared_str& tex_name, LPCSTR& res
 	{
 		if(I->second.m_assoc)
 		{
-                        texture_assoc* TA = I->second.m_assoc;
+			texture_assoc* TA = I->second.m_assoc;
 			res	= TA->detail_name.c_str();
 			CS	= TA->cs;
 			return TRUE;

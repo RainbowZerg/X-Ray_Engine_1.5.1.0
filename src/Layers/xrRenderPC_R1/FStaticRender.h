@@ -108,6 +108,8 @@ public:
 	IRender_Portal*						getPortal				(int id);
 	IRender_Sector*						getSectorActive			();
 	IRenderVisual*						model_CreatePE			(LPCSTR			name);
+	IRender_Sector*						detectSector			(const Fvector& P, Fvector& D);
+
 	void								ApplyBlur4				(FVF::TL4uv*	dest, u32 w, u32 h, float k);
 	void								apply_object			(IRenderable*	O);
 	IC void								apply_lmaterial			()				{};
