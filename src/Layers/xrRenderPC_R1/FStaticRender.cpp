@@ -326,10 +326,8 @@ void	CRender::rmNormal	()
 	CHK_DX				(HW.pDevice->SetViewport(&VP));
 }
 
-extern u32 g_r;
 void	CRender::Render		()
 {
-	g_r											= 1;
 	Device.Statistic->RenderDUMP.Begin();
 	// Begin
 	Target->Begin								();
@@ -347,10 +345,8 @@ void	CRender::Render		()
 	o.vis_intersect								= TRUE			;
 	HOM.Disable									();
 	L_Dynamic->render							();				// addititional light sources
-	if(Wallmarks){
-		g_r										= 0;
-		Wallmarks->Render						();				// wallmarks has priority as normal geometry
-	}
+	if(Wallmarks)Wallmarks->Render				();				// wallmarks has priority as normal geometry
+	
 	HOM.Enable									();
 	o.vis_intersect								= FALSE			;
 	phase										= PHASE_NORMAL	;

@@ -196,10 +196,8 @@ void CRender::render_menu	()
 	RCache.Render					(D3DPT_TRIANGLELIST,Offset,0,4,0,2);
 }
 
-//extern u32 g_r;
 void CRender::Render		()
 {
-//	g_r						= 1;
 	VERIFY					(0==mapDistort.size());
 
 	bool	_menu_pp		= g_pGamePersistent?g_pGamePersistent->OnRenderPPUI_query():false;
