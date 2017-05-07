@@ -232,7 +232,7 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("get_anomaly_power",			&CScriptGameObject::GetAnomalyPower)
 		.def("set_anomaly_power",			&CScriptGameObject::SetAnomalyPower)
 
-		//HELICOPTER
+		.def("get_alife_object",			&CScriptGameObject::alife_object)
 		.def("get_helicopter",              &CScriptGameObject::get_helicopter)
 		.def("get_car",						&CScriptGameObject::get_car)
 		.def("get_hanging_lamp",            &CScriptGameObject::get_hanging_lamp)
@@ -312,6 +312,9 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("start_particles",				&CScriptGameObject::start_particles)
 		.def("stop_particles",				&CScriptGameObject::stop_particles)
 
+		.def("set_position",				&CScriptGameObject::SetPosition)
+		.def("set_direction",				&CScriptGameObject::SetDirection)
+		.def("set_rotation",				&CScriptGameObject::SetRotation)
 
 	;return	(instance);
 }

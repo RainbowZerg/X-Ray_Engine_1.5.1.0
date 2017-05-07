@@ -20,11 +20,8 @@ BOOL	exact_normalize					(float*		a);
 //#include "OGF_Face.h"
 
 
-
-
-
-
-extern BOOL						b_radiosity;
-extern BOOL						b_noise;
-extern BOOL						b_net_light;
-
+extern bool						b_radiosity;
+extern bool						b_noise;
+extern bool						b_net_light;
+extern bool						b_nolmaps;
+extern float					f_lmap_quality;

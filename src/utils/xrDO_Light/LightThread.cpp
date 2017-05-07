@@ -6,6 +6,11 @@
 #include "base_lighting.h"
 #include "global_calculation_data.h"
 #include "../shader_xrlc.h"
+#include "global_options.h"
+
+bool b_norgb = false;
+bool b_nosun = false;
+
 enum
 {
 	LP_DEFAULT			= 0,
@@ -362,7 +367,7 @@ void	LightThread::	Execute()
 						if (P.y<BB.min.y) continue;
 						
 						// light point
-						LightPoint		(&DB,amount,P,t_n,Selected,0);
+						LightPoint		(&DB,amount,P,t_n,Selected,(b_norgb?LP_dont_rgb:0)|(b_nosun?LP_dont_sun:0)|LP_DEFAULT);
 						count			+= 1;
 					}
 				}

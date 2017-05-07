@@ -2,34 +2,16 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Convert">
-      <UniqueIdentifier>{1a8515d3-0a19-486d-befb-ab05375fea70}</UniqueIdentifier>
+      <UniqueIdentifier>{3720333b-4f24-474d-8631-1b6dc59a8d2d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shared">
-      <UniqueIdentifier>{33ce6324-4f4e-46fc-b6f0-9b0ef6728f4a}</UniqueIdentifier>
+      <UniqueIdentifier>{9d83b1c3-cdaa-4938-a62e-21f175d1b98b}</UniqueIdentifier>
     </Filter>
     <Filter Include="NormalMap">
-      <UniqueIdentifier>{aa4dae25-b983-4400-9606-9bc8b7c15010}</UniqueIdentifier>
+      <UniqueIdentifier>{c9cdc76b-74ac-4133-b5e7-516ac95dd5f3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="colorconvert.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
-    <ClInclude Include="ddsTypes.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
-    <ClInclude Include="dxtlib.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
-    <ClInclude Include="nvdxt_options.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
-    <ClInclude Include="tPixel.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
-    <ClInclude Include="tVector.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
     <ClInclude Include="ETextureParams.h">
       <Filter>Shared</Filter>
     </ClInclude>
@@ -48,14 +30,34 @@
     <ClInclude Include="tga.h">
       <Filter>NormalMap</Filter>
     </ClInclude>
-    <ClInclude Include="dds.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="dds\ConvertColor.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds\ddsTypes.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds\nvdxt_options.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds\nvErrorCodes.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds\tPixel.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds\tVector.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dxtlib.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXT.cpp">
-      <Filter>Convert</Filter>
-    </ClCompile>
-    <ClCompile Include="nvdxt.cpp">
       <Filter>Convert</Filter>
     </ClCompile>
     <ClCompile Include="ETextureParams.cpp">
@@ -79,11 +81,6 @@
     <ClCompile Include="StdAfx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="nvDXTlibMTDLL.lib">
-      <Filter>Convert</Filter>
-    </Library>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
+    <None Include="ReadMe.txt" />
   </ItemGroup>
 </Project>

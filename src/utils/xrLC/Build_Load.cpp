@@ -42,7 +42,8 @@ struct R_Layer
 	xr_vector<R_Light>		lights;
 };
 
-
+static bool is_thm_missing = false;
+static bool is_tga_missing = false;
 
 void CBuild::Load	(const b_params& Params, const IReader& _in_FS)
 {
@@ -288,7 +289,7 @@ void CBuild::Load	(const b_params& Params, const IReader& _in_FS)
 		Surface_Init		();
 		F = fs.open_chunk	(EB_Textures);
 		u32 tex_count	= F->length()/sizeof(b_texture);
-		for (u32 t=0; t<tex_count; t++)
+		for (u32 t = 0; t < tex_count; t++)
 		{
 			Progress		(float(t)/float(tex_count));
 
@@ -302,18 +303,27 @@ void CBuild::Load	(const b_params& Params, const IReader& _in_FS)
 			LPSTR N			= BT.name;
 			if (strchr(N,'.')) *(strchr(N,'.')) = 0;
 			strlwr			(N);
-			if (0==xr_strcmp(N,"level_lods"))	{
+			if (0 == xr_strcmp(N,"level_lods"))	
+			{
 				// HACK for merged lod textures
 				BT.dwWidth	= 1024;
 				BT.dwHeight	= 1024;
 				BT.bHasAlpha= TRUE;
 				BT.pSurface	= 0;
-			} else {
+			} 
+			else 
+			{
 				string_path			th_name;
 				FS.update_path	(th_name,"$game_textures$",strconcat(sizeof(th_name),th_name,N,".thm"));
-				clMsg			("processing: %s",th_name);
 				IReader* THM	= FS.r_open(th_name);
-				R_ASSERT2		(THM,th_name);
+				if (!THM)
+				{
+					clMsg("cannot find thm: %s", th_name);
+					is_thm_missing = true;
+					continue;
+				}
+				else
+					clMsg("processing: %s", th_name);
 
 				// version
 				u32 version = 0;
@@ -330,8 +340,7 @@ void CBuild::Load	(const b_params& Params, const IReader& _in_FS)
 				BT.THM.mip_filter		= THM->r_u32();
 				BT.THM.width			= THM->r_u32();
 				BT.THM.height           = THM->r_u32();
-				BOOL			bLOD=FALSE;
-				if (N[0]=='l' && N[1]=='o' && N[2]=='d' && N[3]=='\\') bLOD = TRUE;
+				bool bLOD = (N[0] == 'l' && N[1] == 'o' && N[2] == 'd' && N[3] == '\\');
 
 				// load surface if it has an alpha channel or has "implicit lighting" flag
 				BT.dwWidth	= BT.THM.width;
@@ -342,9 +351,15 @@ void CBuild::Load	(const b_params& Params, const IReader& _in_FS)
 					if (BT.bHasAlpha || BT.THM.flags.test(STextureParams::flImplicitLighted) || b_radiosity)
 					{
 						clMsg		("- loading: %s",N);
-						u32			w=0, h=0;
+						u32	w = 0, h = 0;
 						BT.pSurface = Surface_Load(N,w,h);
-						R_ASSERT2	(BT.pSurface,"Can't load surface");
+						if (!BT.pSurface)
+						{
+							clMsg("cannot find tga texture: %s", th_name);
+							is_tga_missing = true;
+							continue;
+						}
+
 						if ((w != BT.dwWidth) || (h != BT.dwHeight))
 						{
 							Msg		("! THM doesn't correspond to the texture: %dx%d -> %dx%d", BT.dwWidth, BT.dwHeight, w, h);
@@ -352,7 +367,9 @@ void CBuild::Load	(const b_params& Params, const IReader& _in_FS)
 							BT.dwHeight	= BT.THM.height = h;
 						}
 						BT.Vflip	();
-					} else {
+					} 
+					else 
+					{
 						// Free surface memory
 					}
 				}
@@ -361,6 +378,9 @@ void CBuild::Load	(const b_params& Params, const IReader& _in_FS)
 			// save all the stuff we've created
 			textures().push_back	(BT);
 		}
+
+		R_ASSERT2(!is_thm_missing, "Some of required thm's are missing. See log for details.");
+		R_ASSERT2(!is_tga_missing, "Some of required tga_textures are missing. See log for details.");
 	}
 
 	// post-process materials

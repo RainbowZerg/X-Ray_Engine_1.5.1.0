@@ -198,7 +198,7 @@ BOOL CAnimatorCamEffector::ProcessCam(SCamEffectorInfo& info)
 
 BOOL CAnimatorCamLerpEffector::ProcessCam(SCamEffectorInfo& info)
 {
-	if(!inherited::inherited::ProcessCam(info))	return FALSE;
+	if (!CEffectorCam::ProcessCam(info)) return FALSE;
 
 	const Fmatrix& m			= m_objectAnimator->XFORM();
 	m_objectAnimator->Update	(Device.fTimeDelta);
@@ -212,7 +212,6 @@ BOOL CAnimatorCamLerpEffector::ProcessCam(SCamEffectorInfo& info)
 
 	Fmatrix mr;
 	mr.mul						(Mdef,m);
-
 
 	Fquaternion					q_src, q_dst, q_res;
 	q_src.set					(Mdef);

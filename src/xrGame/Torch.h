@@ -59,8 +59,7 @@ public:
 			bool	Enabled				()				const;
 			bool	Broken				(bool fatal)	const;
 
-			void	Switch				();
-			void	Switch				(bool light_on);
+			void	Switch				(bool light_on, bool sound = false);
 			void	Break				(bool fatal);
 
 	IRender_Light  *GetLight(int target = 0);
@@ -70,7 +69,7 @@ public:
 	void			SetBrightness		(float brightness);
 	void			SetDirection		(const Fvector &v, float bank);
 	void			SetColor			(const Fcolor &color, int target = 0);
-	void			SetRGB				(float r, float g, float b, int target = 0);
+	void			SetColor			(float r, float g, float b, int target = 0);
 		
 	void			SetPosition			(const Fvector &v);
 	void			SetRange			(float range, int target = 0);

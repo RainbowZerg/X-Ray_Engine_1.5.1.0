@@ -631,9 +631,9 @@ void CActor::SwitchTorch()
 	for ( ; it != it_e; ++it )
 	{
 		CTorch* torch = smart_cast<CTorch*>(*it);
-		if ( torch )
+		if (torch)
 		{		
-			torch->Switch();
+			torch->Switch(!torch->Enabled(), true);
 			return;
 		}
 	}

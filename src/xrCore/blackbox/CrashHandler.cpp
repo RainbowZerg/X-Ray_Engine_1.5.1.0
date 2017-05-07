@@ -379,7 +379,7 @@ LPCTSTR __stdcall GetFaultReason ( EXCEPTION_POINTERS * pExPtrs )
         int iCurr = 0 ;
         // A temporary value holder. This holder keeps the stack usage to a
         // minimum.
-        DWORD dwTemp ;
+        DWORD_PTR dwTemp;
 
         iCurr += BSUGetModuleBaseName ( GetCurrentProcess ( ) ,
                                         NULL                  ,
@@ -388,15 +388,13 @@ LPCTSTR __stdcall GetFaultReason ( EXCEPTION_POINTERS * pExPtrs )
 
         iCurr += wsprintf ( g_szBuff + iCurr , _T ( " caused an " ) ) ;
 
-        dwTemp = (DWORD)
-            ConvertSimpleException(pExPtrs->ExceptionRecord->
-                                                         ExceptionCode);
+        dwTemp = (DWORD_PTR)ConvertSimpleException(pExPtrs->ExceptionRecord->ExceptionCode);
 
         if ( NULL != dwTemp )
         {
             iCurr += wsprintf ( g_szBuff + iCurr ,
                                 _T ( "%s" )      ,
-                                dwTemp            ) ;
+                                (LPCSTR)dwTemp            ) ;
         }
         else
         {
@@ -440,7 +438,7 @@ LPCTSTR __stdcall GetFaultReason ( EXCEPTION_POINTERS * pExPtrs )
                             pExPtrs->ExceptionRecord->ExceptionAddress);
     #else
         iCurr += wsprintf ( g_szBuff + iCurr                ,
-                            _T ( " at %04X:%08X" )          ,
+                            _T ( " at %04X:%08p" )          ,
                             pExPtrs->ContextRecord->SegCs   ,
                             pExPtrs->ExceptionRecord->ExceptionAddress);
     #endif
@@ -794,7 +792,7 @@ LPCTSTR __stdcall
                     if ( dwDisp > 0 )
                     {
                         iCurr += wsprintf ( g_szBuff + iCurr         ,
-                                            _T( "%s()") ,
+                                            _T( "%s(%d)") ,
                                             pSym->Name               ,
                                             dwDisp                   );
                     }
@@ -851,7 +849,7 @@ LPCTSTR __stdcall
                     if ( dwDisp > 0 )
                     {
                         iCurr += wsprintf(g_szBuff + iCurr             ,
-                                       _T("%s, %d"),
+                                       _T("%s, %d(%d)"),
                                           g_stLine.FileName            ,
                                           g_stLine.LineNumber          ,
                                           dwDisp                     );

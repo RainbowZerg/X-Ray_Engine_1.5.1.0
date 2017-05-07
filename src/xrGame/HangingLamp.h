@@ -68,27 +68,29 @@ public:
 	bool			Usable			() const { return usable; }
 	void			TurnOn			(bool sound = false);
 	void			TurnOff			(bool sound = false);
+	void			Switch			(bool enabled, bool sound = false);
 
 	IRender_Light  *GetLight(int target = 0);
 
 	void			SetAngle		(float angle, int target = 0);
 	void			SetAnimation	(LPCSTR name);
 	void			SetBrightness	(float brightness);
-//	void			SetDirection	(const Fvector &v, float bank);
+	void			SetDirection	(const Fvector &v, float bank);
 	void			SetColor		(const Fcolor &color, int target = 0);
-	void			SetRGB			(float r, float g, float b, int target = 0);
+	void			SetColor		(float r, float g, float b, int target = 0);
 		
-//	void			SetPosition		(const Fvector &v);
+	void			SetPosition		(const Fvector &v);
 	void			SetRange	    (float range, int target = 0);
 	void			SetTexture		(LPCSTR texture, int target = 0);
 	void			SetVirtualSize	(float size, int target = 0);
 	
 	void			SetFlare		(bool b, int target = 0);
 
-	void			SetVolumetric				(bool b, int target = 0);
+	void			SetVolumetric				(bool b,  int target = 0);
 	void			SetVolumetricIntensity		(float f, int target = 0);
 	void			SetVolumetricQuality		(float f, int target = 0);
 	void			SetVolumetricDistance		(float f, int target = 0);
+	void			Synchronize		(); // alpet: сохранение данных в серверный объект
 
 
 	virtual void	Load			( LPCSTR section);

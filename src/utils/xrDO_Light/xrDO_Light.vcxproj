@@ -236,6 +236,7 @@
     <ClInclude Include="DetailFormat.h" />
     <ClInclude Include="ETextureParams.h" />
     <ClInclude Include="global_calculation_data.h" />
+    <ClInclude Include="global_options.h" />
     <ClInclude Include="global_slots_data.h" />
     <ClInclude Include="light.h" />
     <ClInclude Include="LightThread.h" />

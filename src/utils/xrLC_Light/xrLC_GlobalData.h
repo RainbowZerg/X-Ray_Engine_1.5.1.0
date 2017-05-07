@@ -37,6 +37,8 @@ class	XRLC_LIGHT_API xrLC_GlobalData
 		base_lighting					_L_static;
 		CDB::MODEL*						_RCAST_Model;
 		bool							_b_nosun;
+		bool							_b_norgb;
+		bool							_b_nolmcompress;
 		bool							_gl_linear;
 public:
 
@@ -65,17 +67,23 @@ public:
 		CDB::MODEL*					RCAST_Model		()		{	return _RCAST_Model; }
 		xr_vector<xrMU_Model*>		&mu_models		()		{	return _mu_models; }
 		xr_vector<xrMU_Reference*>	&mu_refs		()		{	return _mu_refs; }
-		bool						b_nosun			()		{	return _b_nosun; }
-		bool						gl_linear		()		{	return _gl_linear; }
-IC		void						b_nosun_set		(bool v){	_b_nosun = v; }
-		void						initialize		()		;
-		void						destroy_rcmodel	()		;
-		void						create_rcmodel	(CDB::CollectorPacked& CL);
-		void						create_write_faces()	;
-		void						destroy_write_faces()	;
-		void						create_read_faces()		;
-		void						destroy_read_faces()	;
-		void						gl_mesh_clear	()		;
+
+		bool						b_nosun				()		{	return _b_nosun; }
+		bool						b_norgb				()		{	return _b_norgb; }
+		bool						b_nolmcompress		()		{	return _b_nolmcompress; }
+		bool						gl_linear			()		{	return _gl_linear; }
+IC		void						b_nosun_set			(bool v){	_b_nosun = v; }
+IC		void						b_norgb_set			(bool v){	_b_norgb = v; }
+IC		void						b_nolmcompress_set	(bool v){ _b_nolmcompress = v; }
+
+		void						initialize			();
+		void						destroy_rcmodel		();
+		void						create_rcmodel		(CDB::CollectorPacked& CL);
+		void						create_write_faces	();
+		void						destroy_write_faces	();
+		void						create_read_faces	();
+		void						destroy_read_faces	();
+		void						gl_mesh_clear		();
 private:
 //std::pair<u32,u32>					get_id		( const _face * v ) const;
 //std::pair<u32,u32>					get_id		( const _vertex * v ) const;

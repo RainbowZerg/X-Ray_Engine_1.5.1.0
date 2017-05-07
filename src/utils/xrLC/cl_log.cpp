@@ -11,10 +11,10 @@ static xrCriticalSection	csLog
 #endif // PROFILE_CRITICAL_SECTIONS
 ;
 
-volatile BOOL				bClose				= FALSE;
+volatile bool				bClose				= false;
 
-static char					status	[1024	]	="";
-static char					phase	[1024	]	="";
+static char					status	[1024]		= "";
+static char					phase	[1024]		= "";
 static float				progress			= 0.0f;
 static u32					phase_start_time	= 0;
 static BOOL					bStatusChange		= FALSE;
@@ -149,17 +149,10 @@ void logThread(void *dummy)
 		Msg("Startup time: %s",_strtime(tmpbuf));
 	}
 
-	BOOL		bHighPriority	= FALSE;
-	string256	u_name;
-	unsigned long		u_size	= sizeof(u_name)-1;
-	GetUserName	(u_name,&u_size);
-	_strlwr		(u_name);
-	if ((0==xr_strcmp(u_name,"oles"))||(0==xr_strcmp(u_name,"alexmx")))	bHighPriority	= TRUE;
-
 	// Main cycle
 	u32		LogSize = 0;
 	float	PrSave	= 0;
-	while (TRUE)
+	while (true)
 	{
 		SetPriorityClass	(GetCurrentProcess(),IDLE_PRIORITY_CLASS);	// bHighPriority?NORMAL_PRIORITY_CLASS:IDLE_PRIORITY_CLASS
 

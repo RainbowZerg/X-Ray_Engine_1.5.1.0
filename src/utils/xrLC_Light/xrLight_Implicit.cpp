@@ -137,7 +137,7 @@ public:
 								wP.from_bary(V1->P,V2->P,V3->P,B);
 								wN.from_bary(V1->N,V2->N,V3->N,B);
 								wN.normalize();
-								LightPoint	(&DB, inlc_global_data()->RCAST_Model(), C, wP, wN, inlc_global_data()->L_static(), (inlc_global_data()->b_nosun()?LP_dont_sun:0), F);
+								LightPoint	(&DB, inlc_global_data()->RCAST_Model(), C, wP, wN, inlc_global_data()->L_static(), (inlc_global_data()->b_norgb()?LP_dont_rgb:0)|(inlc_global_data()->b_nosun()?LP_dont_sun:0), F);
 								Fcount		++;
 							}
 						}
@@ -260,7 +260,7 @@ void ImplicitLighting()
 			u32	h					=	TEX.dwHeight;
 			u32	pitch				=	w*4;
 			STextureParams			fmt	= TEX.THM;
-			fmt.fmt					= STextureParams::tfDXT5;
+			fmt.fmt					= inlc_global_data()->b_nolmcompress() ? (STextureParams::tfRGBA) : (STextureParams::tfDXT5);
 			fmt.flags.set			(STextureParams::flDitherColor,		FALSE);
 			fmt.flags.set			(STextureParams::flGenerateMipMaps,	FALSE);
 			fmt.flags.set			(STextureParams::flBinaryAlpha,		FALSE);
@@ -285,7 +285,7 @@ void ImplicitLighting()
 			u32	h					= TEX.dwHeight;
 			u32	pitch				= w*4;
 			STextureParams			fmt;
-			fmt.fmt					= STextureParams::tfDXT5;
+			fmt.fmt					= inlc_global_data()->b_nolmcompress() ? (STextureParams::tfRGBA) : (STextureParams::tfDXT5);
 			fmt.flags.set			(STextureParams::flDitherColor,		FALSE);
 			fmt.flags.set			(STextureParams::flGenerateMipMaps,	FALSE);
 			fmt.flags.set			(STextureParams::flBinaryAlpha,		FALSE);

@@ -249,14 +249,20 @@ BOOL CHangingLamp::net_Spawn(CSE_Abstract* DC)
 	lanim					= LALib.FindItem(*lamp->color_animator);
 
 	CPHSkeleton::Spawn(e);
-	if (smart_cast<IKinematicsAnimated*>(Visual()))	smart_cast<IKinematicsAnimated*>	(Visual())->PlayCycle("idle");
-	if (smart_cast<IKinematics*>(Visual()))
+
+	IKinematicsAnimated* pKA = smart_cast<IKinematicsAnimated*>(Visual());
+	if (pKA)
+		pKA->PlayCycle("idle");
+
+	IKinematics* pK = smart_cast<IKinematics*>(Visual());
+	if (pK)
 	{
-		smart_cast<IKinematics*>			(Visual())->CalculateBones_Invalidate	();
-		smart_cast<IKinematics*>			(Visual())->CalculateBones(TRUE);
+		pK->CalculateBones_Invalidate();
+		pK->CalculateBones(TRUE);
 		//.intepolate_pos
 	}
-	if (lamp->flags.is(CSE_ALifeObjectHangingLamp::flPhysic)&&!Visual())
+
+	if (lamp->flags.is(CSE_ALifeObjectHangingLamp::flPhysic) && !Visual())
 		Msg("! WARNING: lamp, obj name [%s],flag physics set, but has no visual",*cName());
 //.	if (lamp->flags.is(CSE_ALifeObjectHangingLamp::flPhysic)&&Visual()&&!guid_physic_bone)	fHealth=0.f;
 
@@ -275,22 +281,26 @@ BOOL CHangingLamp::net_Spawn(CSE_Abstract* DC)
 }
 
 
-void	CHangingLamp::SpawnInitPhysics	(CSE_Abstract	*D)	
+void CHangingLamp::SpawnInitPhysics	(CSE_Abstract	*D)	
 {
-	CSE_ALifeObjectHangingLamp	*lamp	= smart_cast<CSE_ALifeObjectHangingLamp*>(D);	
-	if (lamp->flags.is(CSE_ALifeObjectHangingLamp::flPhysic))		CreateBody(lamp);
-	if (smart_cast<IKinematics*>(Visual())){
-		smart_cast<IKinematics*>			(Visual())->CalculateBones_Invalidate	();
-		smart_cast<IKinematics*>			(Visual())->CalculateBones(TRUE);
+	CSE_ALifeObjectHangingLamp *lamp = smart_cast<CSE_ALifeObjectHangingLamp*>(D);	
+	if (lamp->flags.is(CSE_ALifeObjectHangingLamp::flPhysic))		
+		CreateBody(lamp);
+
+	IKinematics* pK = smart_cast<IKinematics*>(Visual());
+	if (pK)
+	{
+		pK->CalculateBones_Invalidate();
+		pK->CalculateBones(TRUE);
 		//.intepolate_pos
 	}
 }
 
-void	CHangingLamp::CopySpawnInit		()
+void CHangingLamp::CopySpawnInit		()
 {
 	CPHSkeleton::CopySpawnInit();
-	IKinematics* K=smart_cast<IKinematics*>(Visual());
-	if(!K->LL_GetBoneVisible(light_bone))
+	IKinematics* K = smart_cast<IKinematics*>(Visual());
+	if (!K->LL_GetBoneVisible(light_bone))
 		TurnOff();
 }
 void	CHangingLamp::net_Save			(NET_Packet& P)	
@@ -335,9 +345,7 @@ void CHangingLamp::UpdateCL	()
 			VERIFY		(!fis_zero(DET(xf)));
 		}
 		else
-		{
 			xf.set		(XFORM());
-		}
 
 		light_render->set_rotation	(xf.k, xf.i);
 		light_render->set_position	(xf.c);
@@ -392,9 +400,14 @@ void CHangingLamp::UpdateCL	()
 	}
 }
 
+void CHangingLamp::Switch(bool enabled, bool sound)
+{
+	enabled ? TurnOn(sound) : TurnOff(sound);
+}
+
 void CHangingLamp::TurnOn (bool sound)
 {
-	if (enabled) return;
+	if (enabled || !Alive()) return;
 
 	light_render->set_active						(true);
 	if (glow_render)	glow_render->set_active		(true);
@@ -441,7 +454,7 @@ void CHangingLamp::TurnOn (bool sound)
 
 void CHangingLamp::TurnOff	(bool sound)
 {
-//	if (!enabled) return;
+	if (!enabled && Alive()) return;
 
 	light_render->set_active						(false);
 	if (glow_render)	glow_render->set_active		(false);
@@ -487,12 +500,11 @@ void CHangingLamp::TurnOff	(bool sound)
 		if (sound && (sound_disable._p != NULL))
 			sound_disable.play_at_pos(this, this->Position());
 
-		if (particles_object_idle && particles_object_idle->IsPlaying())
-			particles_object_idle->Stop();
+		if (particles_object_idle)
+			particles_object_idle->Stop(FALSE);
 	}
 
-	if (!PPhysicsShell()) //if we have physiccs_shell it will call processing deactivate when disable
-		processing_deactivate();
+	processing_deactivate();
 
 	enabled = false;
 }
@@ -609,6 +621,53 @@ BOOL CHangingLamp::UsedAI_Locations()
 	return					(FALSE);
 }
 
+CSE_ALifeObjectHangingLamp *get_se_lamp(CHangingLamp *lobj)
+{
+	CSE_ALifeDynamicObject *e = lobj->lua_game_object()->alife_object();
+	if (!e) return NULL;
+	return smart_cast<CSE_ALifeObjectHangingLamp*>(e);
+}
+
+void CHangingLamp::SetDirection(const Fvector &v, float bank)
+{
+	lua_game_object()->SetDirection(v, bank);		
+}
+void CHangingLamp::SetPosition(const Fvector &v) 
+{
+	lua_game_object()->SetPosition(v);	
+}
+
+void CHangingLamp::Synchronize() // alpet: сохранение данных в серверный объект
+{
+	CSE_ALifeObjectHangingLamp *lamp = get_se_lamp(this);
+	if (!lamp) return;
+	lamp->position()		= XFORM().c;	
+	XFORM().getXYZ			(lamp->angle());	 
+	lamp->brightness		= fBrightness;
+	lamp->spot_cone_angle	= light_render->get_cone();
+	lamp->range				= light_render->get_range();
+	Fcolor clr				= light_render->get_color();
+	if (fBrightness > 0)
+		clr.mul_rgb			(255.f / fBrightness);
+
+	lamp->color				= clr.get();
+	lamp->m_virtual_size	= light_render->get_virtual_size();
+	lamp->flare				= light_render->get_flare();
+	lamp->m_volumetric_distance		= light_render->get_volumetric_distance();
+	lamp->m_volumetric_intensity	= light_render->get_volumetric_intensity();
+	lamp->m_volumetric_quality		= light_render->get_volumetric_quality();
+
+	if (light_ambient)
+	{
+		//lamp->m_ambient_power
+		//lamp->m_ambient_texture
+		lamp->m_ambient_radius = light_ambient->get_range();
+	}
+
+	if (lanim)
+		lamp->color_animator = lanim->cName;
+}
+
 #define  CLASS_IMPL		CHangingLamp
 #define  target_0		light_render
 #define  target_1		light_ambient
@@ -626,50 +685,53 @@ void CHangingLamp::script_register(lua_State *L)
 	[
 		luabind::class_<CHangingLamp,CGameObject>("hanging_lamp")
 			.def(luabind::constructor<>())
-			.def("on",			&CHangingLamp::Enabled)
-			.def("turn_on",		&CHangingLamp::TurnOn)
-			.def("turn_off",	&CHangingLamp::TurnOff)
-			// alpet: управление параметрами света			
+			.def("on",				&CHangingLamp::Enabled)
+			.def("switch",			&CHangingLamp::Switch)	
 			.def("get_light",		&CHangingLamp::GetLight) 
+			.def("synchronize",		&CHangingLamp::Synchronize)
+
 			.def("set_animation",	&CHangingLamp::SetAnimation)
 			.def("set_brightness",	&CHangingLamp::SetBrightness)
-//			.def("set_direction",   &CHangingLamp::SetDirection)   
-//			.def("set_position",    &CHangingLamp::SetPosition)  
-			.def("set_angle",	&CHangingLamp::SetAngle)
-			.def("set_color",	&CHangingLamp::SetColor)
-			.def("set_rgb",		&CHangingLamp::SetRGB)
-			.def("set_range",	&CHangingLamp::SetRange)
-			.def("set_texture", &CHangingLamp::SetTexture)
-			.def("set_virtual_size", &CHangingLamp::SetVirtualSize)
+			.def("set_direction",   &CHangingLamp::SetDirection)   
+			.def("set_position",    &CHangingLamp::SetPosition)  
+			.def("set_angle",		&CHangingLamp::SetAngle)
+			.def("set_color",		(void (CHangingLamp::*)(const Fcolor&, int)) &CHangingLamp::SetColor)
+			.def("set_color",		(void (CHangingLamp::*)(float, float, float, int)) &CHangingLamp::SetColor)
+			.def("set_range",		&CHangingLamp::SetRange)
+			.def("set_texture",		&CHangingLamp::SetTexture)
+			.def("set_virtual_size",&CHangingLamp::SetVirtualSize)
 
-			.def("set_flare",	&CHangingLamp::SetFlare)
-
-			.def("set_volumetric", &CHangingLamp::SetVolumetric)
-			.def("set_volumetric_intensity", &CHangingLamp::SetVolumetricIntensity)
-			.def("set_volumetric_quality", &CHangingLamp::SetVolumetricQuality)
+			.def("set_flare",		&CHangingLamp::SetFlare)
+			.def("set_volumetric",			&CHangingLamp::SetVolumetric)
+			.def("set_volumetric_intensity",&CHangingLamp::SetVolumetricIntensity)
+			.def("set_volumetric_quality",	&CHangingLamp::SetVolumetricQuality)
 			.def("set_volumetric_distance", &CHangingLamp::SetVolumetricDistance)
-
-//			.def("synchronize", &CHangingLamp::Synchronize)		
 			,
 		luabind::class_<IRender_Light>("IRender_Light")
-			.def("get_active", &IRender_Light::get_active)
-			.def("get_angle",  &IRender_Light::get_cone)			
-			.def("get_color",  &IRender_Light::get_color)
-			.def("get_range",  &IRender_Light::get_range)
-			.def("get_virtual_size", &IRender_Light::get_virtual_size)
+			.def("get_active",				&IRender_Light::get_active)
+			.def("get_angle",				&IRender_Light::get_cone)			
+			.def("get_color",				&IRender_Light::get_color)
+			.def("get_range",				&IRender_Light::get_range)
+			.def("get_virtual_size",		&IRender_Light::get_virtual_size)
+			.def("get_flare",				&IRender_Light::get_flare)
+			.def("get_volumetric",			&IRender_Light::get_volumetric)
+			.def("get_volumetric_intensity",&IRender_Light::get_volumetric_intensity)
+			.def("get_volumetric_quality",	&IRender_Light::get_volumetric_quality)
+			.def("get_volumetric_distance", &IRender_Light::get_volumetric_distance)
 
-			.def("set_active", &IRender_Light::set_active)
-			.def("set_angle",  &IRender_Light::set_cone)
-			.def("set_color",  (void (IRender_Light::*)(const Fcolor&)) (&IRender_Light::set_color))
-			.def("set_range",  &IRender_Light::set_range)
-			.def("set_texture", &IRender_Light::set_texture)
-			.def("set_virtual_size", &IRender_Light::set_virtual_size)
+			.def("set_active",				&IRender_Light::set_active)
+			.def("set_angle",				&IRender_Light::set_cone)
+			.def("set_color",				(void (IRender_Light::*)(const Fcolor&)) (&IRender_Light::set_color))
+			.def("set_color",				(void (IRender_Light::*)(float, float, float)) (&IRender_Light::set_color))
+			.def("set_range",				&IRender_Light::set_range)
+			.def("set_texture",				&IRender_Light::set_texture)
+			.def("set_virtual_size",		&IRender_Light::set_virtual_size)
 
-			.def("set_flare", &IRender_Light::set_flare)
+			.def("set_flare",				&IRender_Light::set_flare)
 
-			.def("set_volumetric", &IRender_Light::set_volumetric)
-			.def("set_volumetric_intensity", &IRender_Light::set_volumetric_intensity)
-			.def("set_volumetric_quality", &IRender_Light::set_volumetric_quality)
+			.def("set_volumetric",			&IRender_Light::set_volumetric)
+			.def("set_volumetric_intensity",&IRender_Light::set_volumetric_intensity)
+			.def("set_volumetric_quality",	&IRender_Light::set_volumetric_quality)
 			.def("set_volumetric_distance", &IRender_Light::set_volumetric_distance)
 	];
 }

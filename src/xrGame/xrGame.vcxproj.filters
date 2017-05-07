@@ -1936,9 +1936,6 @@
     <Filter Include="Core\Client\Objects\zones\ZoneVisual">
       <UniqueIdentifier>{eaf6f229-bb4e-4367-9877-5f2f54887990}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Client\Objects\zones\campfire">
-      <UniqueIdentifier>{35f6be8b-d774-4eaf-8f1c-2cec8654cab7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Client\Objects\map">
       <UniqueIdentifier>{b607e6f7-163e-400d-96a3-b32811413758}</UniqueIdentifier>
     </Filter>
@@ -2574,6 +2571,9 @@
     </Filter>
     <Filter Include="Core\Client\Objects\items &amp; weapons\Devices\Flare">
       <UniqueIdentifier>{7a070e95-413b-451a-8e11-948b8b3b7402}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Client\Objects\zones\Campfire">
+      <UniqueIdentifier>{35f6be8b-d774-4eaf-8f1c-2cec8654cab7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -6082,7 +6082,7 @@
       <Filter>Core\Client\Objects\zones\ZoneVisual</Filter>
     </ClInclude>
     <ClInclude Include="ZoneCampfire.h">
-      <Filter>Core\Client\Objects\zones\campfire</Filter>
+      <Filter>Core\Client\Objects\zones\Campfire</Filter>
     </ClInclude>
     <ClInclude Include="map_location.h">
       <Filter>Core\Client\Objects\map</Filter>
@@ -9699,7 +9699,7 @@
       <Filter>Core\Client\Objects\zones\ZoneVisual</Filter>
     </ClCompile>
     <ClCompile Include="ZoneCampfire.cpp">
-      <Filter>Core\Client\Objects\zones\campfire</Filter>
+      <Filter>Core\Client\Objects\zones\Campfire</Filter>
     </ClCompile>
     <ClCompile Include="map_location.cpp">
       <Filter>Core\Client\Objects\map</Filter>
@@ -11098,6 +11098,12 @@
     </ClCompile>
     <ClCompile Include="Flare.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\Flare</Filter>
+    </ClCompile>
+    <ClCompile Include="script_game_object_testing.cpp">
+      <Filter>AI\AScript\ScriptClasses\ScriptGameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="ZoneCampfire_script.cpp">
+      <Filter>Core\Client\Objects\zones\Campfire</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

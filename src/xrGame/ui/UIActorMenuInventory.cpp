@@ -1022,7 +1022,7 @@ void CUIActorMenu::ProcessPropertiesBoxClicked( CUIWindow* w, void* d )
 	case INVENTORY_SWITCH_TORCH:
 		{
 			CTorch* torch = smart_cast<CTorch*>(item);
-			torch->Switch();
+			torch->Switch(!torch->Enabled());
 			break;
 		}
 	}//switch

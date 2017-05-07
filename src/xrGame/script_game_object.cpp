@@ -543,3 +543,63 @@ void CScriptGameObject::invulnerable		(bool invulnerable)
 
 	monster->invulnerable	(invulnerable);
 }
+
+//////////////////////////////////////////////////////////////////
+CSE_ALifeDynamicObject* CScriptGameObject::alife_object() const
+{
+	return object().alife_object();
+}
+
+void CScriptGameObject::SetDirection(const Fvector &dir, float bank)
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::SetDirection : game level doesn't exist.");
+		return;
+	}
+
+	SRotation rot;
+	dir.getHP(rot.yaw, rot.pitch);
+	rot.roll = bank;
+	SetRotation(rot);
+}
+
+void CScriptGameObject::SetRotation(const SRotation &rot)
+{
+	if (this->IsActor())
+	{
+		Actor()->Orientation() = rot;
+	}
+	else
+	{
+		Fmatrix m = object().XFORM();
+		Fmatrix r = Fidentity;
+		r.setHPB(rot.yaw, rot.pitch, rot.roll);			// set 3-axis direction 
+		m.set(r.i, r.j, r.k, m.c);		// saved position in c		
+		object().UpdateXFORM(m);		// apply to physic shell
+		object().XFORM() = m;			// normal visual update
+		IKinematics *pK = PKinematics(object().Visual());
+		if (pK)
+			pK->CalculateBones_Invalidate();	 // пересчитать ротацию
+
+	}
+
+	// alpet: сохранение направлени€ в серверный экземпл€р
+	CSE_ALifeDynamicObject* se_obj = alife_object();
+	if (se_obj)
+	{
+		object().XFORM().getXYZ(se_obj->angle()); // used for setXYZ	(T x, T y, T z)	{return setHPB(y,x,z);}
+	}
+
+}
+
+void CScriptGameObject::SetPosition(const Fvector &pos)
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::SetPosition : game level doesn't exist.");
+		return;
+	}
+
+	object().ChangePosition(pos);
+}

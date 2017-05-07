@@ -90,12 +90,10 @@ void CTorch::Break(bool fatal)
 	if (m_is_broken) return;
 
 	if (m_switched_on)
-		Switch (false);
+		Switch(false);
 
-	if (fatal)	
-		m_is_broken = true;
-	else		
-		m_is_flickering = true;
+	if (fatal)	m_is_broken		= true;
+	else		m_is_flickering = true;
 
 //	sndBreaking.play_at_pos(0, Position());
 }
@@ -110,23 +108,18 @@ bool CTorch::Broken(bool fatal) const
 	return fatal ? m_is_broken : m_is_flickering;
 }
 
-void CTorch::Switch()
+void CTorch::Switch	(bool light_on, bool sound)
 {
-	if (OnClient()) return;
-
-	Switch (!m_switched_on);
-}
-
-void CTorch::Switch	(bool light_on)
-{
+	if (OnClient()) return; // ??? не понимаю зачем это, но трогать не буду
 	if (!m_switched_on && m_is_broken) return;
+
 	m_switched_on = light_on;
 	if (can_use_dynamic_lights())
 	{
 		light_render->set_active(light_on);
-		light_omni->set_active(light_on);
+		light_omni->set_active	(light_on);
 	}
-	glow_render->set_active					(light_on);
+	glow_render->set_active(light_on);
 
 	if (*light_trace_bone) 
 	{
@@ -138,7 +131,7 @@ void CTorch::Switch	(bool light_on)
 //.		pVisual->LL_SetBoneVisible			(bi,	light_on,	TRUE); //hack
 	}
 
-	if (light_on)
+	if (sound)
 	{
 		CActor *pA = smart_cast<CActor *>(H_Parent());
 
@@ -158,51 +151,52 @@ BOOL CTorch::net_Spawn(CSE_Abstract* DC)
 	R_ASSERT				(smart_cast<IKinematics*>(Visual()));
 	collidable.model		= xr_new<CCF_Skeleton>	(this);
 
-	if (!inherited::net_Spawn(DC))
-		return				(FALSE);
+	if (!inherited::net_Spawn(DC)) return FALSE;
 	
-	bool b_r2				= !!psDeviceFlags.test(rsR2);
-	b_r2					|= !!psDeviceFlags.test(rsR3);
+	bool b_r2 = !!psDeviceFlags.is_any(rsR2|rsR3);
 
-	IKinematics* K			= smart_cast<IKinematics*>(Visual());
-	CInifile* pUserData		= K->LL_UserData(); 
-	R_ASSERT3				(pUserData,"Empty Torch user data!",torch->get_visual());
+	IKinematics* K = smart_cast<IKinematics*>(Visual());
+	CInifile* pUserData	= K->LL_UserData(); 
+	R_ASSERT3(pUserData,"Empty Torch user data!",torch->get_visual());
 
 	const char* torch_sect = "torch_definition";
 
-	lanim					= LALib.FindItem(pUserData->r_string(torch_sect,"color_animator"));
-	lanim_flickering		= LALib.FindItem(pUserData->r_string(torch_sect,"color_animator_f"));
-	guid_bone				= K->LL_BoneID	(pUserData->r_string(torch_sect,"guide_bone"));	VERIFY(guid_bone!=BI_NONE);
+	lanim							= LALib.FindItem(pUserData->r_string(torch_sect,"color_animator"));
+	lanim_flickering				= LALib.FindItem(pUserData->r_string(torch_sect,"color_animator_f"));
+	guid_bone						= K->LL_BoneID	(pUserData->r_string(torch_sect,"guide_bone"));	VERIFY(guid_bone!=BI_NONE);
 
-	m_light_color			= pUserData->r_fcolor				(torch_sect,(b_r2)?"color_r2":"color");
-	m_light_range			= pUserData->r_float(torch_sect, (b_r2) ? "range_r2" : "range");
-	light_render->set_flare (!!pUserData->r_bool				(torch_sect, "lens_flare"));
+	m_light_color					= pUserData->r_fcolor(torch_sect,(b_r2)?"color_r2":"color");
+	m_light_range					= pUserData->r_float (torch_sect, (b_r2) ? "range_r2" : "range");
+	light_render->set_flare			(!!pUserData->r_bool (torch_sect, "lens_flare"));
+	light_omni->set_color			(pUserData->r_fcolor (torch_sect,(b_r2)?"omni_color_r2":"omni_color"));
+	light_omni->set_range			(pUserData->r_float	 (torch_sect,(b_r2)?"omni_range_r2":"omni_range"));
 
-	Fcolor clr_o			= pUserData->r_fcolor				(torch_sect,(b_r2)?"omni_color_r2":"omni_color");
-	float range_o			= pUserData->r_float				(torch_sect,(b_r2)?"omni_range_r2":"omni_range");
-	light_omni->set_color	(clr_o);
-	light_omni->set_range	(range_o);
+	if (pUserData->line_exist(torch_sect, "virtual_size"))
+		light_render->set_virtual_size(pUserData->r_float(torch_sect, "virtual_size"));
+
+	if (pUserData->line_exist(torch_sect, "omni_virtual_size"))
+		light_omni->set_virtual_size(pUserData->r_float	(torch_sect, "omni_virtual_size"));
 
 	if (::Render->get_generation() != ::Render->GENERATION_R1)
-		m_light_offset		= pUserData->r_fvector3(torch_sect, "light_offset");
+		m_light_offset				= pUserData->r_fvector3(torch_sect, "light_offset");
 
-	m_light_omni_offset		= pUserData->r_fvector3(torch_sect, "light_omni_offset");
+	m_light_omni_offset				= pUserData->r_fvector3(torch_sect, "light_omni_offset");
 
-	light_render->set_cone	(deg2rad(pUserData->r_float			(torch_sect,"spot_angle")));
+	light_render->set_cone			(deg2rad(pUserData->r_float(torch_sect,"spot_angle")));
 
 	if (pUserData->line_exist(torch_sect, "spot_texture"))
-		light_render->set_texture(pUserData->r_string				(torch_sect,"spot_texture"));
+		light_render->set_texture	(pUserData->r_string(torch_sect,"spot_texture"));
 
-	glow_render->set_texture(pUserData->r_string				(torch_sect,"glow_texture"));
-	glow_render->set_radius	(pUserData->r_float					(torch_sect,"glow_radius"));
+	glow_render->set_texture		(pUserData->r_string				(torch_sect,"glow_texture"));
+	glow_render->set_radius			(pUserData->r_float					(torch_sect,"glow_radius"));
 
 	//включить/выключить фонарик
-	Switch					(torch->m_active);
-	VERIFY					(!torch->m_active || (torch->ID_Parent != 0xffff));
+	Switch(torch->m_active);
+	VERIFY(!torch->m_active || (torch->ID_Parent != 0xffff));
 
-	m_delta_h				= PI_DIV_2-atan((m_light_range*0.5f)/_abs(m_light_offset.x));
+	m_delta_h = PI_DIV_2-atan((m_light_range*0.5f)/_abs(m_light_offset.x));
 
-	return					(TRUE);
+	return TRUE;
 }
 
 void CTorch::net_Destroy() 
@@ -383,7 +377,7 @@ void CTorch::net_Import			(NET_Packet& P)
 		 m_is_flickering		= !!(F & eFlickering); 	// ZergO: added
 
 	if (new_m_switched_on != m_switched_on)			
-		Switch (new_m_switched_on);
+		Switch(new_m_switched_on);
 
 	P.r_float_q8(m_fCondition, 0.0f, 1.0f);
 }
@@ -439,15 +433,14 @@ void CTorch::script_register(lua_State *L)
 		.def("on",						&CTorch::Enabled)
 		.def("broken",					&CTorch::Broken)
 		.def("break",					&CTorch::Break)
-		.def("enable",					(void (CTorch::*)(bool)) (&CTorch::Switch))
-		.def("switch",					(void (CTorch::*)())	 (&CTorch::Switch))		
-
+		.def("switch",					&CTorch::Switch)
 		.def("get_light",				&CTorch::GetLight)
+
 		.def("set_animation",			&CTorch::SetAnimation)
 		.def("set_angle",				&CTorch::SetAngle)
 		.def("set_brightness",			&CTorch::SetBrightness)
-		.def("set_color",				&CTorch::SetColor)
-		.def("set_rgb",					&CTorch::SetRGB)
+		.def("set_color",				(void (CTorch::*)(const Fcolor&, int)) &CTorch::SetColor)
+		.def("set_color",				(void (CTorch::*)(float, float, float, int)) &CTorch::SetColor)
 		.def("set_range",				&CTorch::SetRange)			
 		.def("set_texture",				&CTorch::SetTexture)
 		.def("set_virtual_size",		&CTorch::SetVirtualSize)

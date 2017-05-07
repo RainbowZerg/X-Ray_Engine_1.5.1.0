@@ -39,7 +39,7 @@ void CLASS_IMPL::SetColor (const Fcolor &color, int target)
 	
 }
 
-void CLASS_IMPL::SetRGB (float r, float g, float b, int target)
+void CLASS_IMPL::SetColor (float r, float g, float b, int target)
 {
 	Fcolor c;
 	c.a = 1;

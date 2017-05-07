@@ -102,22 +102,27 @@ public:
 #endif	//	(RENDER==R_R2) || (RENDER==R_R3)
 
 public:
-	// alpet: для сохраняемости конфигурации источников света
-	virtual float							get_cone() { return cone; }
-	virtual Fcolor							get_color() { return color; }
-	virtual float							get_range() { return range; }
-	virtual float							get_virtual_size()
+	virtual bool	get_active				() const	{ return flags.bActive; }
+	virtual float	get_cone				() const	{ return cone; }
+	virtual Fcolor	get_color				() const	{ return color; }
+	virtual float	get_range				() const	{ return range; }
+	virtual float	get_virtual_size		() const
 	{
-#if RENDER==R_R2
+#if RENDER != R_R1
 		return virtual_size; 
 #else
 		return 0.0;
 #endif
 	}
+	virtual bool	get_volumetric			() const	{ return flags.bVolumetric; }
+	virtual float	get_volumetric_intensity() const	{ return m_volumetric_intensity; }
+	virtual float	get_volumetric_quality	() const	{ return m_volumetric_quality; }
+	virtual float	get_volumetric_distance	() const	{ return m_volumetric_distance; }
+	virtual bool	get_flare				() const	{ return flags.bFlare; }
+	virtual bool	get_hud_mode			() const	{ return flags.bHudMode; }
 
-	virtual void	set_type				(LT type)						{ flags.type = type;		}
+	virtual void	set_type				(LT type)	{ flags.type = type; }
 	virtual void	set_active				(bool b);
-	virtual bool	get_active				()								{ return flags.bActive;		}
 	virtual void	set_shadow				(bool b)						
 	{ 
 		flags.bShadow=b;			
@@ -131,9 +136,9 @@ public:
 		flags.bFlare=b;			
 	}
 
-	virtual void	set_volumetric_quality(float fValue) {m_volumetric_quality = fValue;}
-	virtual void	set_volumetric_intensity(float fValue) {m_volumetric_intensity = fValue;}
-	virtual void	set_volumetric_distance(float fValue) {m_volumetric_distance = fValue;}
+	virtual void	set_volumetric_quality	(float fValue)	{ m_volumetric_quality = fValue; }
+	virtual void	set_volumetric_intensity(float fValue)	{ m_volumetric_intensity = fValue; }
+	virtual void	set_volumetric_distance	(float fValue)	{ m_volumetric_distance = fValue; }
 	
 	virtual void	set_position			(const Fvector& P);
 	virtual void	set_rotation			(const Fvector& D, const Fvector& R);
@@ -149,7 +154,6 @@ public:
 	virtual void	set_color				(float r, float g, float b)		{ color.set(r,g,b,1);		}
 	virtual void	set_texture				(LPCSTR name);
 	virtual void	set_hud_mode			(bool b)						{flags.bHudMode=b;}
-	virtual bool	get_hud_mode			()								{return flags.bHudMode;};
 
 	virtual	void	spatial_move			();
 	virtual	Fvector	spatial_sector_point	();

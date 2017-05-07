@@ -308,6 +308,11 @@ public:
 	}
 
 	virtual void			on_matrix_change	(const Fmatrix &previous);
+public:
+	CSE_ALifeDynamicObject* alife_object		() const;				// alpet: возвращает серверный экземпляр для этого объекта
+	virtual void			UpdateXFORM			(const Fmatrix &upd);	// alpet: для обновления позиции и направления
+	virtual void			ChangePosition		(const Fvector &pos);
+
 };
 
 #endif // !defined(AFX_GAMEOBJECT_H__3DA72D03_C759_4688_AEBB_89FA812AA873__INCLUDED_)

@@ -227,9 +227,10 @@ void CDetailManager::UpdateVisibleM()
 {
 	Fvector		EYE				= Device.vCameraPosition;
 	
+	// ZergO: остался ли баг с фрустумом в ЧН? Похоже, что нет, трава не мигает.
 	/* KD: there is some bug: frustrum created from full transform matrix seems to be broken in some frames, so we should use saved frustrum from render interface*/
-	CFrustum	View = RImplementation.ViewBase;
-	//	View.CreateFromMatrix		(Device.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
+	//CFrustum	View = RImplementation.ViewBase;
+	CFrustum View; View.CreateFromMatrix(Device.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 
 	float fade_limit			= dm_current_fade*dm_current_fade;
 	float fade_start			= 0.f;

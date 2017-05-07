@@ -29,6 +29,8 @@
 #include "ai_obstacle.h"
 #include "magic_box3.h"
 #include "animation_movement_controller.h"
+#include "alife_simulator.h"
+#include "alife_object_registry.h"
 
 extern MagicBox3 MagicMinBox (int iQuantity, const Fvector* akPoint);
 
@@ -1019,6 +1021,51 @@ void CGameObject::UpdateCL			()
 void CGameObject::on_matrix_change	(const Fmatrix &previous)
 {
 	obstacle().on_move				();
+}
+
+CSE_ALifeDynamicObject* CGameObject::alife_object() const
+{
+	const CALifeSimulator *sim = ai().get_alife();
+	if (sim)
+		return sim->objects().object(ID(), true);
+
+	return NULL;
+}
+
+void CGameObject::ChangePosition(const Fvector &pos)
+{
+	NET_Packet						PP;
+	CGameObject::u_EventGen			(PP, GE_CHANGE_POS, ID() );
+	PP.w_vec3						(pos);
+	CGameObject::u_EventSend		(PP);
+	// alpet: €вное перемещение визуалов объектов
+	Fmatrix m = XFORM();
+	m.translate_over(pos);
+	UpdateXFORM(m);		
+
+	// alpet: сохранение позиции в серверный экземпл€р
+	CSE_ALifeDynamicObject* se_obj = alife_object();
+	if (se_obj)
+	{
+		se_obj->position() = pos;
+		se_obj->synchronize_location();
+	}
+
+}
+
+void CGameObject::UpdateXFORM(const Fmatrix &upd)
+{
+	XFORM() = upd;
+	IRenderVisual* pV = Visual();
+	IKinematics *pK = smart_cast<IKinematics*>(pV);
+	if (pK)
+	{
+		pV->getVisData().sphere.P = upd.c;
+		pK->CalculateBones_Invalidate();	 // позволит объекту быстрее объ€витьс€ в новой точке			
+	}
+
+	// OnChangePosition processing
+	spatial_move();	
 }
 
 #ifdef DEBUG

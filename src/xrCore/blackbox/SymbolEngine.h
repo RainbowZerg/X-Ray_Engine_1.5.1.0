@@ -74,7 +74,7 @@ public:
     // To use this class, call the SymInitialize member function to
     // initialize the symbol engine and then use the other member
     // functions in place of their corresponding DBGHELP.DLL functions.
-    CSymbolEngine ()
+	CSymbolEngine() : m_hProcess(NULL)
     {
     }
 
@@ -139,10 +139,10 @@ public:
             return FALSE;
 
         // Got the version size, now get the version information.
-        LPVOID lpData = (LPVOID)new TCHAR [dwVerSize];
+		TCHAR* lpData = new TCHAR[dwVerSize];
         if (FALSE == GetFileVersionInfoA (szImageHlp, dwVerInfoHandle, dwVerSize, lpData))
         {
-            delete [] (TCHAR*)lpData;
+            delete[] lpData;
             return FALSE;
         }
 
@@ -155,7 +155,7 @@ public:
             dwLS = lpVerInfo->dwFileVersionLS;
         }
 
-        delete [] (TCHAR*)lpData;
+        delete[] lpData;
 
         return (bRet);
     }
