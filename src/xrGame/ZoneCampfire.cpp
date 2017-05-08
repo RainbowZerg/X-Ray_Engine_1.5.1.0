@@ -4,16 +4,16 @@
 #include "ParticlesObject.h"
 #include "GamePersistent.h"
 #include "../xrEngine/LightAnimLibrary.h"
-#include "../Include/xrRender/RenderVisual.h"
-#include "../Include/xrRender/Kinematics.h"
-#include "../Include/xrRender/KinematicsAnimated.h"
-#include "xrServer_Objects_ALife_Monsters.h"
-#include "zone_effector.h"
+//#include "../Include/xrRender/RenderVisual.h"
+//#include "../Include/xrRender/Kinematics.h"
+//#include "../Include/xrRender/KinematicsAnimated.h"
+//#include "xrServer_Objects_ALife_Monsters.h"
+//#include "zone_effector.h"
 
 CZoneCampfire::CZoneCampfire():m_pDisabledParticles(NULL),m_pEnablingParticles(NULL),m_turned_on(true),m_turn_time(0)
 {
-	m_light_bone		= BI_NONE;
-	m_visual_str		= "";
+//	m_light_bone		= BI_NONE;
+//	m_visual_str		= "";
 }
 
 CZoneCampfire::~CZoneCampfire()
@@ -28,36 +28,36 @@ void CZoneCampfire::Load(LPCSTR section)
 	inherited::Load(section);
 
 #pragma todo("ZergO: Temp solution! Remove that hacks when i will be able to build LE")
-	m_visual_str			= pSettings->r_string(section, "visual");
+//	m_visual_str				= pSettings->r_string(section, "visual");
 
-	m_pEnablingParticles	= CParticlesObject::Create(pSettings->r_string(section, "enabling_particles"), FALSE);
-	m_pDisabledParticles	= CParticlesObject::Create(pSettings->r_string(section, "disabled_particles"), FALSE);
-	m_disabled_sound.create	(pSettings->r_string(section, "disabled_sound"), st_Effect, sg_SourceType);
+	m_enabling_particles_str	= pSettings->r_string(section, "enabling_particles");
+	m_disabled_particles_str	= pSettings->r_string(section, "disabled_particles");
+	m_disabled_sound_str		= pSettings->r_string(section, "disabled_sound");
 }
 
 BOOL CZoneCampfire::net_Spawn(CSE_Abstract* DC)
 {
 	if (!inherited::net_Spawn(DC)) return FALSE;
 
-	CSE_ALifeZoneVisual	*pZ = smart_cast<CSE_ALifeZoneVisual*>(DC);
+//	CSE_ALifeZoneVisual	*pZ = smart_cast<CSE_ALifeZoneVisual*>(DC);
 
-	pZ->set_visual(m_visual_str);
+//	pZ->set_visual(m_visual_str);
 //	cNameVisual_set(m_visual_str);
 
 //	Msg("%s - visual_name = %s", cName().c_str(), pZ->visual_name.c_str());
-	R_ASSERT(Visual());
+//	R_ASSERT(Visual());
 
-	IKinematics* pK				= smart_cast<IKinematics*>(Visual());
-	m_light_bone				= pK->LL_BoneID("bone_lamp");
-	R_ASSERT2(m_light_bone != BI_NONE, "can't find bone_lamp in");
+//	IKinematics* pK				= smart_cast<IKinematics*>(Visual());
+//	m_light_bone				= pK->LL_BoneID("bone_lamp");
+//	R_ASSERT2(m_light_bone != BI_NONE, "can't find bone_lamp in");
 
-	IKinematicsAnimated* pKA	= smart_cast<IKinematicsAnimated*>(Visual());
-	pKA->PlayCycle				("idle");
+//	IKinematicsAnimated* pKA	= smart_cast<IKinematicsAnimated*>(Visual());
+//	pKA->PlayCycle				("idle");
 
-	pK->CalculateBones_Invalidate();
-	pK->CalculateBones			(TRUE);
+//	pK->CalculateBones_Invalidate();
+//	pK->CalculateBones			(TRUE);
 
-	setVisible					(TRUE);
+//	setVisible					(TRUE);
 	return						TRUE;
 }
 
@@ -68,12 +68,13 @@ void CZoneCampfire::GoEnabledState()
 	if (m_pDisabledParticles)
 	{
 		m_pDisabledParticles->Stop	(FALSE);
-//		CParticlesObject::Destroy	(m_pDisabledParticles);
+		CParticlesObject::Destroy	(m_pDisabledParticles);
 	}
 
-	m_disabled_sound.stop		();
-	m_disabled_sound.destroy	();
+	m_disabled_sound.stop			();
+	m_disabled_sound.destroy		();
 
+	m_pEnablingParticles			= CParticlesObject::Create(m_enabling_particles_str, FALSE);
 	m_pEnablingParticles->UpdateParent(XFORM(),zero_vel);
 	m_pEnablingParticles->Play		(false);
 }
@@ -83,9 +84,11 @@ void CZoneCampfire::GoDisabledState()
 	inherited::GoDisabledState		();
 
 	R_ASSERT						(NULL==m_pDisabledParticles);
-	m_pDisabledParticles->UpdateParent	(XFORM(),zero_vel);
-	m_pDisabledParticles->Play			(false);
+	m_pDisabledParticles			= CParticlesObject::Create(m_disabled_particles_str, FALSE);
+	m_pDisabledParticles->UpdateParent(XFORM(),zero_vel);
+	m_pDisabledParticles->Play		(false);
 	
+	m_disabled_sound.create			(m_disabled_sound_str, st_Effect, sg_SourceType);
 	m_disabled_sound.play_at_pos	(0, Position(), true);
 }
 
@@ -135,7 +138,7 @@ void CZoneCampfire::PlayIdleParticles(bool bIdleLight)
 		if (m_pEnablingParticles)
 		{
 			m_pEnablingParticles->Stop	(FALSE);
-//			CParticlesObject::Destroy	(m_pEnablingParticles);
+			CParticlesObject::Destroy	(m_pEnablingParticles);
 		}
 	}
 }
@@ -155,6 +158,7 @@ BOOL CZoneCampfire::AlwaysTheCrow()
 
 void CZoneCampfire::UpdateWorkload(u32 dt)
 {
+#if 0
 	m_iPreviousStateTime	= m_iStateTime;
 	m_iStateTime			+= (int)dt;
 
@@ -200,6 +204,9 @@ void CZoneCampfire::UpdateWorkload(u32 dt)
 
 	if (m_pLight && m_pLight->get_active())
 		UpdateBlowoutLight	();
+#else
+	inherited::UpdateWorkload(dt);
+#endif
 
 	if (m_turn_time > Device.dwTimeGlobal)
 	{
@@ -237,7 +244,7 @@ void CZoneCampfire::UpdateWorkload(u32 dt)
 			StopIdleParticles(true);
 	}
 }
-
+/*
 void CZoneCampfire::UpdateIdleLight()
 {
 	if (!m_pIdleLight || !m_pIdleLight->get_active()) return;
@@ -264,3 +271,4 @@ void CZoneCampfire::UpdateIdleLight()
 	m_pIdleLight->set_position	(xf.c);
 //	Msg("%s - light pos = %d,%d,%d", cName().c_str(), xf.c.x, xf.c.y, xf.c.z);
 }
+*/

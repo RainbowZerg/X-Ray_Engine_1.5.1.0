@@ -248,15 +248,14 @@ void	CCustomOutfit::OnMoveToRuck		(EItemPlace prev)
 	if (m_pInventory)
 	{
 		CActor* pActor = smart_cast<CActor*> (m_pInventory->GetOwner());
-		if (pActor)
+		if (pActor && prev == eItemPlaceSlot)
 		{
 #pragma todo("ZergO: переделать под отдельный предмет ПНВ")
 //			CTorch* pTorch = smart_cast<CTorch*>(pActor->inventory().ItemFromSlot(TORCH_SLOT));
 //			if(pTorch)
 //				pTorch->SwitchNightVision(false);
 
-			if (m_pInventory->ItemFromSlot(OUTFIT_SLOT) == NULL) //ZergO: Фикс сброса визуала при подборе костюма
-				ApplySkinModel(pActor, false, false);
+			ApplySkinModel(pActor, false, false);
 		}
 	}
 };

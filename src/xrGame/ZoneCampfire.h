@@ -1,7 +1,5 @@
 #pragma once
-#include "..\Include\xrRender\animation_motion.h"
 #include "MosquitoBald.h"
-#include "script_export_space.h"
 
 class CZoneCampfire : public CMosquitoBald
 {
@@ -13,15 +11,18 @@ protected:
 	ref_sound				m_disabled_sound;
 	bool					m_turned_on;
 	u32						m_turn_time;
-	u16						m_light_bone;
-	LPCSTR					m_visual_str;
+//	u16						m_light_bone;
+//	LPCSTR					m_visual_str;
+	LPCSTR					m_enabling_particles_str;
+	LPCSTR					m_disabled_particles_str;
+	LPCSTR					m_disabled_sound_str;
 
-		virtual	void		PlayIdleParticles			(bool bIdleLight=true);
-		virtual	void		StopIdleParticles			(bool bIdleLight=true);
-		virtual BOOL		AlwaysTheCrow				();
-		virtual BOOL		net_Spawn					(CSE_Abstract* DC);
-		virtual	void		UpdateWorkload				(u32 dt);
-		virtual void		UpdateIdleLight				();
+	virtual		void		PlayIdleParticles			(bool bIdleLight=true);
+	virtual		void		StopIdleParticles			(bool bIdleLight=true);
+	virtual		BOOL		AlwaysTheCrow				();
+	virtual		BOOL		net_Spawn					(CSE_Abstract* DC);
+	virtual		void		UpdateWorkload				(u32 dt);
+//	virtual		void		UpdateIdleLight				();
 
 public:
 							CZoneCampfire				();
