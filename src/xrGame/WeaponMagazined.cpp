@@ -154,9 +154,10 @@ void CWeaponMagazined::FireEnd()
 {
 	inherited::FireEnd();
 
-	CActor	*actor = smart_cast<CActor*>(H_Parent());
-	if(!iAmmoElapsed && actor && GetState()!=eReload) 
-		Reload();
+	// ZergO: no auto reload
+//	CActor *actor = smart_cast<CActor*>(H_Parent());
+//	if(!iAmmoElapsed && actor && GetState()!=eReload) 
+//		Reload();
 }
 
 void CWeaponMagazined::Reload() 
@@ -171,47 +172,43 @@ void CWeaponMagazined::Reload()
 
 bool CWeaponMagazined::TryReload() 
 {
-	if(m_pInventory) 
+	if (m_pInventory) 
 	{
-		if(IsGameTypeSingle() && ParentIsActor())
+		if (IsGameTypeSingle() && ParentIsActor())
 		{
-			int	AC					= GetSuitableAmmoTotal();
+			int	AC = GetSuitableAmmoTotal();
 			Actor()->callback(GameObject::eWeaponNoAmmoAvailable)(lua_game_object(), AC);
 		}
+
 		if (m_ammoType < m_ammoTypes.size())
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(*m_ammoTypes[m_ammoType] ));
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(*m_ammoTypes[m_ammoType]));
 		else
 			m_pAmmo = NULL;
-
 		
-		if(IsMisfire() && iAmmoElapsed)
+		if ((IsMisfire() && iAmmoElapsed) || m_pAmmo || unlimited_ammo())
 		{
 			SetPending			(TRUE);
 			SwitchState			(eReload); 
 			return				true;
 		}
-
-		if(m_pAmmo || unlimited_ammo())  
-		{
-			SetPending			(TRUE);
-			SwitchState			(eReload); 
-			return				true;
-		} 
 		else for(u32 i = 0; i < m_ammoTypes.size(); ++i) 
 		{
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny( *m_ammoTypes[i] ));
-			if(m_pAmmo) 
-			{ 
-				m_ammoType			= i; 
-				SetPending			(TRUE);
-				SwitchState			(eReload);
-				return				true;
+			for(u32 i = 0; i < m_ammoTypes.size(); ++i)
+			{
+				m_pAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(*m_ammoTypes[i]));
+				if(m_pAmmo) 
+				{ 
+					m_ammoType			= i; 
+					SetPending			(TRUE);
+					SwitchState			(eReload);
+					return				true;
+				}
 			}
 		}
-
+		
 	}
 	
-	if(GetState()!=eIdle)
+	if (GetState() != eIdle)
 		SwitchState(eIdle);
 
 	return false;
@@ -220,12 +217,16 @@ bool CWeaponMagazined::TryReload()
 bool CWeaponMagazined::IsAmmoAvailable()
 {
 	if (smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(*m_ammoTypes[m_ammoType])))
-		return	(true);
+		return true;
 	else
-		for(u32 i = 0; i < m_ammoTypes.size(); ++i)
+	{
+		for (u32 i = 0; i < m_ammoTypes.size(); ++i)
+		{
 			if (smart_cast<CWeaponAmmo*>(m_pInventory->GetAny(*m_ammoTypes[i])))
-				return	(true);
-	return		(false);
+				return true;
+		}
+	}
+	return false;
 }
 
 void CWeaponMagazined::OnMagazineEmpty() 
@@ -326,9 +327,10 @@ void CWeaponMagazined::ReloadMagazine()
 				}
 			}
 		}
+		
 	}
-	else
-		m_ammoType = m_ammoType;
+//	else
+//		m_ammoType = m_ammoType;
 
 
 	//нет патронов для перезарядки
@@ -670,14 +672,10 @@ void CWeaponMagazined::switch2_Empty()
 {
 	OnZoomOut();
 	
-	if(!TryReload())
-	{
+//	if(!TryReload())
 		OnEmptyClick();
-	}
-	else
-	{
-		inherited::FireEnd();
-	}
+//	else
+//		inherited::FireEnd();
 }
 void CWeaponMagazined::PlayReloadSound()
 {
