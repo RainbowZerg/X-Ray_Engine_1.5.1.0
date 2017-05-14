@@ -248,7 +248,7 @@ void CCustomZone::Load(LPCSTR section)
 		sscanf(pSettings->r_string(section,"light_color"), "%f,%f,%f", &m_LightColor.r, &m_LightColor.g, &m_LightColor.b);
 		m_fLightRange			= pSettings->r_float(section,"light_range");
 		m_fLightTime			= pSettings->r_float(section,"light_time");
-		m_fLightTimeLeft		= 0;
+		m_fLightTimeLeft		= 0.f;
 		m_fLightHeight			= pSettings->r_float(section,"light_height");
 		m_LightTexture			= READ_IF_EXISTS(pSettings, r_string, section, "light_texture", "");
 		m_bLightFlare			= !!READ_IF_EXISTS(pSettings, r_bool, section, "light_flare", false);
@@ -989,6 +989,15 @@ void CCustomZone::UpdateBlowoutLight	()
 	if(m_fLightTimeLeft>0)
 	{
 		m_fLightTimeLeft -= Device.fTimeDelta;
+		// Исправление не отключения света после выключения аномалии
+		if (m_fDistanceToCurEntity > 29.f)
+		{
+			if (m_fLightTime <= 1.f)
+				m_fLightTimeLeft = m_fLightTimeLeft / 1.45f;
+			else
+				m_fLightTimeLeft = m_fLightTimeLeft / 1.15f;
+		}
+
 		clamp(m_fLightTimeLeft,0.0f,m_fLightTime);
 
 		float scale		= m_fLightTimeLeft/m_fLightTime;
