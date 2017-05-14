@@ -34,7 +34,6 @@ IBlender*	CRender::blender_create(CLASS_ID cls)
 	case B_SCREEN_SET:		return xr_new<CBlender_Screen_SET>();
 	case B_EDITOR_WIRE:		return xr_new<CBlender_Editor_Wire>();
 	case B_EDITOR_SEL:		return xr_new<CBlender_Editor_Selection>();
-	case B_LmBmmD:			return xr_new<CBlender_BmmD>();
 	case B_LmEbB:			return xr_new<CBlender_LmEbB>();
 	case B_BmmD:			return xr_new<CBlender_BmmD>();
 	case B_MODEL_EbB:		return xr_new<CBlender_Model_EbB>();
@@ -58,6 +57,7 @@ IBlender*	CRender::blender_create(CLASS_ID cls)
 	case B_VERT:			return xr_new<CBlender_deffer_flat>();
 	case B_VERT_AREF:		return xr_new<CBlender_deffer_aref>(false);
 	case B_MODEL:			return xr_new<CBlender_deffer_model>();
+	case B_LmBmmD:			return xr_new<CBlender_BmmD>();
 	case B_SCREEN_GRAY:		return 0;
 	case B_LIGHT:			return 0;
 	case B_LaEmB:			return 0;

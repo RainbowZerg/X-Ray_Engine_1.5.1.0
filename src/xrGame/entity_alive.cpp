@@ -22,6 +22,7 @@
 #include "game_base_space.h"
 
 #define SMALL_ENTITY_RADIUS		0.6f
+#define SMALL_ENTITY_K			0.5f
 #define BLOOD_MARKS_SECT		"bloody_marks"
 
 //отметки крови на стенах 
@@ -383,79 +384,73 @@ void CEntityAlive::PHFreeze()
 //////////////////////////////////////////////////////////////////////
 
 //добавление кровавых отметок на стенах, после получения хита
-void CEntityAlive::BloodyWallmarks (float P, const Fvector &dir, s16 element, 
-									const Fvector& position_in_object_space)
+void CEntityAlive::BloodyWallmarks (float P, const Fvector &dir, u16 element, const Fvector& position_in_object_space)
 {
-	if(BI_NONE == (u16)element)
-		return;
+	if (BI_NONE == element) return;
 
 	//вычислить координаты попадания
-	IKinematics* V = smart_cast<IKinematics*>(Visual());
-		
 	Fvector start_pos = position_in_object_space;
-	if(V)
+
+	IKinematics* V = smart_cast<IKinematics*>(Visual());
+	if (V)
 	{
 		Fmatrix& m_bone = (V->LL_GetBoneInstance(u16(element))).mTransform;
 		m_bone.transform_tiny(start_pos);
 	}
 	XFORM().transform_tiny(start_pos);
 
-	float small_entity = 1.f;
-	if(Radius()<SMALL_ENTITY_RADIUS) small_entity = 0.5;
-
-
 	float wallmark_size = m_fBloodMarkSizeMax;
 	wallmark_size *= (P/m_fNominalHit);
-	wallmark_size *= small_entity;
+
+	if (Radius() < SMALL_ENTITY_RADIUS)
+		wallmark_size *= SMALL_ENTITY_K;
+
 	clamp(wallmark_size, m_fBloodMarkSizeMin, m_fBloodMarkSizeMax);
 
 	VERIFY(m_pBloodMarksVector);
-	PlaceBloodWallmark(dir, start_pos, m_fBloodMarkDistance, 
-						wallmark_size, &**m_pBloodMarksVector);
+	PlaceBloodWallmark(dir, start_pos, m_fBloodMarkDistance, wallmark_size, &**m_pBloodMarksVector);
 
 }
 
-void CEntityAlive::PlaceBloodWallmark(const Fvector& dir, const Fvector& start_pos, 
-									  float trace_dist, float wallmark_size,
-									  IWallMarkArray *pwallmarks_vector)
+void CEntityAlive::PlaceBloodWallmark (const Fvector& dir, const Fvector& start_pos, float trace_dist, float wallmark_size, IWallMarkArray *pwallmarks_vector)
 {
-	collide::rq_result	result;
-	BOOL				reach_wall = 
-		Level().ObjectSpace.RayPick(
-			start_pos,
-			dir,
-			trace_dist, 
-			collide::rqtBoth,
-			result,
-			this
-		)
-		&&
-		!result.O;
+	collide::rq_result result;
+	BOOL reach_surface = Level().ObjectSpace.RayPick(start_pos, dir, trace_dist, collide::rqtBoth, result, this);
 
-	//если кровь долетела до статического объекта
-	if(reach_wall)
+	if (!reach_surface) return; // если кровь не долетела до объекта - уходим отсюда
+
+	// вычислить точку попадания
+	Fvector end_point; end_point.set(0, 0, 0);
+	end_point.mad(start_pos, dir, result.range);
+
+	if (result.O)
 	{
-		CDB::TRI*	pTri	= Level().ObjectSpace.GetStaticTris()+result.element;
-		SGameMtl*	pMaterial = GMLib.GetMaterialByIdx(pTri->material);
+		IKinematics* const pK = smart_cast<IKinematics*>(result.O->Visual());
+		if (!pK) return;
 
-		if(pMaterial->Flags.is(SGameMtl::flBloodmark))
+		CBoneData const& bone_data = pK->LL_GetData((u16)result.element);
+		SGameMtl* pMaterial = GMLib.GetMaterialByIdx(bone_data.game_mtl_idx);
+
+		if (pMaterial->Flags.is(SGameMtl::flBloodmark)) 
 		{
-			//вычислить нормаль к пораженной поверхности
-			Fvector*	pVerts	= Level().ObjectSpace.GetStaticVerts();
+			// добавить отметку на материале
+			if (!g_dedicated_server)
+				::Render->add_SkeletonWallmark(&result.O->renderable.xform, pK, pwallmarks_vector, end_point, dir, wallmark_size);
+		}
+	}
+	else
+	{
+		CDB::TRI* pTri		= Level().ObjectSpace.GetStaticTris() + result.element;
+		SGameMtl* pMaterial = GMLib.GetMaterialByIdx(pTri->material);
 
-			//вычислить точку попадания
-			Fvector end_point;
-			end_point.set(0,0,0);
-			end_point.mad(start_pos, dir, result.range);
+		if (pMaterial->Flags.is(SGameMtl::flBloodmark))
+		{
+			// вычислить нормаль к пораженной поверхности
+			Fvector* pVerts	= Level().ObjectSpace.GetStaticVerts();
 
-			
-			//ref_shader wallmarkShader = wallmarks_vector[::Random.randI(wallmarks_vector.size())];
 			VERIFY(!pwallmarks_vector->empty());
-			{
-				//добавить отметку на материале
-				//::Render->add_StaticWallmark(wallmarkShader, end_point, wallmark_size, pTri, pVerts);
-				::Render->add_StaticWallmark(pwallmarks_vector, end_point, wallmark_size, pTri, pVerts);
-			}
+			// добавить отметку на материале
+			::Render->add_StaticWallmark(pwallmarks_vector, end_point, wallmark_size, pTri, pVerts);
 		}
 	}
 }
