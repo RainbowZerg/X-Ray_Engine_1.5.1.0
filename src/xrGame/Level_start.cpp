@@ -237,20 +237,24 @@ bool CLevel::net_start6				()
 
 	pApp->LoadEnd				();
 
-	if (net_start_result_total)
-	{
-		if (strstr(Core.Params,"-$")) 
-		{
+	if(net_start_result_total){
+		if (strstr(Core.Params,"-$")) {
 			string256				buf,cmd,param;
 			sscanf					(strstr(Core.Params,"-$")+2,"%[^ ] %[^ ] ",cmd,param);
 			strconcat				(sizeof(buf),buf,cmd," ",param);
 			Console->Execute		(buf);
 		}
-	}
-	else
-	{
+	}else{
 		Msg				("! Failed to start client. Check the connection or level existance.");
 
+		if (m_connect_server_err==xrServer::ErrBELoad)
+		{
+			DEL_INSTANCE	(g_pGameLevel);
+			Console->Execute("main_menu on");
+
+			MainMenu()->OnLoadError("BattlEye/BEServer.dll");
+		}
+		else
 		if (m_connect_server_err==xrServer::ErrConnect&&!psNET_direct_connect && !g_dedicated_server) 
 		{
 			DEL_INSTANCE	(g_pGameLevel);
@@ -258,7 +262,8 @@ bool CLevel::net_start6				()
 
 			MainMenu()->SwitchToMultiplayerMenu();
 		}
-		else if (!map_data.m_map_loaded && map_data.m_name.size() && m_bConnectResult)	//if (map_data.m_name == "") - level not loaded, see CLevel::net_start_client3
+		else
+		if (!map_data.m_map_loaded && map_data.m_name.size() && m_bConnectResult)	//if (map_data.m_name == "") - level not loaded, see CLevel::net_start_client3
 		{
 			LPCSTR level_id_string = NULL;
 			LPCSTR dialog_string = NULL;
@@ -279,7 +284,8 @@ bool CLevel::net_start6				()
 				MainMenu()->Show_DownloadMPMap(dialog_string, download_url);
 			}
 		}
-		else if (map_data.IsInvalidClientChecksum())
+		else
+		if (map_data.IsInvalidClientChecksum())
 		{
 			LPCSTR level_id_string = NULL;
 			LPCSTR dialog_string = NULL;

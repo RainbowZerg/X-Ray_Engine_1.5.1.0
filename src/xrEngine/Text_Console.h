@@ -20,6 +20,7 @@ private:
 	u32		m_dwStartLine;
 	void	DrawLog(HDC hDC, RECT* pRect);
 
+private:
 	HFONT	m_hLogWndFont;
 	HFONT	m_hPrevFont;
 	HBRUSH	m_hBackGroundBrush;

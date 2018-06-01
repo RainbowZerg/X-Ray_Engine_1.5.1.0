@@ -131,7 +131,6 @@ void CCustomZone::Load(LPCSTR section)
 
 	if(pSettings->line_exist(section,"idle_particles")) 
 		m_sIdleParticles	= pSettings->r_string(section,"idle_particles");
-
 	if(pSettings->line_exist(section,"blowout_particles")) 
 		m_sBlowoutParticles = pSettings->r_string(section,"blowout_particles");
 
@@ -144,13 +143,11 @@ void CCustomZone::Load(LPCSTR section)
 
 	if(pSettings->line_exist(section,"entrance_small_particles")) 
 		m_sEntranceParticlesSmall = pSettings->r_string(section,"entrance_small_particles");
-
 	if(pSettings->line_exist(section,"entrance_big_particles")) 
 		m_sEntranceParticlesBig = pSettings->r_string(section,"entrance_big_particles");
 
 	if(pSettings->line_exist(section,"hit_small_particles")) 
 		m_sHitParticlesSmall = pSettings->r_string(section,"hit_small_particles");
-
 	if(pSettings->line_exist(section,"hit_big_particles")) 
 		m_sHitParticlesBig = pSettings->r_string(section,"hit_big_particles");
 
@@ -170,55 +167,58 @@ void CCustomZone::Load(LPCSTR section)
 	};
 
 
-	if (pSettings->line_exist(section,"bolt_entrance_particles")) 
+	if(pSettings->line_exist(section,"bolt_entrance_particles")) 
 	{
 		m_sBoltEntranceParticles	= pSettings->r_string(section, "bolt_entrance_particles");
 		m_zone_flags.set			(eBoltEntranceParticles, (m_sBoltEntranceParticles.size()!=0));
 	}
 
-	if (pSettings->line_exist(section,"blowout_particles_time")) 
+	if(pSettings->line_exist(section,"blowout_particles_time")) 
 	{
 		m_dwBlowoutParticlesTime = pSettings->r_u32(section,"blowout_particles_time");
-		if (s32(m_dwBlowoutParticlesTime) > m_StateTime[eZoneStateBlowout])	
-		{
-			m_dwBlowoutParticlesTime = m_StateTime[eZoneStateBlowout];
-			Msg("! ERROR: invalid 'blowout_particles_time' in '%s'", section);
+		if (s32(m_dwBlowoutParticlesTime)>m_StateTime[eZoneStateBlowout])	{
+			m_dwBlowoutParticlesTime=m_StateTime[eZoneStateBlowout];
+#ifndef MASTER_GOLD
+			Msg("! ERROR: invalid 'blowout_particles_time' in '%s'",section);
+#endif // #ifndef MASTER_GOLD
 		}
 	}
 	else
 		m_dwBlowoutParticlesTime = 0;
 
-	if (pSettings->line_exist(section,"blowout_light_time")) 
+	if(pSettings->line_exist(section,"blowout_light_time")) 
 	{
 		m_dwBlowoutLightTime = pSettings->r_u32(section,"blowout_light_time");
-		if (s32(m_dwBlowoutLightTime) > m_StateTime[eZoneStateBlowout])	
-		{
+		if (s32(m_dwBlowoutLightTime)>m_StateTime[eZoneStateBlowout])	{
 			m_dwBlowoutLightTime=m_StateTime[eZoneStateBlowout];
-			Msg("! ERROR: invalid 'blowout_light_time' in '%s'", section);
+#ifndef MASTER_GOLD
+			Msg("! ERROR: invalid 'blowout_light_time' in '%s'",section);
+#endif // #ifndef MASTER_GOLD
 		}
 	}
 	else
 		m_dwBlowoutLightTime = 0;
 
-	if (pSettings->line_exist(section,"blowout_sound_time")) 
+	if(pSettings->line_exist(section,"blowout_sound_time")) 
 	{
 		m_dwBlowoutSoundTime = pSettings->r_u32(section,"blowout_sound_time");
-		if (s32(m_dwBlowoutSoundTime) > m_StateTime[eZoneStateBlowout])	
-		{
+		if (s32(m_dwBlowoutSoundTime)>m_StateTime[eZoneStateBlowout])	{
 			m_dwBlowoutSoundTime=m_StateTime[eZoneStateBlowout];
-			Msg("! ERROR: invalid 'blowout_sound_time' in '%s'", section);
+#ifndef MASTER_GOLD
+			Msg("! ERROR: invalid 'blowout_sound_time' in '%s'",section);
+#endif // #ifndef MASTER_GOLD
 		}
 	}
 	else
 		m_dwBlowoutSoundTime = 0;
 
-	if (pSettings->line_exist(section,"blowout_explosion_time"))	
-	{
+	if(pSettings->line_exist(section,"blowout_explosion_time"))	{
 		m_dwBlowoutExplosionTime = pSettings->r_u32(section,"blowout_explosion_time"); 
-		if (s32(m_dwBlowoutExplosionTime) > m_StateTime[eZoneStateBlowout])	
-		{
+		if (s32(m_dwBlowoutExplosionTime)>m_StateTime[eZoneStateBlowout])	{
 			m_dwBlowoutExplosionTime=m_StateTime[eZoneStateBlowout];
-			Msg("! ERROR: invalid 'blowout_explosion_time' in '%s'", section);
+#ifndef MASTER_GOLD
+			Msg("! ERROR: invalid 'blowout_explosion_time' in '%s'",section);
+#endif // #ifndef MASTER_GOLD
 		}
 	}
 	else
@@ -232,45 +232,39 @@ void CCustomZone::Load(LPCSTR section)
 		R_ASSERT(m_dwBlowoutWindTimeStart < m_dwBlowoutWindTimePeak);
 		R_ASSERT(m_dwBlowoutWindTimePeak < m_dwBlowoutWindTimeEnd);
 
-		if ((s32)m_dwBlowoutWindTimeEnd < m_StateTime[eZoneStateBlowout])
-		{
-			m_dwBlowoutWindTimeEnd = u32(m_StateTime[eZoneStateBlowout] - 1);
-			Msg("!ERROR: invalid 'blowout_wind_time_end' in '%s'", section);
+		if((s32)m_dwBlowoutWindTimeEnd < m_StateTime[eZoneStateBlowout]){
+			m_dwBlowoutWindTimeEnd =u32( m_StateTime[eZoneStateBlowout]-1);
+#ifndef MASTER_GOLD
+			Msg("! ERROR: invalid 'blowout_wind_time_end' in '%s'",section);
+#endif // #ifndef MASTER_GOLD
 		}
+
 		
 		m_fBlowoutWindPowerMax = pSettings->r_float(section,"blowout_wind_power");
 	}
 
 	//загрузить параметры световой вспышки от взрыва
 	m_zone_flags.set(eBlowoutLight, pSettings->r_bool (section, "blowout_light"));
-	if (m_zone_flags.test(eBlowoutLight))
-	{
+	if(m_zone_flags.test(eBlowoutLight) ){
 		sscanf(pSettings->r_string(section,"light_color"), "%f,%f,%f", &m_LightColor.r, &m_LightColor.g, &m_LightColor.b);
 		m_fLightRange			= pSettings->r_float(section,"light_range");
 		m_fLightTime			= pSettings->r_float(section,"light_time");
-		m_fLightTimeLeft		= 0.f;
-		m_fLightHeight			= pSettings->r_float(section,"light_height");
-		m_LightTexture			= READ_IF_EXISTS(pSettings, r_string, section, "light_texture", "");
-		m_bLightFlare			= !!READ_IF_EXISTS(pSettings, r_bool, section, "light_flare", false);
+		m_fLightTimeLeft		= 0;
+
+		m_fLightHeight		= pSettings->r_float(section,"light_height");
 	}
 
 	//загрузить параметры idle подсветки
 	m_zone_flags.set(eIdleLight,	pSettings->r_bool (section, "idle_light"));
-	if (m_zone_flags.test(eIdleLight))
+	if( m_zone_flags.test(eIdleLight) )
 	{
-		m_fIdleLightRange		= pSettings->r_float			(section, "idle_light_range");
-		LPCSTR light_anim		= pSettings->r_string			(section, "idle_light_anim");
-		m_pIdleLAnim			= LALib.FindItem				(light_anim);
-		m_fIdleLightHeight		= pSettings->r_float			(section, "idle_light_height");
-		m_zone_flags.set(eIdleLightVolumetric,pSettings->r_bool	(section, "idle_light_volumetric"));
-		m_zone_flags.set(eIdleLightShadow,pSettings->r_bool		(section, "idle_light_shadow"));
-		m_zone_flags.set(eIdleLightR1,pSettings->r_bool			(section, "idle_light_r1"));
-//		m_zone_flags.set(eIdleLightFlare, pSettings->r_bool		(section, "idle_light_flare"));
-		m_fIdleLightRangeRandMin = READ_IF_EXISTS(pSettings, r_float, section, "idle_light_range_rand_min", -0.25f);
-		m_fIdleLightRangeRandMax = READ_IF_EXISTS(pSettings, r_float, section, "idle_light_range_rand_max", 0.25f);
-
-		m_IdleLightTexture		= READ_IF_EXISTS(pSettings, r_string, section, "idle_light_texture", "");
-		m_bIdleLightFlare		= !!READ_IF_EXISTS(pSettings, r_bool, section, "idle_light_flare", false);
+		m_fIdleLightRange		= pSettings->r_float(section,"idle_light_range");
+		LPCSTR light_anim		= pSettings->r_string(section,"idle_light_anim");
+		m_pIdleLAnim			= LALib.FindItem(light_anim);
+		m_fIdleLightHeight		= pSettings->r_float(section,"idle_light_height");
+		m_zone_flags.set(eIdleLightVolumetric,pSettings->r_bool (section, "idle_light_volumetric") );
+		m_zone_flags.set(eIdleLightShadow,pSettings->r_bool (section, "idle_light_shadow") );
+		m_zone_flags.set(eIdleLightR1,pSettings->r_bool (section, "idle_light_r1") );
 	}
 
 	m_ef_anomaly_type			= pSettings->r_u32(section,"ef_anomaly_type");
@@ -306,18 +300,14 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 	bool br1 = (0==psDeviceFlags.test(rsR2|rsR3));
 	
 	
-	bool render_ver_allowed = !br1 || (br1&&m_zone_flags.test(eIdleLightR1));
+	bool render_ver_allowed = !br1 || (br1&&m_zone_flags.test(eIdleLightR1)) ;
 
-	if (m_zone_flags.test(eIdleLight) && render_ver_allowed)
+	if ( m_zone_flags.test(eIdleLight) && render_ver_allowed)
 	{
 		m_pIdleLight = ::Render->light_create();
 		m_pIdleLight->set_shadow(!!m_zone_flags.test(eIdleLightShadow));
-		if (xr_strlen(m_IdleLightTexture))
-			m_pIdleLight->set_texture(m_IdleLightTexture);
 
-		m_pIdleLight->set_flare(m_bIdleLightFlare);
-
-		if (m_zone_flags.test(eIdleLightVolumetric))
+		if(m_zone_flags.test(eIdleLightVolumetric))
 		{
 			//m_pIdleLight->set_type				(IRender_Light::SPOT);
 			m_pIdleLight->set_volumetric		(true);
@@ -326,16 +316,11 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 	else
 		m_pIdleLight = NULL;
 
-	if (m_zone_flags.test(eBlowoutLight)) 
+	if ( m_zone_flags.test(eBlowoutLight) ) 
 	{
 		m_pLight = ::Render->light_create();
 		m_pLight->set_shadow(true);
-		if (xr_strlen(m_LightTexture))
-			m_pLight->set_texture(m_LightTexture);
-
-		m_pLight->set_flare(m_bLightFlare);
-	}
-	else
+	}else
 		m_pLight = NULL;
 
 	setEnabled					(TRUE);
@@ -350,8 +335,9 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 
 
 	if(spawn_ini() && spawn_ini()->line_exist("fast_mode","always_fast"))
+	{
 		m_zone_flags.set(eAlwaysFastmode, spawn_ini()->r_bool("fast_mode","always_fast"));
-
+	}
 	return						(TRUE);
 }
 
@@ -705,7 +691,9 @@ void  CCustomZone::StopIdleLight	()
 
 void CCustomZone::UpdateIdleLight	()
 {
-	if (!m_pIdleLight || !m_pIdleLight->get_active()) return;
+	if(!m_pIdleLight || !m_pIdleLight->get_active())
+		return;
+
 
 	VERIFY(m_pIdleLAnim);
 
@@ -714,7 +702,7 @@ void CCustomZone::UpdateIdleLight	()
 	Fcolor					fclr;
 	fclr.set				((float)color_get_B(clr)/255.f,(float)color_get_G(clr)/255.f,(float)color_get_R(clr)/255.f,1.f);
 	
-	float range = m_fIdleLightRange + ::Random.randF(m_fIdleLightRangeRandMin, m_fIdleLightRangeRandMax);
+	float range = m_fIdleLightRange + 0.25f*::Random.randF(-1.f,1.f);
 	m_pIdleLight->set_range	(range);
 	m_pIdleLight->set_color	(fclr);
 
@@ -989,15 +977,6 @@ void CCustomZone::UpdateBlowoutLight	()
 	if(m_fLightTimeLeft>0)
 	{
 		m_fLightTimeLeft -= Device.fTimeDelta;
-		// »справление не отключени€ света после выключени€ аномалии
-		if (m_fDistanceToCurEntity > 29.f)
-		{
-			if (m_fLightTime <= 1.f)
-				m_fLightTimeLeft = m_fLightTimeLeft / 1.45f;
-			else
-				m_fLightTimeLeft = m_fLightTimeLeft / 1.15f;
-		}
-
 		clamp(m_fLightTimeLeft,0.0f,m_fLightTime);
 
 		float scale		= m_fLightTimeLeft/m_fLightTime;
@@ -1147,7 +1126,8 @@ bool CCustomZone::Enable()
 {
 	if (IsEnabled()) return false;
 
-	for(OBJECT_INFO_VEC_IT it = m_ObjectInfoMap.begin(); m_ObjectInfoMap.end() != it; ++it) 
+	for(OBJECT_INFO_VEC_IT it = m_ObjectInfoMap.begin(); 
+		m_ObjectInfoMap.end() != it; ++it) 
 	{
 		CGameObject* pObject = (*it).object;
 		if (!pObject) continue;
@@ -1162,14 +1142,14 @@ bool CCustomZone::Disable()
 {
 	if (!IsEnabled()) return false;
 
-	for(OBJECT_INFO_VEC_IT it = m_ObjectInfoMap.begin(); m_ObjectInfoMap.end() != it; ++it) 
+	for(OBJECT_INFO_VEC_IT it = m_ObjectInfoMap.begin(); 
+		m_ObjectInfoMap.end() != it; ++it) 
 	{
 		CGameObject* pObject = (*it).object;
 		if (!pObject) continue;
 		StopObjectIdleParticles(pObject);
 	}
 	StopIdleParticles	();
-	StopBlowoutLight	();
 	return false;
 };
 

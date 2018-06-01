@@ -8,11 +8,10 @@ ENGINE_API CCustomHUD* g_hud = NULL;
 CCustomHUD::CCustomHUD()
 {
 	g_hud = this;
-	Device.seqResolutionChanged.Add(this);
 }
 
 CCustomHUD::~CCustomHUD()
 {
 	g_hud = NULL;
-	Device.seqResolutionChanged.Remove(this);
 }
+

@@ -102,8 +102,7 @@ void CRender::render_main	(Fmatrix&	m_ViewProjection, bool _fportals)
 			}
 
 			if	(PortalTraverser.i_marker != sector->r_marker)	continue;	// inactive (untouched) sector
-			for (u32 v_it=0; v_it<sector->r_frustums.size(); v_it++)	
-			{
+			for (u32 v_it=0; v_it<sector->r_frustums.size(); v_it++)	{
 				CFrustum&	view	= sector->r_frustums[v_it];
 				if (!view.testSphere_dirty(spatial->spatial.sphere.P,spatial->spatial.sphere.R))	continue;
 
@@ -113,33 +112,22 @@ void CRender::render_main	(Fmatrix&	m_ViewProjection, bool _fportals)
 					IRenderable*	renderable		= spatial->dcast_Renderable	();
 					VERIFY							(renderable);
 
-					// ZergO 
-					if (0 == renderable)
-					{
-						// It may be an glow
-						CGlow*		glow = dynamic_cast<CGlow*>(spatial);
-						VERIFY(glow);
-						L_Glows->add(glow);
-					}//
-					else
-					{
-						// Occlusion
-						//	casting is faster then using getVis method
-						vis_data&		v_orig			= ((dxRender_Visual*)renderable->renderable.visual)->vis;
-						vis_data		v_copy			= v_orig;
-						v_copy.box.xform				(renderable->renderable.xform);
-						BOOL			bVisible		= HOM.visible(v_copy);
-						v_orig.marker					= v_copy.marker;
-						v_orig.accept_frame				= v_copy.accept_frame;
-						v_orig.hom_frame				= v_copy.hom_frame;
-						v_orig.hom_tested				= v_copy.hom_tested;
-						if (!bVisible)					break;	// exit loop on frustums
+					// Occlusion
+					//	casting is faster then using getVis method
+					vis_data&		v_orig			= ((dxRender_Visual*)renderable->renderable.visual)->vis;
+					vis_data		v_copy			= v_orig;
+					v_copy.box.xform				(renderable->renderable.xform);
+					BOOL			bVisible		= HOM.visible(v_copy);
+					v_orig.marker					= v_copy.marker;
+					v_orig.accept_frame				= v_copy.accept_frame;
+					v_orig.hom_frame				= v_copy.hom_frame;
+					v_orig.hom_tested				= v_copy.hom_tested;
+					if (!bVisible)					break;	// exit loop on frustums
 
-						// Rendering
-						set_Object						(renderable);
-						renderable->renderable_Render	();
-						set_Object						(0);
-					}
+					// Rendering
+					set_Object						(renderable);
+					renderable->renderable_Render	();
+					set_Object						(0);
 				}
 				break;	// exit loop on frustums
 			}
@@ -196,8 +184,10 @@ void CRender::render_menu	()
 	RCache.Render					(D3DPT_TRIANGLELIST,Offset,0,4,0,2);
 }
 
+extern u32 g_r;
 void CRender::Render		()
 {
+	g_r						= 1;
 	VERIFY					(0==mapDistort.size());
 
 	bool	_menu_pp		= g_pGamePersistent?g_pGamePersistent->OnRenderPPUI_query():false;
@@ -214,7 +204,7 @@ void CRender::Render		()
 
 	// Configure
 	RImplementation.o.distortion				= FALSE;		// disable distorion
-	Fcolor					sun_color			= ((light*)Lights.sun._get())->color;
+	Fcolor					sun_color			= ((light*)Lights.sun_adapted._get())->color;
 	BOOL					bSUN				= ps_r2_ls_flags.test(R2FLAG_SUN) && (u_diffuse2s(sun_color.r,sun_color.g,sun_color.b)>EPS);
 	if (o.sunstatic)		bSUN				= FALSE;
 	// Msg						("sstatic: %s, sun: %s",o.sunstatic?"true":"false", bSUN?"true":"false");
@@ -256,18 +246,19 @@ void CRender::Render		()
 	//*******
 	// Sync point
 	Device.Statistic->RenderDUMP_Wait_S.Begin	();
-
-	CTimer	T;							T.Start	();
-	BOOL	result						= FALSE;
-	HRESULT	hr							= S_FALSE;
-	while	((hr=q_sync_point[q_sync_count]->GetData	(&result,sizeof(result),D3DGETDATA_FLUSH))==S_FALSE) {
-		if (!SwitchToThread())			Sleep(ps_r2_wait_sleep);
-		if (T.GetElapsed_ms() > 500)	{
-			result	= FALSE;
-			break;
+	if (1)
+	{
+		CTimer	T;							T.Start	();
+		BOOL	result						= FALSE;
+		HRESULT	hr							= S_FALSE;
+		while	((hr=q_sync_point[q_sync_count]->GetData	(&result,sizeof(result),D3DGETDATA_FLUSH))==S_FALSE) {
+			if (!SwitchToThread())			Sleep(ps_r2_wait_sleep);
+			if (T.GetElapsed_ms() > 500)	{
+				result	= FALSE;
+				break;
+			}
 		}
 	}
-
 	Device.Statistic->RenderDUMP_Wait_S.End		();
 	q_sync_count								= (q_sync_count+1)%HW.Caps.iGPUNum;
 	CHK_DX										(q_sync_point[q_sync_count]->Issue(D3DISSUE_END));
@@ -348,18 +339,19 @@ void CRender::Render		()
 
 	//******* Main render :: PART-1 (second)
 	if (split_the_scene_to_minimize_wait)	{
-		/*
 		// skybox can be drawn here
-		Target->u_setrt		( Target->rt_Generic_0,	Target->rt_Generic_1,0,HW.pBaseZB );
-		RCache.set_CullMode	( CULL_NONE );
-		RCache.set_Stencil	( FALSE		);
+		if (0)
+		{
+			Target->u_setrt		( Target->rt_Generic_0,	Target->rt_Generic_1,0,HW.pBaseZB );
+			RCache.set_CullMode	( CULL_NONE );
+			RCache.set_Stencil	( FALSE		);
 
-		// draw skybox
-		RCache.set_ColorWriteEnable					();
-		CHK_DX(HW.pDevice->SetRenderState			( D3DRS_ZENABLE,	FALSE				));
-		g_pGamePersistent->Environment().RenderSky	();
-		CHK_DX(HW.pDevice->SetRenderState			( D3DRS_ZENABLE,	TRUE				));
-		*/
+			// draw skybox
+			RCache.set_ColorWriteEnable					();
+			CHK_DX(HW.pDevice->SetRenderState			( D3DRS_ZENABLE,	FALSE				));
+			g_pGamePersistent->Environment().RenderSky	();
+			CHK_DX(HW.pDevice->SetRenderState			( D3DRS_ZENABLE,	TRUE				));
+		}
 
 		// level
 		Target->phase_scene_begin				();
@@ -378,6 +370,7 @@ void CRender::Render		()
 	// Wall marks
 	if(Wallmarks)	{
 		Target->phase_wallmarks					();
+		g_r										= 0;
 		Wallmarks->Render						();				// wallmarks has priority as normal geometry
 	}
 
@@ -397,10 +390,11 @@ void CRender::Render		()
 	}
 
 	// Directional light - fucking sun
-	if (bSUN)	
-	{
+	if (bSUN)	{
 		RImplementation.stats.l_visible		++;
-		render_sun_cascades					();
+		render_sun_near						();
+		render_sun							();
+		render_sun_filtered					();
 		Target->accum_direct_blend			();
 	}
 
@@ -449,11 +443,11 @@ void CRender::render_forward				()
 		render_main								(Device.mFullTransform,false);//
 		//	Igor: we don't want to render old lods on next frame.
 		mapLOD.clear							();
-		r_dsgraph_render_graph					(1);			// normal level, secondary priority
-		PortalTraverser.fade_render				();				// faded-portals
-		r_dsgraph_render_sorted					();				// strict-sorted geoms
-		if (L_Glows && ps_r2_ls_flags.test(R2FLAG_R1GLOWS)) L_Glows->Render();	// glows - ZergO
-		g_pGamePersistent->Environment().RenderLast();			// rain/thunder-bolts
+		r_dsgraph_render_graph					(1)	;					// normal level, secondary priority
+		PortalTraverser.fade_render				()	;					// faded-portals
+		r_dsgraph_render_sorted					()	;					// strict-sorted geoms
+		g_pGamePersistent->Environment().RenderLast()	;					// rain/thunder-bolts
 	}
-	RImplementation.o.distortion = FALSE; // disable distorion
+
+	RImplementation.o.distortion				= FALSE;				// disable distorion
 }

@@ -511,8 +511,6 @@ SERVER_ENTITY_DECLARE_BEGIN2(CSE_ALifeObjectHangingLamp,CSE_ALifeDynamicObjectVi
 // glow    
 	shared_str						glow_texture;
 	float							glow_radius;
-	bool							flare;
-	shared_str						flare_texture;
 // game
     float							m_health;
 	

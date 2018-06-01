@@ -18,6 +18,7 @@ class CUIStatic;
 class CUIStatix;
 class CUI3tButtonEx;
 class CUIAnimatedStatic;
+class CExtraContentFilter;
 
 typedef enum{
 	SKIN_MENU_BACK = 0,
@@ -29,6 +30,7 @@ class CUISkinSelectorWnd: public CUIDialogWnd
 {
 	typedef CUIDialogWnd inherited;
 
+	CExtraContentFilter*	m_pExtraContentFilter;
 public:	
 	CUISkinSelectorWnd(const char* strSectionName, s16 team);
 	~CUISkinSelectorWnd();

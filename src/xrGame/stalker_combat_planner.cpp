@@ -37,8 +37,6 @@
 #include "stalker_low_cover_planner.h"
 #include "stalker_search_planner.h"
 #include "smart_cover_evaluators.h"
-#include "inventory.h"
-#include "weaponmagazined.h"
 
 using namespace StalkerSpace;
 using namespace StalkerDecisionSpace;
@@ -183,14 +181,6 @@ void CStalkerCombatPlanner::finalize			()
 	object().m_clutched_hammer_enabled						= false;
 
 //	object().sound().remove_active_sounds					(eStalkerSoundMaskNoDanger);
-	/*
-	if (object().inventory().ItemFromSlot(RIFLE_SLOT)) 
-	{
-		CWeaponMagazined				*temp = smart_cast<CWeaponMagazined*>(object().inventory().ItemFromSlot(RIFLE_SLOT));
-		if (object().inventory().ActiveItem() && temp && (object().inventory().ActiveItem()->object().ID() == temp->ID()))
-			object().set_goal			(eObjectActionIdle,object().inventory().ItemFromSlot(RIFLE_SLOT));
-	}
-	*/
 }
 
 void CStalkerCombatPlanner::add_evaluators		()

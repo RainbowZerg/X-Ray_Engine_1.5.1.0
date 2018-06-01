@@ -208,9 +208,23 @@ void CRenderTarget::draw_rain( light &RainSetup )
 		//			HW.pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 		//		}
 
+		// Fetch4 : enable
+		//		if (RImplementation.o.HW_smap_FETCH4)	{
+		//. we hacked the shader to force smap on S0
+		//#			define FOURCC_GET4  MAKEFOURCC('G','E','T','4') 
+		//			HW.pDevice->SetSamplerState	( 0, D3DSAMP_MIPMAPLODBIAS, FOURCC_GET4 );
+		//		}
+
 		// setup stencil
 //		RCache.set_Stencil			(TRUE,D3DCMP_LESSEQUAL,dwLightMarkerID,0xff,0x00);
 //		RCache.Render				(D3DPT_TRIANGLELIST,Offset,0,4,0,2);
+
+		// Fetch4 : disable
+		//		if (RImplementation.o.HW_smap_FETCH4)	{
+		//. we hacked the shader to force smap on S0
+		//#			define FOURCC_GET1  MAKEFOURCC('G','E','T','1') 
+		//			HW.pDevice->SetSamplerState	( 0, D3DSAMP_MIPMAPLODBIAS, FOURCC_GET1 );
+		//		}
 
 		//	Use for intermediate results
 		//	Patch normal

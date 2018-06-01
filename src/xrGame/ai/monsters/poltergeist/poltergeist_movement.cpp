@@ -5,8 +5,7 @@
 
 void CPoltergeisMovementManager::move_along_path(CPHMovementControl *movement_control, Fvector &dest_position, float time_delta)
 {
-	if (!m_monster->is_hidden()) 
-	{
+	if (!m_monster->is_hidden()) {
 		inherited::move_along_path(movement_control, dest_position, time_delta);
 		return;
 	}
@@ -27,8 +26,7 @@ void CPoltergeisMovementManager::move_along_path(CPHMovementControl *movement_co
 		return;
 	}
 
-	if (time_delta < EPS) 
-	{
+	if (time_delta < EPS) {
 		dest_position	= CalculateRealPosition();
 		return;
 	}
@@ -46,16 +44,15 @@ void CPoltergeisMovementManager::move_along_path(CPHMovementControl *movement_co
 	u32 prev_cur_point_index = detail().curr_travel_point_index();
 
 	// обновить detail().curr_travel_point_index() в соответствие с текущей позицией
-	while (detail().curr_travel_point_index() < detail().path().size() - 2) 
-	{
+	while (detail().curr_travel_point_index() < detail().path().size() - 2) {
+
 		float pos_dist_to_cur_point			= dest_position.distance_to(detail().path()[detail().curr_travel_point_index()].position);
 		float pos_dist_to_next_point		= dest_position.distance_to(detail().path()[detail().curr_travel_point_index()+1].position);
 		float cur_point_dist_to_next_point	= detail().path()[detail().curr_travel_point_index()].position.distance_to(detail().path()[detail().curr_travel_point_index()+1].position);
 
-		if ((pos_dist_to_cur_point > cur_point_dist_to_next_point) && (pos_dist_to_cur_point > pos_dist_to_next_point)) 
+		if ((pos_dist_to_cur_point > cur_point_dist_to_next_point) && (pos_dist_to_cur_point > pos_dist_to_next_point)) {
 			++detail().m_current_travel_point;			
-		else 
-			break;
+		} else break;
 	}
 
 	target.set			(detail().path()[detail().curr_travel_point_index() + 1].position);
@@ -66,30 +63,24 @@ void CPoltergeisMovementManager::move_along_path(CPHMovementControl *movement_co
 	// дистанция до целевой точки
 	float				dist_to_target = dir_to_target.magnitude();
 
-	while (dist > dist_to_target) 
-	{
+	while (dist > dist_to_target) {
 		dest_position.set	(target);
 
-		if (detail().curr_travel_point_index() + 1 >= detail().path().size())	
-			break;
-		else 
-		{
+		if (detail().curr_travel_point_index() + 1 >= detail().path().size())	break;
+		else {
 			dist			-= dist_to_target;
 			++detail().m_current_travel_point;
 			if ((detail().curr_travel_point_index()+1) >= detail().path().size())
 				break;
-
 			target.set			(detail().path()[detail().curr_travel_point_index() + 1].position);
 			dir_to_target.sub	(target, dest_position);
 			dist_to_target		= dir_to_target.magnitude();
 		}
 	}
 
-	if (prev_cur_point_index != detail().curr_travel_point_index()) 
-		on_travel_point_change(prev_cur_point_index);
+	if (prev_cur_point_index != detail().curr_travel_point_index()) on_travel_point_change(prev_cur_point_index);
 
-	if (dist_to_target < EPS_L) 
-	{
+	if (dist_to_target < EPS_L) {
 		detail().m_current_travel_point = detail().path().size() - 1;
 		m_speed			= 0.f;
 		dest_position	= CalculateRealPosition();
@@ -119,3 +110,5 @@ Fvector CPoltergeisMovementManager::CalculateRealPosition()
 	ret_val.y += m_monster->m_height;
 	return (ret_val);
 }
+
+

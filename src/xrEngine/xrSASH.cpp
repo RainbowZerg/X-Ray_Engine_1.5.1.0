@@ -136,8 +136,8 @@ void xrSASH::LoopNative()
 			//strcpy_s(g_sBenchmarkName, test_name);
 
 			test_command = ini.r_string_wb("benchmark",test_name);
-			strcpy	(Core.Params, *test_command);
-			_strlwr	(Core.Params);
+			strcpy_s( Core.Params, *test_command );
+			_strlwr_s( Core.Params );
 
 			RunBenchmark(test_name);
 

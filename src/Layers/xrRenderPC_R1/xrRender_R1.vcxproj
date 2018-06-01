@@ -117,7 +117,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)sdk/include/;$(DXSDK_DIR)Include;..\xrRenderPC_R1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)sdk/include/;$(DXSDK_DIR)Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRRENDER_R1_EXPORTS;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling />
@@ -280,7 +280,6 @@
     <ClInclude Include="..\xrRender\FTreeVisual.h" />
     <ClInclude Include="..\xrRender\FVF.h" />
     <ClInclude Include="..\xrRender\FVisual.h" />
-    <ClInclude Include="..\xrRender\GlowManager.h" />
     <ClInclude Include="..\xrRender\HOM.h" />
     <ClInclude Include="..\xrRender\HW.h" />
     <ClInclude Include="..\xrRender\HWCaps.h" />
@@ -340,6 +339,7 @@
     <ClInclude Include="Blender_Vertex_aref.h" />
     <ClInclude Include="FStaticRender.h" />
     <ClInclude Include="FStaticRender_RenderTarget.h" />
+    <ClInclude Include="GlowManager.h" />
     <ClInclude Include="LightPPA.h" />
     <ClInclude Include="LightProjector.h" />
     <ClInclude Include="LightShadows.h" />
@@ -418,7 +418,6 @@
     <ClCompile Include="..\xrRender\FSkinned.cpp" />
     <ClCompile Include="..\xrRender\FTreeVisual.cpp" />
     <ClCompile Include="..\xrRender\FVisual.cpp" />
-    <ClCompile Include="..\xrRender\GlowManager.cpp" />
     <ClCompile Include="..\xrRender\HOM.cpp" />
     <ClCompile Include="..\xrRender\HW.cpp" />
     <ClCompile Include="..\xrRender\HWCaps.cpp" />
@@ -448,17 +447,13 @@
     <ClCompile Include="..\xrRender\R_Backend_xform.cpp" />
     <ClCompile Include="..\xrRender\r_constants.cpp" />
     <ClCompile Include="..\xrRender\R_DStreams.cpp" />
-    <ClCompile Include="..\xrRender\r__blenders.cpp" />
     <ClCompile Include="..\xrRender\r__dsgraph_build.cpp" />
     <ClCompile Include="..\xrRender\r__dsgraph_render.cpp" />
     <ClCompile Include="..\xrRender\r__dsgraph_render_lods.cpp">
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">AssemblyAndSourceCode</AssemblerOutput>
     </ClCompile>
-    <ClCompile Include="..\xrRender\r__loader.cpp" />
-    <ClCompile Include="..\xrRender\r__calculate.cpp" />
     <ClCompile Include="..\xrRender\r__screenshot.cpp" />
     <ClCompile Include="..\xrRender\r__sector.cpp" />
-    <ClCompile Include="..\xrRender\r__sector_detect.cpp" />
     <ClCompile Include="..\xrRender\r__sector_traversal.cpp" />
     <ClCompile Include="..\xrRender\Shader.cpp" />
     <ClCompile Include="..\xrRender\SH_Atomic.cpp" />
@@ -489,7 +484,11 @@
     <ClCompile Include="Blender_Vertex.cpp" />
     <ClCompile Include="Blender_Vertex_aref.cpp" />
     <ClCompile Include="FStaticRender.cpp" />
+    <ClCompile Include="FStaticRender_Blenders.cpp" />
+    <ClCompile Include="FStaticRender_DetectSector.cpp" />
+    <ClCompile Include="FStaticRender_Loader.cpp" />
     <ClCompile Include="FStaticRender_RenderTarget.cpp" />
+    <ClCompile Include="GlowManager.cpp" />
     <ClCompile Include="LightPPA.cpp" />
     <ClCompile Include="LightProjector.cpp" />
     <ClCompile Include="LightShadows.cpp" />

@@ -1,27 +1,18 @@
+// DetailManager.h: interface for the CDetailManager class.
+//
+//////////////////////////////////////////////////////////////////////
+
+#ifndef DetailManagerH
+#define DetailManagerH
 #pragma once
 
 #include "../../xrCore/xrpool.h"
 #include "detailformat.h"
 #include "detailmodel.h"
 
-#define DYNAMIC_DETAILS
-#define DETAILS_OPT
-
-const int quant		= 16384;
-const int c_hdr		= 10;
-const int c_size	= 2; //4
-
-#pragma pack(push,1)
-struct	vertHW
-{
-	float		x,y,z;
-	short		u,v,t,mid;
-};
-#pragma pack(pop)
-
 #ifdef _EDITOR
 //.	#include	"ESceneClassList.h"
-	const u32 dm_max_decompress	= 14;
+	const int	dm_max_decompress	= 14;
 	class CCustomObject;
 	typedef u32	ObjClassID;
 
@@ -29,36 +20,19 @@ struct	vertHW
     typedef ObjectList::iterator 			ObjectIt;
     typedef xr_map<ObjClassID,ObjectList> 	ObjectMap;
     typedef ObjectMap::iterator 			ObjectPairIt;
-//#else
-//	const int	dm_max_decompress	= 7;
-#endif
 
-#ifndef DYNAMIC_DETAILS
-	const u32		dm_size = 124;//iFloor(ps_r__detail_radius/4)*2;				//!
-	const u32 		dm_cache1_line = dm_size * 2 / dm_cache1_count;		//! dm_size*2 must be div dm_cache1_count
-	const u32		dm_cache_line = dm_size + 1 + dm_size;
-	const u32		dm_cache_size = dm_cache_line*dm_cache_line;
-	const float	dm_fade = float(2 * dm_size) - .5f;
 #else
-	extern u32		dm_size;
-	extern u32 		dm_cache1_line;
-	extern u32		dm_cache_line;
-	extern u32		dm_cache_size;
-	extern float	dm_fade;
-	extern float	ps_current_detail_density;
+	const int	dm_max_decompress	= 7;
 #endif
-
-	const u32		dm_max_decompress	= 7;
-	const u32 		dm_cache1_count		= 4;
-	const u32		dm_max_objects		= 64;
-	const u32		dm_obj_in_slot		= 4;
-	const float		dm_slot_size		= DETAIL_SLOT_SIZE;
-	const u32		dm_max_cache_size	= 152321; // assuming max dm_size = 124
-	extern u32		dm_current_size;			// iFloor((float)ps_r__detail_radius/4)*2;				//!
-	extern u32 		dm_current_cache1_line;		// dm_current_size*2/dm_cache1_count;	//! dm_current_size*2 must be div dm_cache1_count
-	extern u32		dm_current_cache_line;		// dm_current_size+1+dm_current_size;
-	extern u32		dm_current_cache_size;		// dm_current_cache_line*dm_current_cache_line;
-	extern float	dm_current_fade;			// float(2*dm_current_size)-.5f;
+const int		dm_size				= 24;								//!
+const int 		dm_cache1_count		= 4;								// 
+const int 		dm_cache1_line		= dm_size*2/dm_cache1_count;		//! dm_size*2 must be div dm_cache1_count
+const int		dm_max_objects		= 64;
+const int		dm_obj_in_slot		= 4;
+const int		dm_cache_line		= dm_size+1+dm_size;
+const int		dm_cache_size		= dm_cache_line*dm_cache_line;
+const float		dm_fade				= float(2*dm_size)-.5f;
+const float		dm_slot_size		= DETAIL_SLOT_SIZE;
 
 class ECORE_API CDetailManager
 {
@@ -73,7 +47,6 @@ public:
 #if RENDER==R_R1
 		Fvector						c_rgb;
 #endif
-		bool						need_to_render_anyway[3];
 	};
 	DEFINE_VECTOR(SlotItem*,SlotItemVec,SlotItemVecIt);
 	struct	SlotPart	{                              	// 
@@ -109,7 +82,7 @@ public:
 	typedef	xr_vector<xr_vector <SlotItemVec* > >	vis_list;
 	typedef	svector<CDetail*,dm_max_objects>	DetailVec;
 	typedef	DetailVec::iterator					DetailIt;
-	typedef	poolSS<SlotItem,/*4096*/65536>		PSS;				// KD: try to avoid blinking
+	typedef	poolSS<SlotItem,4096>				PSS;
 public:
 	int								dither			[16][16];
 public:
@@ -141,17 +114,10 @@ public:
 #ifndef _EDITOR    
 	xrXRC							xrc;
 #endif    
-#ifndef DYNAMIC_DETAILS
 	CacheSlot1 						cache_level1[dm_cache1_line][dm_cache1_line];
 	Slot*							cache		[dm_cache_line][dm_cache_line];	// grid-cache itself
 	svector<Slot*,dm_cache_size>	cache_task;									// non-unpacked slots
 	Slot							cache_pool	[dm_cache_size];				// just memory for slots
-#else
-	CacheSlot1** 					cache_level1;
-	Slot***							cache;			// grid-cache itself
-	svector<Slot*,dm_max_cache_size>cache_task;		// non-unpacked slots
-	Slot*							cache_pool;		// just memory for slots
-#endif
 	int								cache_cx;
 	int								cache_cz;
 
@@ -173,11 +139,10 @@ public:
 	void							soft_Render		();
 
 	// Hardware processor
-	u32								hw_BatchSize;
 	ref_geom						hw_Geom;
-	ID3DVertexBuffer*				hw_VB;
-	ID3DIndexBuffer*				hw_IB;
-
+	u32								hw_BatchSize;
+	ID3DVertexBuffer*			hw_VB;
+	ID3DIndexBuffer*			hw_IB;
 	ref_constant					hwc_consts;
 	ref_constant					hwc_wave;
 	ref_constant					hwc_wind;
@@ -186,6 +151,8 @@ public:
 	ref_constant					hwc_s_xform;
 	ref_constant					hwc_s_array;
 	void							hw_Load			();
+	void							hw_Load_Geom	();
+	void							hw_Load_Shaders	();
 	void							hw_Unload		();
 	void							hw_Render		();
 #ifdef	USE_DX10
@@ -205,11 +172,11 @@ public:
 	void							cache_Decompress(Slot* D);
 	BOOL							cache_Validate	();
     // cache grid to world
-	int								cg2w_X			(int x)			{ return cache_cx-dm_current_size+x;					}
-	int								cg2w_Z			(int z)			{ return cache_cz-dm_current_size+(dm_current_cache_line-1-z);	}
+	int								cg2w_X			(int x)			{ return cache_cx-dm_size+x;					}
+	int								cg2w_Z			(int z)			{ return cache_cz-dm_size+(dm_cache_line-1-z);	}
     // world to cache grid 
-	int								w2cg_X			(int x)			{ return x-cache_cx+dm_current_size;					}
-	int								w2cg_Z			(int z)			{ return cache_cz-dm_current_size+(dm_current_cache_line-1-z);	}
+	int								w2cg_X			(int x)			{ return x-cache_cx+dm_size;					}
+	int								w2cg_Z			(int z)			{ return cache_cz-dm_size+(dm_cache_line-1-z);	}
 
 	void							Load			();
 	void							Unload			();
@@ -231,3 +198,5 @@ public:
 	CDetailManager					();
 	virtual ~CDetailManager			();
 };
+
+#endif //DetailManagerH

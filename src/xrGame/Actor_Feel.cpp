@@ -146,15 +146,16 @@ void CActor::PickupModeUpdate()
 }
 
 #include "../xrEngine/CameraBase.h"
+BOOL	g_b_COD_PickUpMode = TRUE;
 void	CActor::PickupModeUpdate_COD	()
 {
-	if (Level().CurrentViewEntity() != this) return;
+	if (Level().CurrentViewEntity() != this || !g_b_COD_PickUpMode) return;
 		
 	if (!g_Alive() || eacFirstEye != cam_active) 
 	{
 		HUD().GetUI()->UIMainIngameWnd->SetPickUpItem(NULL);
 		return;
-	}
+	};
 	
 	CFrustum frustum;
 	frustum.CreateFromMatrix(Device.mFullTransform,FRUSTUM_P_LRTB|FRUSTUM_P_FAR);

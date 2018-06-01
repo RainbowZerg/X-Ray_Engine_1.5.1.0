@@ -136,7 +136,7 @@ void dx10SamplerStateCache::GSApplySamplers(HArray &samplers)
 	HW.pDevice->GSSetSamplers(uiMin, uiMax-uiMin+1, &pSS[uiMin]);
 }
 
-void dx10SamplerStateCache::SetMaxAnisotropy(u32 uiMaxAniso)
+void dx10SamplerStateCache::SetMaxAnisotropy( UINT uiMaxAniso)
 {
 	clamp( uiMaxAniso, (u32)1, (u32)16);
 
@@ -145,7 +145,7 @@ void dx10SamplerStateCache::SetMaxAnisotropy(u32 uiMaxAniso)
 
 	m_uiMaxAnisotropy = uiMaxAniso;
 
-	for (u32 i=0; i<m_StateArray.size(); ++i)
+	for ( u32 i=0; i<m_StateArray.size(); ++i)
 	{
 		StateRecord	&rec = m_StateArray[i];
 		StateDecs	desc;
@@ -157,28 +157,6 @@ void dx10SamplerStateCache::SetMaxAnisotropy(u32 uiMaxAniso)
 		//	Reason: all checks for aniso applicability are done
 		//	in ValidateState.
 		desc.MaxAnisotropy = m_uiMaxAnisotropy;
-		dx10StateUtils::ValidateState(desc);
-
-		//	This can cause fragmentation if called too often
-		rec.m_pState->Release();
-		CreateState(desc, &rec.m_pState);
-	}
-}
-
-void dx10SamplerStateCache::SetMipLODBias(float uiMipLODBias)
-{
-	if (m_uiMipLODBias == uiMipLODBias) return;
-
-	m_uiMipLODBias = uiMipLODBias;
-
-	for (u32 i = 0; i<m_StateArray.size(); ++i)
-	{
-		StateRecord	&rec = m_StateArray[i];
-		StateDecs	desc;
-
-		rec.m_pState->GetDesc(&desc);
-
-		desc.MipLODBias = m_uiMipLODBias;
 		dx10StateUtils::ValidateState(desc);
 
 		//	This can cause fragmentation if called too often

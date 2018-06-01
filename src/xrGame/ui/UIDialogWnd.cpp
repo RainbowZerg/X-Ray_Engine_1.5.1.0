@@ -132,7 +132,7 @@ bool CUIDialogWnd::IR_OnMouseMove(int dx, int dy)
 	if (GetUICursor()->IsVisible())
 	{ 
 //		GetUICursor()->MoveDelta(float(dx), float(dy));
-		GetUICursor()->UpdateCursorPosition(dx, dy);
+		GetUICursor()->UpdateCursorPosition();
 		Fvector2 cPos = GetUICursor()->GetCursorPosition();
 		OnMouse(cPos.x, cPos.y , WINDOW_MOUSE_MOVE);
 	}

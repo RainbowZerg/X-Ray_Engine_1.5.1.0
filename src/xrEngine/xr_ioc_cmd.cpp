@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "igame_level.h"
 
+//#include "xr_effgamma.h"
 #include "x_ray.h"
 #include "xr_ioconsole.h"
 #include "xr_ioc_cmd.h"
+//#include "fbasicvisual.h"
 #include "cameramanager.h"
 #include "environment.h"
 #include "xr_input.h"
@@ -13,30 +15,6 @@
 
 #include "xr_object.h"
 
-//-----------------------------------------------------------------------
-void IConsole_Command::add_to_LRU(shared_str const& arg)
-{
-	if (arg.size() == 0 || bEmptyArgsHandled) return;
-
-	bool dup = (std::find(m_LRU.begin(), m_LRU.end(), arg) != m_LRU.end());
-	if (!dup)
-	{
-		m_LRU.push_back(arg);
-		if (m_LRU.size() > LRU_MAX_COUNT)
-			m_LRU.erase(m_LRU.begin());
-	}
-}
-
-void  IConsole_Command::add_LRU_to_tips(vecTips& tips)
-{
-	vecLRU::reverse_iterator	it_rb = m_LRU.rbegin();
-	vecLRU::reverse_iterator	it_re = m_LRU.rend();
-	for (; it_rb != it_re; ++it_rb)
-		tips.push_back((*it_rb));
-}
-
-// =======================================================
-
 xr_token*							vid_quality_token = NULL;
 
 xr_token							vid_bpp_token							[ ]={
@@ -44,7 +22,7 @@ xr_token							vid_bpp_token							[ ]={
 	{ "32",							32											},
 	{ 0,							0											}
 };
-
+//-----------------------------------------------------------------------
 class CCC_Quit : public IConsole_Command
 {
 public:
@@ -554,11 +532,6 @@ public:
 		if(!tokens)				return;
 		inherited::Save			(F);
 	}
-	virtual void fill_tips(vecTips& tips, u32 mode)
-	{
-		if (strstr(Core.Params, "-nosound")) return;
-		inherited::fill_tips(tips, mode);
-	}
 };
 #endif
 //-----------------------------------------------------------------------
@@ -684,7 +657,7 @@ void CCC_Register()
 #endif
 
 	// Render device states
-//	CMD4(CCC_Integer,	"r__supersample",		&ps_r__Supersample,			1,		4		);
+	CMD4(CCC_Integer,	"r__supersample",		&ps_r__Supersample,			1,		4		);
 
 
 	CMD3(CCC_Mask,		"rs_v_sync",			&psDeviceFlags,		rsVSync				);
@@ -724,7 +697,7 @@ void CCC_Register()
 	CMD2(CCC_Float,		"snd_volume_eff",		&psSoundVEffects);
 	CMD2(CCC_Float,		"snd_volume_music",		&psSoundVMusic);
 	CMD1(CCC_SND_Restart,"snd_restart"			);
-//	CMD3(CCC_Mask,		"snd_acceleration",		&psSoundFlags,		ss_Hardware	); // ZergO: dummy command
+	CMD3(CCC_Mask,		"snd_acceleration",		&psSoundFlags,		ss_Hardware	);
 	CMD3(CCC_Mask,		"snd_efx",				&psSoundFlags,		ss_EAX		);
 	CMD4(CCC_Integer,	"snd_targets",			&psSoundTargets,	4,32		);
 	CMD4(CCC_Integer,	"snd_cache_size",		&psSoundCacheSizeMB,4,32		);
@@ -746,7 +719,7 @@ void CCC_Register()
 	CMD4(CCC_Float,		"mouse_sens",			&psMouseSens,		0.05f, 0.6f);
 
 	// Camera
-	CMD4(CCC_Float,		"cam_inert",			&psCamInert,		0.0f, 0.8f);
+	CMD2(CCC_Float,		"cam_inert",			&psCamInert);
 	CMD2(CCC_Float,		"cam_slide_inert",		&psCamSlideInert);
 
 	CMD1(CCC_r2,		"renderer"				);

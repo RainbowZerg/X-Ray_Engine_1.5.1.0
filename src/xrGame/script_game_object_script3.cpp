@@ -24,7 +24,6 @@
 #include "PhysicsShell.h"
 #include "helicopter.h"
 #include "HangingLamp.h"
-#include "Torch.h"
 #include "holder_custom.h"
 #include "script_zone.h"
 #include "relation_registry.h"
@@ -232,11 +231,10 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("get_anomaly_power",			&CScriptGameObject::GetAnomalyPower)
 		.def("set_anomaly_power",			&CScriptGameObject::SetAnomalyPower)
 
-		.def("get_alife_object",			&CScriptGameObject::alife_object)
+		//HELICOPTER
 		.def("get_helicopter",              &CScriptGameObject::get_helicopter)
 		.def("get_car",						&CScriptGameObject::get_car)
 		.def("get_hanging_lamp",            &CScriptGameObject::get_hanging_lamp)
-		.def("get_torch",					&CScriptGameObject::get_torch)
 		.def("get_physics_shell",			&CScriptGameObject::get_physics_shell)
 		.def("get_holder_class",			&CScriptGameObject::get_custom_holder)
 		.def("get_current_holder",			&CScriptGameObject::get_current_holder)
@@ -312,47 +310,6 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("start_particles",				&CScriptGameObject::start_particles)
 		.def("stop_particles",				&CScriptGameObject::stop_particles)
 
-		.def("set_position",				&CScriptGameObject::SetPosition)
-		.def("set_direction",				&CScriptGameObject::SetDirection)
-		.def("set_rotation",				&CScriptGameObject::SetRotation)
-
-		.def("is_actor",					&CScriptGameObject::IsActor)
-		.def("is_ammo",						&CScriptGameObject::IsAmmo)
-		.def("is_anomaly",					&CScriptGameObject::IsAnomaly)
-		.def("is_antirad",					&CScriptGameObject::IsAntirad)
-		.def("is_artefact",					&CScriptGameObject::IsArtefact)
-		.def("is_bottle_item",				&CScriptGameObject::IsBottleItem)
-		.def("is_car",						&CScriptGameObject::IsCar)
-		.def("is_custom_monster",			&CScriptGameObject::IsCustomMonster)
-		.def("is_eatable_item",				&CScriptGameObject::IsEatableItem)
-		.def("is_entity_alive",				&CScriptGameObject::IsEntityAlive)
-		.def("is_explosive",				&CScriptGameObject::IsExplosive)
-		.def("is_food_item",				&CScriptGameObject::IsFoodItem)
-		.def("is_game_object",				&CScriptGameObject::IsGameObject)
-		.def("is_grenade",					&CScriptGameObject::IsGrenade)
-		.def("is_grenade_launcher",			&CScriptGameObject::IsGrenadeLauncher)
-		.def("is_helicopter",				&CScriptGameObject::IsHeli)
-		.def("is_holder",					&CScriptGameObject::IsHolderCustom)
-		.def("is_hud_item",					&CScriptGameObject::IsHudItem)
-		.def("is_inventory_box",			&CScriptGameObject::IsInventoryBox)
-		.def("is_inventory_item",			&CScriptGameObject::IsInventoryItem)
-		.def("is_inventory_owner",			&CScriptGameObject::IsInventoryOwner)
-		.def("is_medkit",					&CScriptGameObject::IsMedkit)
-		.def("is_missile",					&CScriptGameObject::IsMissile)
-		.def("is_monster",					&CScriptGameObject::IsMonster)
-		.def("is_outfit",					&CScriptGameObject::IsCustomOutfit)
-		.def("is_physics_shell_holder",		&CScriptGameObject::IsPhysicsShellHolder)
-		.def("is_projector",				&CScriptGameObject::IsProjector)
-		.def("is_scope",					&CScriptGameObject::IsScope)
-		.def("is_script_zone",				&CScriptGameObject::IsScriptZone)
-		.def("is_silencer",					&CScriptGameObject::IsSilencer)
-		.def("is_space_restrictor",			&CScriptGameObject::IsSpaceRestrictor)
-		.def("is_stalker",					&CScriptGameObject::IsStalker)
-		.def("is_torch",					&CScriptGameObject::IsTorch)
-		.def("is_trader",					&CScriptGameObject::IsTrader)
-		.def("is_weapon",					&CScriptGameObject::IsWeapon)
-		.def("is_weapon_gl",				&CScriptGameObject::IsWeaponGL)
-		.def("is_weapon_magazined",			&CScriptGameObject::IsWeaponMagazined)
 
 	;return	(instance);
 }

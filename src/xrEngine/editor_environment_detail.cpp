@@ -10,7 +10,7 @@
 
 #ifdef INGAME_EDITOR
 #include "editor_environment_detail.hpp"
-#include "Shlwapi.h"
+#include <shlwapi.h>
 
 #pragma comment(lib, "shlwapi.lib")
 

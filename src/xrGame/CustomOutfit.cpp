@@ -248,13 +248,13 @@ void	CCustomOutfit::OnMoveToRuck		(EItemPlace prev)
 	if (m_pInventory)
 	{
 		CActor* pActor = smart_cast<CActor*> (m_pInventory->GetOwner());
-		if (pActor && prev == eItemPlaceSlot)
+		if (pActor)
 		{
-#pragma todo("ZergO: ןונוהוכאעü ןמה מעהוכüםûי ןנוהלוע ÏÍÂ")
-//			CTorch* pTorch = smart_cast<CTorch*>(pActor->inventory().ItemFromSlot(TORCH_SLOT));
-//			if(pTorch)
-//				pTorch->SwitchNightVision(false);
-
+			CTorch* pTorch = smart_cast<CTorch*>(pActor->inventory().ItemFromSlot(TORCH_SLOT));
+			if(pTorch)
+			{
+				pTorch->SwitchNightVision(false);
+			}
 			ApplySkinModel(pActor, false, false);
 		}
 	}

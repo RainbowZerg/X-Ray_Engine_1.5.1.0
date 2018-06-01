@@ -131,7 +131,6 @@ protected:
 	ref_light		m_pTrailLight;
 	Fcolor			m_TrailLightColor;
 	float			m_fTrailLightRange;
-	bool			m_fTrailLightFlare;
 	ref_sound		m_flyingSound;
 
 protected:

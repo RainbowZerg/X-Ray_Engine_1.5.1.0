@@ -27,7 +27,6 @@ namespace smart_cover { class object; }
 
 class NET_Packet;
 class CGameTask;
-struct SRotation;
 
 namespace PatrolPathManager { 
 	enum EPatrolStartType;
@@ -76,7 +75,6 @@ class CScriptIniFile;
 class CPhysicsShell;
 class CHelicopter;
 class CHangingLamp;
-class CTorch;
 class CHolderCustom;
 struct ScriptCallbackInfo;
 struct STasks;
@@ -539,9 +537,6 @@ public:
 			CCar*				get_car					();
 			//LAMP
 			CHangingLamp*		get_hanging_lamp		();
-			//TORCH
-			CTorch*				get_torch				();
-
 			CHolderCustom*		get_custom_holder		();
 			CHolderCustom*		get_current_holder		(); //actor only
 
@@ -690,52 +685,6 @@ public:
 
 			void				take_items_enabled						(bool value);
 			bool				take_items_enabled						() const;
-
-			// functions for object testing
-			_DECLARE_FUNCTION10	(IsGameObject			,			bool);
-			_DECLARE_FUNCTION10	(IsCar					,			bool);
-			_DECLARE_FUNCTION10	(IsHeli					,			bool);
-			_DECLARE_FUNCTION10	(IsHolderCustom			,			bool);
-			_DECLARE_FUNCTION10	(IsHangingLamp			,			bool);
-			_DECLARE_FUNCTION10	(IsEntityAlive			,			bool);
-			_DECLARE_FUNCTION10	(IsInventoryItem		,			bool);
-			_DECLARE_FUNCTION10	(IsInventoryOwner		,			bool);
-			_DECLARE_FUNCTION10	(IsActor				,			bool);
-			_DECLARE_FUNCTION10	(IsCustomMonster		,			bool);
-			_DECLARE_FUNCTION10	(IsWeapon				,			bool);
-			_DECLARE_FUNCTION10	(IsMedkit				,			bool);
-			_DECLARE_FUNCTION10	(IsEatableItem			,			bool);
-			_DECLARE_FUNCTION10	(IsAntirad				,			bool);
-			_DECLARE_FUNCTION10	(IsCustomOutfit			,			bool);
-			_DECLARE_FUNCTION10	(IsScope				,			bool);
-			_DECLARE_FUNCTION10	(IsSilencer				,			bool);
-			_DECLARE_FUNCTION10	(IsGrenadeLauncher		,			bool);
-			_DECLARE_FUNCTION10	(IsWeaponMagazined		,			bool);
-			_DECLARE_FUNCTION10	(IsSpaceRestrictor		,			bool);
-			_DECLARE_FUNCTION10	(IsStalker				,			bool);
-			_DECLARE_FUNCTION10	(IsAnomaly				,			bool);
-			_DECLARE_FUNCTION10	(IsMonster				,			bool);
-			_DECLARE_FUNCTION10	(IsExplosive			,			bool);
-			_DECLARE_FUNCTION10	(IsScriptZone			,			bool);
-			_DECLARE_FUNCTION10	(IsProjector			,			bool);
-			_DECLARE_FUNCTION10	(IsTrader				,			bool);
-			_DECLARE_FUNCTION10	(IsHudItem				,			bool);
-			_DECLARE_FUNCTION10	(IsFoodItem				,			bool);
-			_DECLARE_FUNCTION10	(IsArtefact				,			bool);
-			_DECLARE_FUNCTION10	(IsAmmo					,			bool);
-			_DECLARE_FUNCTION10	(IsMissile				,			bool);
-			_DECLARE_FUNCTION10	(IsPhysicsShellHolder	,			bool);
-			_DECLARE_FUNCTION10	(IsGrenade				,			bool);
-			_DECLARE_FUNCTION10	(IsBottleItem			,			bool);
-			_DECLARE_FUNCTION10	(IsTorch				,			bool);
-			_DECLARE_FUNCTION10	(IsWeaponGL				,			bool);
-			_DECLARE_FUNCTION10	(IsInventoryBox			,			bool);
-			// KD
-
-			CSE_ALifeDynamicObject* alife_object						() const; // alpet: возвращает серверный экземпляр для этого объекта
-			void				SetDirection							(const Fvector &dir, float bank);
-			void				SetRotation								(const SRotation &rot);
-			void				SetPosition								(const Fvector &pos);
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

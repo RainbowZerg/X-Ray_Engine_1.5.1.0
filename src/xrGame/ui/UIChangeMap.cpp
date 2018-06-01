@@ -9,6 +9,7 @@
 #include "../game_cl_teamdeathmatch.h"
 #include "../../xrEngine/xr_ioconsole.h"
 #include "UIMapList.h"
+#include "CExtraContentFilter.h"
 
 #include "object_broker.h"
 #include "../UIGameCustom.h"
@@ -49,9 +50,12 @@ CUIChangeMap::CUIChangeMap()
 
 	btn_cancel = xr_new<CUI3tButtonEx>(); btn_cancel->SetAutoDelete(true);
 	AttachChild(btn_cancel);
+
+	m_pExtraContentFilter = xr_new<CExtraContentFilter>();
 }
 CUIChangeMap::~CUIChangeMap()
 {
+	delete_data(m_pExtraContentFilter);
 }
 void CUIChangeMap::InitChangeMap(CUIXml& xml_doc)
 {

@@ -88,15 +88,11 @@ void dxRenderDeviceRender::SetupStates()
 #ifdef	USE_DX10
 	//	TODO: DX10: Implement Resetting of render states into default mode
 	//VERIFY(!"dxRenderDeviceRender::SetupStates not implemented.");
-
-	// ZergO:
-	SSManager.SetMaxAnisotropy	(ps_r__tf_Anisotropic);
-	SSManager.SetMipLODBias		(ps_r__tf_Mipbias);
 #else	//	USE_DX10
-	for (u32 i=0; i<HW.Caps.raster.dwStages; i++)				
-	{
-		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MAXANISOTROPY,	ps_r__tf_Anisotropic));
-		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&ps_r__tf_Mipbias))));
+	for (u32 i=0; i<HW.Caps.raster.dwStages; i++)				{
+		float fBias = -.5f	;
+		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MAXANISOTROPY, 4				));
+		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&fBias))));
 		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MINFILTER,	D3DTEXF_LINEAR 		));
 		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MAGFILTER,	D3DTEXF_LINEAR 		));
 		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MIPFILTER,	D3DTEXF_LINEAR		));
@@ -344,7 +340,7 @@ void dxRenderDeviceRender::End()
 	DoAsyncScreenshot();
 
 #ifdef	USE_DX10
-	HW.m_pSwapChain->Present(psDeviceFlags.test(rsVSync) ? 1 : 0, 0);
+	HW.m_pSwapChain->Present( 0, 0 );
 #else	//	USE_DX10
 	CHK_DX				(HW.pDevice->EndScene());
 

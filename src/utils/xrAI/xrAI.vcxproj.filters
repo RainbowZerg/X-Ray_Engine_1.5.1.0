@@ -546,6 +546,87 @@
     <ClInclude Include="path_manager_params_straight_line.h">
       <Filter>ALife\search\path_managers\path_manager_params</Filter>
     </ClInclude>
+    <ClInclude Include="a_star.h">
+      <Filter>ALife\search\algorithms\A%2a</Filter>
+    </ClInclude>
+    <ClInclude Include="a_star_inline.h">
+      <Filter>ALife\search\algorithms\A%2a</Filter>
+    </ClInclude>
+    <ClInclude Include="dijkstra.h">
+      <Filter>ALife\search\algorithms\Dijkstra</Filter>
+    </ClInclude>
+    <ClInclude Include="dijkstra_inline.h">
+      <Filter>ALife\search\algorithms\Dijkstra</Filter>
+    </ClInclude>
+    <ClInclude Include="data_storage_binary_heap.h">
+      <Filter>ALife\search\data_storages\algorithms\priority_queues\binary_heap</Filter>
+    </ClInclude>
+    <ClInclude Include="data_storage_binary_heap_inline.h">
+      <Filter>ALife\search\data_storages\algorithms\priority_queues\binary_heap</Filter>
+    </ClInclude>
+    <ClInclude Include="data_storage_bucket_list.h">
+      <Filter>ALife\search\data_storages\algorithms\lists\bucket_list</Filter>
+    </ClInclude>
+    <ClInclude Include="data_storage_bucket_list_inline.h">
+      <Filter>ALife\search\data_storages\algorithms\lists\bucket_list</Filter>
+    </ClInclude>
+    <ClInclude Include="data_storage_double_linked_list.h">
+      <Filter>ALife\search\data_storages\algorithms\lists\double_linked_list</Filter>
+    </ClInclude>
+    <ClInclude Include="data_storage_double_linked_list_inline.h">
+      <Filter>ALife\search\data_storages\algorithms\lists\double_linked_list</Filter>
+    </ClInclude>
+    <ClInclude Include="data_storage_single_linked_list.h">
+      <Filter>ALife\search\data_storages\algorithms\lists\single_linked_list</Filter>
+    </ClInclude>
+    <ClInclude Include="data_storage_single_linked_list_inline.h">
+      <Filter>ALife\search\data_storages\algorithms\lists\single_linked_list</Filter>
+    </ClInclude>
+    <ClInclude Include="data_storage_constructor.h">
+      <Filter>ALife\search\data_storages\data_storage_constructors</Filter>
+    </ClInclude>
+    <ClInclude Include="builder_allocator_constructor.h">
+      <Filter>ALife\search\data_storages\data_storage_constructors\builder_allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="builder_allocator_constructor_inline.h">
+      <Filter>ALife\search\data_storages\data_storage_constructors\builder_allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="manager_builder_allocator_constructor.h">
+      <Filter>ALife\search\data_storages\data_storage_constructors\manager_builder_allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="manager_builder_allocator_constructor_inline.h">
+      <Filter>ALife\search\data_storages\data_storage_constructors\manager_builder_allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="edge_path.h">
+      <Filter>ALife\search\data_storages\path_builders\edge_path</Filter>
+    </ClInclude>
+    <ClInclude Include="edge_path_inline.h">
+      <Filter>ALife\search\data_storages\path_builders\edge_path</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex_path.h">
+      <Filter>ALife\search\data_storages\path_builders\vertex_path</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex_path_inline.h">
+      <Filter>ALife\search\data_storages\path_builders\vertex_path</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex_allocator_fixed.h">
+      <Filter>ALife\search\data_storages\vertex_allocators\fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex_allocator_fixed_inline.h">
+      <Filter>ALife\search\data_storages\vertex_allocators\fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex_manager_fixed.h">
+      <Filter>ALife\search\data_storages\vertex_managers\fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex_manager_fixed_inline.h">
+      <Filter>ALife\search\data_storages\vertex_managers\fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex_manager_hash_fixed.h">
+      <Filter>ALife\search\data_storages\vertex_managers\hash_fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex_manager_hash_fixed_inline.h">
+      <Filter>ALife\search\data_storages\vertex_managers\hash_fixed</Filter>
+    </ClInclude>
     <ClInclude Include="graph_abstract.h">
       <Filter>ALife\search\graphs\abstract_graph</Filter>
     </ClInclude>
@@ -590,6 +671,15 @@
     </ClInclude>
     <ClInclude Include="level_graph_vertex_inline.h">
       <Filter>ALife\search\graphs\level_graph</Filter>
+    </ClInclude>
+    <ClInclude Include="graph_engine.h">
+      <Filter>ALife\search\graph_engine</Filter>
+    </ClInclude>
+    <ClInclude Include="graph_engine_inline.h">
+      <Filter>ALife\search\graph_engine</Filter>
+    </ClInclude>
+    <ClInclude Include="graph_engine_space.h">
+      <Filter>ALife\search\graph_engine</Filter>
     </ClInclude>
     <ClInclude Include="xrCrossTable.h">
       <Filter>ALife\Cross</Filter>
@@ -827,96 +917,6 @@
     </ClInclude>
     <ClInclude Include="guid_generator.h">
       <Filter>ALife\guid_generator</Filter>
-    </ClInclude>
-    <ClInclude Include="a_star.h">
-      <Filter>ALife\search\algorithms\A%2a</Filter>
-    </ClInclude>
-    <ClInclude Include="a_star_inline.h">
-      <Filter>ALife\search\algorithms\A%2a</Filter>
-    </ClInclude>
-    <ClInclude Include="dijkstra.h">
-      <Filter>ALife\search\algorithms\Dijkstra</Filter>
-    </ClInclude>
-    <ClInclude Include="dijkstra_inline.h">
-      <Filter>ALife\search\algorithms\Dijkstra</Filter>
-    </ClInclude>
-    <ClInclude Include="data_storage_bucket_list.h">
-      <Filter>ALife\search\data_storages\algorithms\lists\bucket_list</Filter>
-    </ClInclude>
-    <ClInclude Include="data_storage_bucket_list_inline.h">
-      <Filter>ALife\search\data_storages\algorithms\lists\bucket_list</Filter>
-    </ClInclude>
-    <ClInclude Include="data_storage_double_linked_list.h">
-      <Filter>ALife\search\data_storages\algorithms\lists\double_linked_list</Filter>
-    </ClInclude>
-    <ClInclude Include="data_storage_double_linked_list_inline.h">
-      <Filter>ALife\search\data_storages\algorithms\lists\double_linked_list</Filter>
-    </ClInclude>
-    <ClInclude Include="data_storage_single_linked_list.h">
-      <Filter>ALife\search\data_storages\algorithms\lists\single_linked_list</Filter>
-    </ClInclude>
-    <ClInclude Include="data_storage_single_linked_list_inline.h">
-      <Filter>ALife\search\data_storages\algorithms\lists\single_linked_list</Filter>
-    </ClInclude>
-    <ClInclude Include="data_storage_binary_heap.h">
-      <Filter>ALife\search\data_storages\algorithms\priority_queues\binary_heap</Filter>
-    </ClInclude>
-    <ClInclude Include="data_storage_binary_heap_inline.h">
-      <Filter>ALife\search\data_storages\algorithms\priority_queues\binary_heap</Filter>
-    </ClInclude>
-    <ClInclude Include="builder_allocator_constructor.h">
-      <Filter>ALife\search\data_storages\data_storage_constructors\builder_allocator</Filter>
-    </ClInclude>
-    <ClInclude Include="builder_allocator_constructor_inline.h">
-      <Filter>ALife\search\data_storages\data_storage_constructors\builder_allocator</Filter>
-    </ClInclude>
-    <ClInclude Include="manager_builder_allocator_constructor.h">
-      <Filter>ALife\search\data_storages\data_storage_constructors\manager_builder_allocator</Filter>
-    </ClInclude>
-    <ClInclude Include="manager_builder_allocator_constructor_inline.h">
-      <Filter>ALife\search\data_storages\data_storage_constructors\manager_builder_allocator</Filter>
-    </ClInclude>
-    <ClInclude Include="data_storage_constructor.h">
-      <Filter>ALife\search\data_storages\data_storage_constructors</Filter>
-    </ClInclude>
-    <ClInclude Include="edge_path.h">
-      <Filter>ALife\search\data_storages\path_builders\edge_path</Filter>
-    </ClInclude>
-    <ClInclude Include="edge_path_inline.h">
-      <Filter>ALife\search\data_storages\path_builders\edge_path</Filter>
-    </ClInclude>
-    <ClInclude Include="vertex_path.h">
-      <Filter>ALife\search\data_storages\path_builders\vertex_path</Filter>
-    </ClInclude>
-    <ClInclude Include="vertex_path_inline.h">
-      <Filter>ALife\search\data_storages\path_builders\vertex_path</Filter>
-    </ClInclude>
-    <ClInclude Include="vertex_allocator_fixed.h">
-      <Filter>ALife\search\data_storages\vertex_allocators\fixed</Filter>
-    </ClInclude>
-    <ClInclude Include="vertex_allocator_fixed_inline.h">
-      <Filter>ALife\search\data_storages\vertex_allocators\fixed</Filter>
-    </ClInclude>
-    <ClInclude Include="vertex_manager_fixed.h">
-      <Filter>ALife\search\data_storages\vertex_managers\fixed</Filter>
-    </ClInclude>
-    <ClInclude Include="vertex_manager_fixed_inline.h">
-      <Filter>ALife\search\data_storages\vertex_managers\fixed</Filter>
-    </ClInclude>
-    <ClInclude Include="vertex_manager_hash_fixed.h">
-      <Filter>ALife\search\data_storages\vertex_managers\hash_fixed</Filter>
-    </ClInclude>
-    <ClInclude Include="vertex_manager_hash_fixed_inline.h">
-      <Filter>ALife\search\data_storages\vertex_managers\hash_fixed</Filter>
-    </ClInclude>
-    <ClInclude Include="graph_engine.h">
-      <Filter>ALife\search\graph_engine</Filter>
-    </ClInclude>
-    <ClInclude Include="graph_engine_inline.h">
-      <Filter>ALife\search\graph_engine</Filter>
-    </ClInclude>
-    <ClInclude Include="graph_engine_space.h">
-      <Filter>ALife\search\graph_engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -190,7 +190,7 @@ extern "C"{
 
 	ETOOLS_API const char*  WINAPI DX_GetErrorDescription9(HRESULT hr)
 	{
-		return DXGetErrorDescription(hr);
+		return DXGetErrorDescription9(hr);
 	}
 	ETOOLS_API D3DXMATRIX* WINAPI 
 		D3DX_MatrixInverse(          

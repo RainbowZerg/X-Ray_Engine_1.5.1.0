@@ -136,15 +136,17 @@ void SBinocVisibleObj::Update()
 				CInventoryOwner* others_inv_owner	= smart_cast<CInventoryOwner*>(m_object);
 				CBaseMonster	*monster			= smart_cast<CBaseMonster*>(m_object);
 
-				if(our_inv_owner && others_inv_owner && !monster)
-				{
+				if(our_inv_owner && others_inv_owner && !monster){
 					if (IsGameTypeSingle())
 					{
 						switch(RELATION_REGISTRY().GetRelationType(others_inv_owner, our_inv_owner))
 						{
-						case ALife::eRelationTypeEnemy:		clr = C_ON_ENEMY;	break;
-						case ALife::eRelationTypeNeutral:	clr = C_ON_NEUTRAL; break;
-						case ALife::eRelationTypeFriend:	clr = C_ON_FRIEND;	break;
+						case ALife::eRelationTypeEnemy:
+							clr = C_ON_ENEMY; break;
+						case ALife::eRelationTypeNeutral:
+							clr = C_ON_NEUTRAL; break;
+						case ALife::eRelationTypeFriend:
+							clr = C_ON_FRIEND; break;
 						}
 					}
 					else

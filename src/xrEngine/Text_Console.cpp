@@ -2,9 +2,9 @@
 #include "Text_Console.h"
 #include "line_editor.h"
 
-//extern const char *		ioc_prompt;
+extern const char *		ioc_prompt;
 extern const char *		ch_cursor;
-int g_svTextConsoleUpdateRate = 1;
+int g_svTextConsoleUpdateRate = 10;
 
 CTextConsole::CTextConsole()
 {
@@ -78,7 +78,7 @@ void	CTextConsole::CreateLogWnd()
 	INT lWidth = cRc.right - cRc.left;
 	INT lHeight = cRc.bottom - cRc.top;
 	//----------------------------------
-	const char*	wndclass = "TEXT_CONSOLE_LOG_WND";
+	const char*	wndclass ="TEXT_CONSOLE_LOG_WND";
 
 	// Register the windows class
 	WNDCLASS wndClass = { 0, TextConsole_LogWndProc, 0, 0, hInstance,
@@ -195,16 +195,18 @@ void CTextConsole::OnPaint()
 	PAINTSTRUCT ps;
 	BeginPaint( m_hLogWnd, &ps );
 
-	if (/*m_bNeedUpdate*/ Device.dwFrame % 2)
+	if ( /*m_bNeedUpdate*/ Device.dwFrame % 2 )
 	{
 //		m_dwLastUpdateTime = Device.dwTimeGlobal;
 //		m_bNeedUpdate = false;
 		
-		GetClientRect(m_hLogWnd, &wRC);
-		DrawLog(m_hDC_LogWnd_BackBuffer, &wRC);
+		GetClientRect( m_hLogWnd, &wRC );
+		DrawLog( m_hDC_LogWnd_BackBuffer, &wRC );
 	}
 	else
+	{
 		wRC = ps.rcPaint;
+	}
 	
 	
 	BitBlt(	m_hDC_LogWnd,
@@ -216,10 +218,10 @@ void CTextConsole::OnPaint()
 /*
 	Msg ("URect - %d:%d - %d:%d", ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom);
 */
-	EndPaint(m_hLogWnd, &ps);
+	EndPaint( m_hLogWnd, &ps );
 }
 
-void CTextConsole::DrawLog(HDC hDC, RECT* pRect)
+void CTextConsole::DrawLog( HDC hDC, RECT* pRect )
 {
 	TEXTMETRIC tm;
 	GetTextMetrics(hDC, &tm);
@@ -264,7 +266,7 @@ void CTextConsole::DrawLog(HDC hDC, RECT* pRect)
 	SetTextColor( hDC, RGB(205, 205, 225) );
 	u32 log_line = LogFile->size()-1;
 	string16 q, q2;
-	_itoa( log_line, q, 10 );
+	itoa( log_line, q, 10 );
 	strcpy_s( q2, sizeof(q2), "[" );
 	strcat_s( q2, sizeof(q2), q );
 	strcat_s( q2, sizeof(q2), "]" );

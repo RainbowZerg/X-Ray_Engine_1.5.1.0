@@ -10,6 +10,8 @@
 #include "../../xrEngine/GameFont.h"
 #include "SkeletonCustom.h"
 
+u32 g_r = 1;
+
 namespace WallmarksEngine {
 	struct wm_slot
 	{
@@ -274,9 +276,9 @@ void CWallmarksEngine::AddStaticWallmark	(CDB::TRI* pTri, const Fvector* pVerts,
 
 void CWallmarksEngine::AddSkeletonWallmark	(const Fmatrix* xf, CKinematics* obj, ref_shader& sh, const Fvector& start, const Fvector& dir, float size)
 {	
-	if (::RImplementation.phase != CRender::PHASE_NORMAL) return;
+	if( 0==g_r || ::RImplementation.phase != CRender::PHASE_NORMAL)				return;
 	// optimization cheat: don't allow wallmarks more than 50 m from viewer/actor
-	if (xf->c.distance_to_sqr(Device.vCameraPosition) > _sqr(50.f)) return;
+	if (xf->c.distance_to_sqr(Device.vCameraPosition) > _sqr(50.f))				return;
 
 	VERIFY					(obj&&xf&&(size>EPS_L));
 	lock.Enter				();
@@ -286,7 +288,7 @@ void CWallmarksEngine::AddSkeletonWallmark	(const Fmatrix* xf, CKinematics* obj,
 
 void CWallmarksEngine::AddSkeletonWallmark(intrusive_ptr<CSkeletonWallmark> wm)
 {
-	if (::RImplementation.phase != CRender::PHASE_NORMAL) return;
+	if(0==g_r || ::RImplementation.phase != CRender::PHASE_NORMAL) return;
 
 	if (!::RImplementation.val_bHUD)
 	{
@@ -402,35 +404,35 @@ void CWallmarksEngine::Render()
 			}
 #endif
 
-			Device.Statistic->RenderDUMP_WMD_Count++;
-			u32 w_count	= u32(w_verts-w_start);
-			if ((w_count+W->VCount())>=(MAX_TRIS*3))
-			{
-				FlushStream	(hGeom,slot->shader,w_offset,w_verts,w_start,TRUE);
-				BeginStream	(hGeom,w_offset,w_verts,w_start);
-			}
+			float dst	= Device.vCameraPosition.distance_to_sqr(W->m_Bounds.P);
+			float ssa	= W->m_Bounds.R * W->m_Bounds.R / dst;
+			if (ssa>=ssaCLIP){
+				Device.Statistic->RenderDUMP_WMD_Count++;
+				u32 w_count		= u32(w_verts-w_start);
+				if ((w_count+W->VCount())>=(MAX_TRIS*3)){
+					FlushStream	(hGeom,slot->shader,w_offset,w_verts,w_start,TRUE);
+					BeginStream	(hGeom,w_offset,w_verts,w_start);
+				}
 
-			FVF::LIT *w_save = w_verts;
-			try 
-			{
-				W->Parent()->RenderWallmark	(W,w_verts);
-			} 
-			catch (...)
-			{
-				Msg		("! Failed to render dynamic wallmark");
-				w_verts = w_save;
+				FVF::LIT	*w_save = w_verts;
+				try {
+					W->Parent()->RenderWallmark	(W,w_verts);
+				} catch (...)
+				{
+					Msg		("! Failed to render dynamic wallmark");
+					w_verts = w_save;
+				}
 			}
-			
 			#ifdef	DEBUG
 			 W->used_in_render	= u32(-1);
 			#endif
 		}
 		slot->skeleton_items.clear();
 		// Flush stream
-		FlushStream	(hGeom,slot->shader,w_offset,w_verts,w_start,TRUE);
+		FlushStream				(hGeom,slot->shader,w_offset,w_verts,w_start,TRUE);
 	}
 
-	lock.Leave(); // Physics may add wallmarks in parallel with rendering
+	lock.Leave();				// Physics may add wallmarks in parallel with rendering
 
 	// Level-wmarks
 	RImplementation.r_dsgraph_render_wmarks	();

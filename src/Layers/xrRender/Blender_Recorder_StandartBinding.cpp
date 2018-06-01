@@ -40,22 +40,28 @@ DECLARE_TREE_BIND(c_scale);
 DECLARE_TREE_BIND(c_bias);
 DECLARE_TREE_BIND(c_sun);
 
-static class cl_hemi_cube_pos_faces : public R_constant_setup
+class cl_hemi_cube_pos_faces: public R_constant_setup
 {
 	virtual void setup(R_constant* C) {RCache.hemi.set_c_pos_faces(C);}
-} binder_hemi_cube_pos_faces;
+};
 
-static class cl_hemi_cube_neg_faces : public R_constant_setup
+static cl_hemi_cube_pos_faces binder_hemi_cube_pos_faces;
+
+class cl_hemi_cube_neg_faces: public R_constant_setup
 {
 	virtual void setup(R_constant* C) {RCache.hemi.set_c_neg_faces(C);}
-} binder_hemi_cube_neg_faces;
+};
 
-static class cl_material : public R_constant_setup
+static cl_hemi_cube_neg_faces binder_hemi_cube_neg_faces;
+
+class cl_material: public R_constant_setup
 {
 	virtual void setup(R_constant* C) {RCache.hemi.set_c_material(C);}
-} binder_material;
+};
 
-static class cl_texgen : public R_constant_setup
+static cl_material binder_material;
+
+class cl_texgen : public R_constant_setup
 {
 	virtual void setup(R_constant* C)
 	{
@@ -85,11 +91,12 @@ static class cl_texgen : public R_constant_setup
 
 		mTexgen.mul	(mTexelAdjust,RCache.xforms.m_wvp);
 
-		RCache.set_c(C, mTexgen);
+		RCache.set_c( C, mTexgen);
 	}
-} binder_texgen;
+};
+static cl_texgen		binder_texgen;
 
-static class cl_VPtexgen : public R_constant_setup
+class cl_VPtexgen : public R_constant_setup
 {
 	virtual void setup(R_constant* C)
 	{
@@ -119,13 +126,14 @@ static class cl_VPtexgen : public R_constant_setup
 
 		mTexgen.mul	(mTexelAdjust,RCache.xforms.m_vp);
 
-		RCache.set_c(C, mTexgen);
+		RCache.set_c( C, mTexgen);
 	}
-} binder_VPtexgen;
+};
+static cl_VPtexgen		binder_VPtexgen;
 
 // fog
 #ifndef _EDITOR
-static class cl_fog_plane : public R_constant_setup{
+class cl_fog_plane	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup(R_constant* C)
@@ -149,10 +157,11 @@ static class cl_fog_plane : public R_constant_setup{
 		}
 		RCache.set_c	(C,result);
 	}
-} binder_fog_plane;
+};
+static cl_fog_plane		binder_fog_plane;
 
 // fog-params
-static class cl_fog_params : public R_constant_setup{
+class cl_fog_params	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup(R_constant* C)
@@ -160,17 +169,17 @@ static class cl_fog_params : public R_constant_setup{
 		if (marker!=Device.dwFrame)
 		{
 			// Near/Far
-			float	n		= g_pGamePersistent->Environment().CurrentEnv->fog_near;
-			float	f		= g_pGamePersistent->Environment().CurrentEnv->fog_far;
+			float	n		= g_pGamePersistent->Environment().CurrentEnv->fog_near	;
+			float	f		= g_pGamePersistent->Environment().CurrentEnv->fog_far		;
 			float	r		= 1/(f-n);
 			result.set		(-n*r, r, r, r);
 		}
 		RCache.set_c	(C,result);
 	}
-} binder_fog_params;
+};	static cl_fog_params	binder_fog_params;
 
 // fog-color
-static class cl_fog_color : public R_constant_setup{
+class cl_fog_color	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
@@ -180,48 +189,52 @@ static class cl_fog_color : public R_constant_setup{
 		}
 		RCache.set_c	(C,result);
 	}
-} binder_fog_color;
+};	static cl_fog_color		binder_fog_color;
 #endif
 
 // times
-static class cl_times : public R_constant_setup{
+class cl_times		: public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{
 		float 		t	= Device.fTimeGlobal;
 		RCache.set_c	(C,t,t*10,t/10,_sin(t))	;
 	}
-} binder_times;
+};
+static cl_times		binder_times;
 
 // eye-params
-static class cl_eye_P : public R_constant_setup{
+class cl_eye_P		: public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{
 		Fvector&		V	= Device.vCameraPosition;
 		RCache.set_c	(C,V.x,V.y,V.z,1);
 	}
-} binder_eye_P;
+};
+static cl_eye_P		binder_eye_P;
 
 // eye-params
-static class cl_eye_D : public R_constant_setup{
+class cl_eye_D		: public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{
 		Fvector&		V	= Device.vCameraDirection;
 		RCache.set_c	(C,V.x,V.y,V.z,0);
 	}
-} binder_eye_D;
+};
+static cl_eye_D		binder_eye_D;
 
 // eye-params
-static class cl_eye_N : public R_constant_setup{
+class cl_eye_N		: public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{
 		Fvector&		V	= Device.vCameraTop;
 		RCache.set_c	(C,V.x,V.y,V.z,0);
 	}
-} binder_eye_N;
+};
+static cl_eye_N		binder_eye_N;
 
 #ifndef _EDITOR
 // D-Light0
-static class cl_sun0_color : public R_constant_setup{
+class cl_sun0_color	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
@@ -231,9 +244,8 @@ static class cl_sun0_color : public R_constant_setup{
 		}
 		RCache.set_c	(C,result);
 	}
-} binder_sun0_color;
-
-static class cl_sun0_dir_w : public R_constant_setup{
+};	static cl_sun0_color		binder_sun0_color;
+class cl_sun0_dir_w	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
@@ -243,9 +255,8 @@ static class cl_sun0_dir_w : public R_constant_setup{
 		}
 		RCache.set_c	(C,result);
 	}
-} binder_sun0_dir_w;
-
-static class cl_sun0_dir_e : public R_constant_setup{
+};	static cl_sun0_dir_w		binder_sun0_dir_w;
+class cl_sun0_dir_e	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
@@ -258,10 +269,10 @@ static class cl_sun0_dir_e : public R_constant_setup{
 		}
 		RCache.set_c	(C,result);
 	}
-} binder_sun0_dir_e;
+};	static cl_sun0_dir_e		binder_sun0_dir_e;
 
 //
-static class cl_amb_color : public R_constant_setup{
+class cl_amb_color	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
@@ -271,9 +282,8 @@ static class cl_amb_color : public R_constant_setup{
 		}
 		RCache.set_c	(C,result);
 	}
-} binder_amb_color;
-
-static class cl_hemi_color : public R_constant_setup{
+};	static cl_amb_color		binder_amb_color;
+class cl_hemi_color	: public R_constant_setup {
 	u32			marker;
 	Fvector4	result;
 	virtual void setup	(R_constant* C)	{
@@ -283,97 +293,17 @@ static class cl_hemi_color : public R_constant_setup{
 		}
 		RCache.set_c	(C,result);
 	}
-} binder_hemi_color;
+};	static cl_hemi_color		binder_hemi_color;
 #endif
 
 static class cl_screen_res : public R_constant_setup		
 {	
-	Fvector4	result;
-	virtual void setup(R_constant* C)	
-	{
-		float _w = float(Device.dwWidth);
-		float _h = float(Device.dwHeight);
-		RCache.set_c(C, _w, _h, 1.f/_w, 1.f/_h);
-	}
-} binder_screen_res;
-
-#if RENDER != R_R1
-extern float r_dtex_range;
-static class cl_parallax : public R_constant_setup		
-{	
 	virtual void setup	(R_constant* C)
 	{
-		float			h =	ps_r2_df_parallax_h;
-		RCache.set_c	(C,h,-h/2.f,1.f/r_dtex_range,1.f/r_dtex_range);
+		RCache.set_c	(C, (float)Device.dwWidth, (float)Device.dwHeight, 1.0f/(float)Device.dwWidth, 1.0f/(float)Device.dwHeight);
 	}
-}	binder_parallax;
+}	binder_screen_res;
 
-static class cl_pos_decompress_params		: public R_constant_setup		
-{	
-	virtual void setup	(R_constant* C)
-	{
-		float VertTan =  -1.0f * tanf(deg2rad(Device.fFOV/2.0f));
-		float HorzTan =  - VertTan / Device.fASPECT;
-
-		RCache.set_c	(C, HorzTan, VertTan, (2.0f * HorzTan )/(float)Device.dwWidth, (2.0f * VertTan) /(float)Device.dwHeight);
-	}
-}	binder_pos_decompress_params;
-
-static class cl_water_intensity : public R_constant_setup		
-{	
-	virtual void setup	(R_constant* C)
-	{
-		CEnvDescriptor&	E = *g_pGamePersistent->Environment().CurrentEnv;
-		float fValue = E.m_fWaterIntensity;
-		RCache.set_c	(C, fValue, fValue, fValue, 0);
-	}
-}	binder_water_intensity;
-
-static class cl_sun_shafts_intensity : public R_constant_setup		
-{	
-	virtual void setup	(R_constant* C)
-	{
-		CEnvDescriptor&	E = *g_pGamePersistent->Environment().CurrentEnv;
-		float fValue = E.m_fSunShaftsIntensity;
-		RCache.set_c	(C, fValue, fValue, fValue, 0);
-	}
-}	binder_sun_shafts_intensity;
-
-#if RENDER == R_R3
-static class cl_alpha_ref : public R_constant_setup
-{
-	virtual void setup(R_constant* C)
-	{
-		StateManager.BindAlphaRef(C);
-	}
-}	binder_alpha_ref;
-#endif
-
-
-static class cl_refl_params : public R_constant_setup
-{
-	virtual void setup(R_constant* C)	{
-		
-		RCache.set_c(C, ps_r2_refl_intensity, ps_r2_refl_env_intensity, ps_r2_refl_water_gloss, 0);
-	}
-} binder_refl_params;
-
-static class cl_refl_params2 : public R_constant_setup
-{
-	virtual void setup(R_constant* C)	{
-		
-		RCache.set_c(C, ps_r2_refl_fresnel1, ps_r2_refl_fresnel2, ps_r2_refl_fresnel3, 0);
-	}
-} binder_refl_params2;
-
-static class cl_refl_various : public R_constant_setup
-{
-	virtual void setup(R_constant* C)	{
-		BOOL sun = RImplementation.is_sun();
-		RCache.set_c(C, g_pGamePersistent->Environment().CurrentEnv->moon_road_intensity, (float)sun, ps_r2_sun_near, /*actor_torch_enabled*/ 0);
-	}
-} binder_refl_various;
-#endif
 
 // Standart constant-binding
 void	CBlender_Compile::SetMapping	()
@@ -428,23 +358,7 @@ void	CBlender_Compile::SetMapping	()
 	r_Constant				("L_hemi_color",	&binder_hemi_color);
 	r_Constant				("L_ambient",		&binder_amb_color);
 #endif
-
 	r_Constant				("screen_res",		&binder_screen_res);
-
-#if RENDER != R_R1
-	r_Constant				("parallax",		&binder_parallax);
-	r_Constant				("water_intensity",	&binder_water_intensity);
-	r_Constant				("sun_shafts_intensity",		&binder_sun_shafts_intensity);
-	r_Constant				("pos_decompression_params",	&binder_pos_decompress_params);
-
-#if RENDER == R_R3
-	r_Constant				("m_AlphaRef",		&binder_alpha_ref);
-#endif
-
-	r_Constant				("refl_params",		&binder_refl_params);
-	r_Constant				("refl_params2",	&binder_refl_params2);
-	r_Constant				("refl_various",	&binder_refl_various);
-#endif
 
 	// detail
 	//if (bDetail	&& detail_scaler)

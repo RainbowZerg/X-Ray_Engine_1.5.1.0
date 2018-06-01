@@ -1462,6 +1462,9 @@
     <Filter Include="Core\Client\Effects\Core">
       <UniqueIdentifier>{c066079b-45a1-4db1-b4b2-c3b6c86a8dd3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Client\BattlEye_Client">
+      <UniqueIdentifier>{c04848ce-a4cd-4f70-937c-ff00f76c46fd}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Core\Client\Game Persistent">
       <UniqueIdentifier>{f2647976-9fc3-491a-ba0a-0641651fc748}</UniqueIdentifier>
     </Filter>
@@ -1858,6 +1861,9 @@
     <Filter Include="Core\Client\Objects\items &amp; weapons\Devices\Torch">
       <UniqueIdentifier>{feeea62b-d450-47c7-9363-44d543041e81}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Client\Objects\items &amp; weapons\Devices\flare">
+      <UniqueIdentifier>{7a070e95-413b-451a-8e11-948b8b3b7402}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Core\Client\Objects\items &amp; weapons\PDA &amp; information">
       <UniqueIdentifier>{e4acd7b6-36f7-48ec-929a-fa89c938ef79}</UniqueIdentifier>
     </Filter>
@@ -1884,6 +1890,9 @@
     </Filter>
     <Filter Include="Core\Client\Objects\searchlight">
       <UniqueIdentifier>{29b5e9bb-7dfe-467b-85e5-e08608b866c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Client\Objects\searchlight\Trade">
+      <UniqueIdentifier>{58b923f0-f7a8-43d7-b902-faabc8238d44}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\Client\Objects\zones">
       <UniqueIdentifier>{b20076fd-a274-4517-99a2-157d24e954ab}</UniqueIdentifier>
@@ -1935,6 +1944,9 @@
     </Filter>
     <Filter Include="Core\Client\Objects\zones\ZoneVisual">
       <UniqueIdentifier>{eaf6f229-bb4e-4367-9877-5f2f54887990}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Client\Objects\zones\campfire">
+      <UniqueIdentifier>{35f6be8b-d774-4eaf-8f1c-2cec8654cab7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\Client\Objects\map">
       <UniqueIdentifier>{b607e6f7-163e-400d-96a3-b32811413758}</UniqueIdentifier>
@@ -2148,6 +2160,9 @@
     </Filter>
     <Filter Include="Core\Server\xrGameSpyServer">
       <UniqueIdentifier>{2156eac0-fef2-43da-b965-717ad2b3ff76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Server\BattlEye_Server">
+      <UniqueIdentifier>{16e6aca9-6b9e-4879-8f10-55315ea8d061}</UniqueIdentifier>
     </Filter>
     <Filter Include="Physics">
       <UniqueIdentifier>{8d605af6-de1a-49e1-b47b-1548612e717e}</UniqueIdentifier>
@@ -2562,18 +2577,6 @@
     </Filter>
     <Filter Include="UI\Tutorial">
       <UniqueIdentifier>{17269c2e-17ec-4ab2-973e-e66121f8a79b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Client\Trade">
-      <UniqueIdentifier>{58b923f0-f7a8-43d7-b902-faabc8238d44}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Client\Level\RayPick">
-      <UniqueIdentifier>{d59e19b7-8313-4741-bcab-3d32b0a427e3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Client\Objects\items &amp; weapons\Devices\Flare">
-      <UniqueIdentifier>{7a070e95-413b-451a-8e11-948b8b3b7402}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Client\Objects\zones\Campfire">
-      <UniqueIdentifier>{35f6be8b-d774-4eaf-8f1c-2cec8654cab7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -5361,6 +5364,9 @@
     <ClInclude Include="DynamicHeightMap.h">
       <Filter>Core\Client\Effects\Core</Filter>
     </ClInclude>
+    <ClInclude Include="xr_Client_BattlEye.h">
+      <Filter>Core\Client\BattlEye_Client</Filter>
+    </ClInclude>
     <ClInclude Include="GamePersistent.h">
       <Filter>Core\Client\Game Persistent</Filter>
     </ClInclude>
@@ -5958,6 +5964,9 @@
     <ClInclude Include="Torch.h">
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\Torch</Filter>
     </ClInclude>
+    <ClInclude Include="flare.h">
+      <Filter>Core\Client\Objects\items &amp; weapons\Devices\flare</Filter>
+    </ClInclude>
     <ClInclude Include="PDA.h">
       <Filter>Core\Client\Objects\items &amp; weapons\PDA &amp; information</Filter>
     </ClInclude>
@@ -6028,7 +6037,7 @@
       <Filter>Core\Client\Objects\searchlight</Filter>
     </ClInclude>
     <ClInclude Include="trade.h">
-      <Filter>Core\Client\Trade</Filter>
+      <Filter>Core\Client\Objects\searchlight\Trade</Filter>
     </ClInclude>
     <ClInclude Include="CustomZone.h">
       <Filter>Core\Client\Objects\zones\CustomZone</Filter>
@@ -6082,7 +6091,7 @@
       <Filter>Core\Client\Objects\zones\ZoneVisual</Filter>
     </ClInclude>
     <ClInclude Include="ZoneCampfire.h">
-      <Filter>Core\Client\Objects\zones\Campfire</Filter>
+      <Filter>Core\Client\Objects\zones\campfire</Filter>
     </ClInclude>
     <ClInclude Include="map_location.h">
       <Filter>Core\Client\Objects\map</Filter>
@@ -6513,6 +6522,15 @@
     <ClInclude Include="xrGameSpyServer_callbacks.h">
       <Filter>Core\Server\xrGameSpyServer</Filter>
     </ClInclude>
+    <ClInclude Include="battleye.h">
+      <Filter>Core\Server\BattlEye_Server</Filter>
+    </ClInclude>
+    <ClInclude Include="battleye_system.h">
+      <Filter>Core\Server\BattlEye_Server</Filter>
+    </ClInclude>
+    <ClInclude Include="xr_Server_BattlEye.h">
+      <Filter>Core\Server\BattlEye_Server</Filter>
+    </ClInclude>
     <ClInclude Include="CalculateTriangle.h">
       <Filter>Physics\Base</Filter>
     </ClInclude>
@@ -6863,6 +6881,9 @@
     </ClInclude>
     <ClInclude Include="poses_blending.h">
       <Filter>Physics\animation_movement_controller</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\CExtraContentFilter.h">
+      <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="MainMenu.h">
       <Filter>UI</Filter>
@@ -7451,15 +7472,6 @@
     </ClInclude>
     <ClInclude Include="ui\UIGameTutorial.h">
       <Filter>UI\Tutorial</Filter>
-    </ClInclude>
-    <ClInclude Include="RayPick.h">
-      <Filter>Core\Client\Level\RayPick</Filter>
-    </ClInclude>
-    <ClInclude Include="Flare.h">
-      <Filter>Core\Client\Objects\items &amp; weapons\Devices\Flare</Filter>
-    </ClInclude>
-    <ClInclude Include="script_light_ext.h">
-      <Filter>Core\Client\Objects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -8939,6 +8951,9 @@
     <ClCompile Include="DynamicHeightMap.cpp">
       <Filter>Core\Client\Effects\Core</Filter>
     </ClCompile>
+    <ClCompile Include="xr_Client_BattlEye.cpp">
+      <Filter>Core\Client\BattlEye_Client</Filter>
+    </ClCompile>
     <ClCompile Include="GamePersistent.cpp">
       <Filter>Core\Client\Game Persistent</Filter>
     </ClCompile>
@@ -9551,6 +9566,12 @@
     <ClCompile Include="Torch.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\Devices\Torch</Filter>
     </ClCompile>
+    <ClCompile Include="torch_script.cpp">
+      <Filter>Core\Client\Objects\items &amp; weapons\Devices\Torch</Filter>
+    </ClCompile>
+    <ClCompile Include="flare.cpp">
+      <Filter>Core\Client\Objects\items &amp; weapons\Devices\flare</Filter>
+    </ClCompile>
     <ClCompile Include="PDA.cpp">
       <Filter>Core\Client\Objects\items &amp; weapons\PDA &amp; information</Filter>
     </ClCompile>
@@ -9633,10 +9654,10 @@
       <Filter>Core\Client\Objects\searchlight</Filter>
     </ClCompile>
     <ClCompile Include="trade.cpp">
-      <Filter>Core\Client\Trade</Filter>
+      <Filter>Core\Client\Objects\searchlight\Trade</Filter>
     </ClCompile>
     <ClCompile Include="trade2.cpp">
-      <Filter>Core\Client\Trade</Filter>
+      <Filter>Core\Client\Objects\searchlight\Trade</Filter>
     </ClCompile>
     <ClCompile Include="CustomZone.cpp">
       <Filter>Core\Client\Objects\zones\CustomZone</Filter>
@@ -9699,7 +9720,7 @@
       <Filter>Core\Client\Objects\zones\ZoneVisual</Filter>
     </ClCompile>
     <ClCompile Include="ZoneCampfire.cpp">
-      <Filter>Core\Client\Objects\zones\Campfire</Filter>
+      <Filter>Core\Client\Objects\zones\campfire</Filter>
     </ClCompile>
     <ClCompile Include="map_location.cpp">
       <Filter>Core\Client\Objects\map</Filter>
@@ -10157,6 +10178,12 @@
     <ClCompile Include="xrGameSpyServer_callbacks.cpp">
       <Filter>Core\Server\xrGameSpyServer</Filter>
     </ClCompile>
+    <ClCompile Include="battleye_system.cpp">
+      <Filter>Core\Server\BattlEye_Server</Filter>
+    </ClCompile>
+    <ClCompile Include="xr_Server_BattlEye.cpp">
+      <Filter>Core\Server\BattlEye_Server</Filter>
+    </ClCompile>
     <ClCompile Include="phvalide.cpp">
       <Filter>Physics\Base</Filter>
     </ClCompile>
@@ -10444,6 +10471,9 @@
     </ClCompile>
     <ClCompile Include="poses_blending.cpp">
       <Filter>Physics\animation_movement_controller</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\CExtraContentFilter.cpp">
+      <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="MainMenu.cpp">
       <Filter>UI</Filter>
@@ -11092,18 +11122,6 @@
     </ClCompile>
     <ClCompile Include="ui\UIGameTutorialVideoItem.cpp">
       <Filter>UI\Tutorial</Filter>
-    </ClCompile>
-    <ClCompile Include="RayPick.cpp">
-      <Filter>Core\Client\Level\RayPick</Filter>
-    </ClCompile>
-    <ClCompile Include="Flare.cpp">
-      <Filter>Core\Client\Objects\items &amp; weapons\Devices\Flare</Filter>
-    </ClCompile>
-    <ClCompile Include="script_game_object_testing.cpp">
-      <Filter>AI\AScript\ScriptClasses\ScriptGameObject</Filter>
-    </ClCompile>
-    <ClCompile Include="ZoneCampfire_script.cpp">
-      <Filter>Core\Client\Objects\zones\Campfire</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

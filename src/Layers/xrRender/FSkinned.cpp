@@ -23,6 +23,10 @@
 static	shared_str	sbones_array;
 
 #pragma pack(push,1)
+float u_P	(s16 v)
+{
+	return	float(v)/(32767.f/12.f);
+}
 s16	q_P		(float v)
 {
 	int		_v	= clampr(iFloor(v*(32767.f/12.f)), -32768, 32767);
@@ -50,43 +54,36 @@ float errN	(Fvector3 v, u8* qv)
 float errN	(Fvector3 v, u8* qv)	{ return 0; }
 #endif
 
-static	D3DVERTEXELEMENT9 dwDecl_01W	[] =	// 36bytes --#SM+#--
+static	D3DVERTEXELEMENT9 dwDecl_01W	[] =	// 24bytes
 {
-	{ 0, 0,		D3DDECLTYPE_FLOAT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_POSITION,		0 },	// : P						: 2	: -12..+12
-	{ 0, 16,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_NORMAL,		0 },	// : N, w=index(RC, 0..1)	: 1	:  -1..+1
-	{ 0, 20,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TANGENT,		0 },	// : T						: 1	:  -1..+1
-	{ 0, 24,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_BINORMAL,		0 },	// : B						: 1	:  -1..+1
-	{ 0, 28,	D3DDECLTYPE_FLOAT2,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,		0 },	// : tc						: 1	: -16..+16
+	{ 0, 0,		D3DDECLTYPE_SHORT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_POSITION,		0 },	// : P						: 2	: -12..+12
+	{ 0, 8,		D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_NORMAL,		0 },	// : N, w=index(RC, 0..1)	: 1	:  -1..+1
+	{ 0, 12,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TANGENT,		0 },	// : T						: 1	:  -1..+1
+	{ 0, 16,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_BINORMAL,		0 },	// : B						: 1	:  -1..+1
+	{ 0, 20,	D3DDECLTYPE_SHORT2,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,		0 },	// : tc						: 1	: -16..+16
 	D3DDECL_END()
 };
 struct	vertHW_1W
 {
-	float		_P		[4]; // --#SM+#--
+	s16			_P		[4];
 	u32			_N_I	;
 	u32			_T		;
 	u32			_B		;
-	float		_tc		[2]; // --#SM+#--
+	s16			_tc		[2];
 	void set	(Fvector3& P, Fvector3 N, Fvector3 T, Fvector3 B, Fvector2& tc, int index)
 	{
 		N.normalize_safe();
 		T.normalize_safe();
 		B.normalize_safe();
-
-		// --#SM+#--
-		_P[0]		= P.x;
-		_P[1]		= P.y;
-		_P[2]		= P.z;
-		_P[3]		= 1;
-		// --#SM+#--
-
+		_P[0]		= q_P(P.x);
+		_P[1]		= q_P(P.y);
+		_P[2]		= q_P(P.z);
+		_P[3]		= q_P(1);
 		_N_I		= color_rgba(q_N(N.x), q_N(N.y), q_N(N.z), u8(index));
 		_T			= color_rgba(q_N(T.x), q_N(T.y), q_N(T.z), 0);
 		_B			= color_rgba(q_N(B.x), q_N(B.y), q_N(B.z), 0);
-
-		// --#SM+#--
-		_tc[0]		= tc.x;
-		_tc[1]		= tc.y;
-		// --#SM+#--
+		_tc[0]		= q_tc(tc.x);
+		_tc[1]		= q_tc(tc.y);
 	}
 	u16 get_bone() const
 	{
@@ -97,52 +94,44 @@ struct	vertHW_1W
 			const Fmatrix& xform	= Parent->LL_GetBoneInstance( get_bone( ) ).mRenderTransform; 
 			get_pos	( p );	xform.transform_tiny( p );
 	}
-	void get_pos(Fvector& p) const // --#SM+#--
+	void get_pos(Fvector& p) const
 	{
-		p.x			= _P[0];
-		p.y			= _P[1];
-		p.z			= _P[2];
+		p.x			= u_P(_P[0]);
+		p.y			= u_P(_P[1]);
+		p.z			= u_P(_P[2]);
 	}
 };
 
-static	D3DVERTEXELEMENT9 dwDecl_2W	[] =	// 44bytes --#SM+#--
+static	D3DVERTEXELEMENT9 dwDecl_2W	[] =	// 28bytes
 {
-	{ 0, 0,		D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },	// : p					: 2	: -12..+12
-	{ 0, 16,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_NORMAL,		0 },	// : n.xyz, w = weight	: 1	:  -1..+1, w=0..1
-	{ 0, 20,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TANGENT,		0 },	// : T						: 1	:  -1..+1
-	{ 0, 24,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_BINORMAL,		0 },	// : B						: 1	:  -1..+1
-	{ 0, 28,	D3DDECLTYPE_FLOAT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,		0 },	// : xy(tc), zw(indices): 2	: -16..+16, zw[0..32767]
+	{ 0, 0,		D3DDECLTYPE_SHORT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_POSITION,		0 },	// : p					: 2	: -12..+12
+	{ 0, 8,		D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_NORMAL,		0 },	// : n.xyz, w = weight	: 1	:  -1..+1, w=0..1
+	{ 0, 12,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TANGENT,		0 },	// : T						: 1	:  -1..+1
+	{ 0, 16,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_BINORMAL,		0 },	// : B						: 1	:  -1..+1
+	{ 0, 20,	D3DDECLTYPE_SHORT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,		0 },	// : xy(tc), zw(indices): 2	: -16..+16, zw[0..32767]
 	D3DDECL_END()
 };
 struct	vertHW_2W
 {
-	float		_P		[4]; // --#SM+#--
+	s16			_P		[4];
 	u32			_N_w	;
 	u32			_T		;
 	u32			_B		;
-	float		_tc_i	[4]; // --#SM+#--
+	s16			_tc_i	[4];
 	void set	(Fvector3& P, Fvector3 N, Fvector3 T, Fvector3 B, Fvector2& tc, int index0, int index1, float w)
 	{
 		N.normalize_safe	();
 		T.normalize_safe	();
 		B.normalize_safe	();
-
-		// --#SM+#--
-		_P[0]		= P.x;
-		_P[1]		= P.y;
-		_P[2]		= P.z;
-		_P[3]		= 1.f;
-		// --#SM+#--
-
+		_P[0]		= q_P	(P.x);
+		_P[1]		= q_P	(P.y);
+		_P[2]		= q_P	(P.z);
+		_P[3]		= 1;
 		_N_w		= color_rgba(q_N(N.x), q_N(N.y), q_N(N.z), u8(clampr(iFloor(w*255.f+.5f),0,255)));
 		_T			= color_rgba(q_N(T.x), q_N(T.y), q_N(T.z), 0);
 		_B			= color_rgba(q_N(B.x), q_N(B.y), q_N(B.z), 0);
-
-		// --#SM+#--
-		_tc_i[0]	= tc.x;
-		_tc_i[1]	= tc.y;
-		// --#SM+#--
-
+		_tc_i[0]	= q_tc	(tc.x);
+		_tc_i[1]	= q_tc	(tc.y);
 		_tc_i[2]	= s16	(index0);
 		_tc_i[3]	= s16	(index1);
 	}
@@ -154,11 +143,11 @@ struct	vertHW_2W
 	{
 		return	(u16)_tc_i[w+2]/3;
 	}
-	void get_pos(Fvector& p) const // --#SM+#--
+	void get_pos(Fvector& p) const
 	{
-		p.x			= _P[0];
-		p.y			= _P[1];
-		p.z			= _P[2];
+		p.x			= u_P(_P[0]);
+		p.y			= u_P(_P[1]);
+		p.z			= u_P(_P[2]);
 	}
 	void get_pos_bones( Fvector& p, CKinematics* Parent ) const
 	{
@@ -170,44 +159,36 @@ struct	vertHW_2W
 			p.lerp			(P0,P1,get_weight());
 	}
 };
-static	D3DVERTEXELEMENT9 dwDecl_3W	[] =	// 44bytes --#SM+#--
+static	D3DVERTEXELEMENT9 dwDecl_3W	[] =	// 28bytes
 {
-	{ 0, 0,		D3DDECLTYPE_FLOAT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_POSITION,		0 },	// : p					: 2	: -12..+12
-	{ 0, 16,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_NORMAL,		0 },	// : n.xyz, w = weight0	: 1	:  -1..+1, w=0..1
-	{ 0, 20,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TANGENT,		0 },	// : T.xyz, w = weight1	: 1	:  -1..+1, w=0..1
-	{ 0, 24,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_BINORMAL,		0 },	// : B.xyz,	w = index2	: 1	:  -1..+1, w=0..255
-	{ 0, 28,	D3DDECLTYPE_FLOAT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,		0 },	// : xy(tc), zw(indices): 2	: -16..+16, zw[0..32767]
+	{ 0, 0,		D3DDECLTYPE_SHORT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_POSITION,		0 },	// : p					: 2	: -12..+12
+	{ 0, 8,		D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_NORMAL,		0 },	// : n.xyz, w = weight0	: 1	:  -1..+1, w=0..1
+	{ 0, 12,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TANGENT,		0 },	// : T.xyz, w = weight1	: 1	:  -1..+1, w=0..1
+	{ 0, 16,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_BINORMAL,		0 },	// : B.xyz,	w = index2	: 1	:  -1..+1, w=0..255
+	{ 0, 20,	D3DDECLTYPE_SHORT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,		0 },	// : xy(tc), zw(indices): 2	: -16..+16, zw[0..32767]
 	D3DDECL_END()
 };
 struct	vertHW_3W
 {
-	float		_P		[4]; // --#SM+#--
+	s16			_P		[4];
 	u32			_N_w	;
 	u32			_T_w	;
 	u32			_B_i	;
-	float		_tc_i	[4]; // --#SM+#--
+	s16			_tc_i	[4];
 	void set	(Fvector3& P, Fvector3 N, Fvector3 T, Fvector3 B, Fvector2& tc, int index0, int index1, int index2, float w0, float w1)
 	{
 		N.normalize_safe	();
 		T.normalize_safe	();
 		B.normalize_safe	();
-
-		// --#SM+#--
-		_P[0]		= P.x;
-		_P[1]		= P.y;
-		_P[2]		= P.z;
+		_P[0]		= q_P	(P.x);
+		_P[1]		= q_P	(P.y);
+		_P[2]		= q_P	(P.z);
 		_P[3]		= 1;
-		// --#SM+#--
-
 		_N_w		= color_rgba(q_N(N.x), q_N(N.y), q_N(N.z), u8(clampr(iFloor(w0*255.f+.5f),0,255)));
 		_T_w		= color_rgba(q_N(T.x), q_N(T.y), q_N(T.z), u8(clampr(iFloor(w1*255.f+.5f),0,255)));
 		_B_i		= color_rgba(q_N(B.x), q_N(B.y), q_N(B.z), u8(index2));
-
-		// --#SM+#--
-		_tc_i[0]	= tc.x;
-		_tc_i[1]	= tc.y;
-		// --#SM+#--
-
+		_tc_i[0]	= q_tc	(tc.x);
+		_tc_i[1]	= q_tc	(tc.y);
 		_tc_i[2]	= s16	(index0);
 		_tc_i[3]	= s16	(index1);
 	}
@@ -232,11 +213,11 @@ struct	vertHW_3W
 		R_ASSERT(0);
 		return 0;
 	}
-	void get_pos(Fvector& p) const // --#SM+#--
+	void get_pos(Fvector& p) const
 	{
-		p.x			= _P[0];
-		p.y			= _P[1];
-		p.z			= _P[2];
+		p.x			= u_P(_P[0]);
+		p.y			= u_P(_P[1]);
+		p.z			= u_P(_P[2]);
 	}
 	void get_pos_bones( Fvector& p, CKinematics* Parent ) const
 	{
@@ -258,46 +239,38 @@ struct	vertHW_3W
 	}
 };
 
-static	D3DVERTEXELEMENT9 dwDecl_4W	[] =	// 40bytes // --#SM+#--
+static	D3DVERTEXELEMENT9 dwDecl_4W	[] =	// 28bytes
 {
-	{ 0, 0,		D3DDECLTYPE_FLOAT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_POSITION,		0 },	// : p					: 2	: -12..+12
-	{ 0, 16,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_NORMAL,		0 },	// : n.xyz, w = weight0	: 1	:  -1..+1, w=0..1
-	{ 0, 20,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TANGENT,		0 },	// : T.xyz, w = weight1	: 1	:  -1..+1, w=0..1
-	{ 0, 24,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_BINORMAL,		0 },	// : B.xyz,	w = weight2	: 1	:  -1..+1, w=0..1
-	{ 0, 28,	D3DDECLTYPE_FLOAT2,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,		0 },	// : xy(tc)				: 2	: -16..+16
-	{ 0, 36,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,		1 },	// : indices			: 1	:  0..255
+	{ 0, 0,		D3DDECLTYPE_SHORT4,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_POSITION,		0 },	// : p					: 2	: -12..+12
+	{ 0, 8,		D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_NORMAL,		0 },	// : n.xyz, w = weight0	: 1	:  -1..+1, w=0..1
+	{ 0, 12,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TANGENT,		0 },	// : T.xyz, w = weight1	: 1	:  -1..+1, w=0..1
+	{ 0, 16,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_BINORMAL,		0 },	// : B.xyz,	w = weight2	: 1	:  -1..+1, w=0..1
+	{ 0, 20,	D3DDECLTYPE_SHORT2,		D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,		0 },	// : xy(tc)				: 2	: -16..+16
+	{ 0, 24,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,		1 },	// : indices			: 1	:  0..255
 	D3DDECL_END()
 };
 struct	vertHW_4W
 {
-	float		_P		[4]; // --#SM+#--
+	s16			_P		[4];
 	u32			_N_w	;
 	u32			_T_w	;
 	u32			_B_w	;
-	float		_tc		[2]; // --#SM+#--
+	s16			_tc		[2];
 	u32			_i		;
 	void set	(Fvector3& P, Fvector3 N, Fvector3 T, Fvector3 B, Fvector2& tc, int index0, int index1, int index2, int index3, float w0, float w1, float w2)
 	{
 		N.normalize_safe	();
 		T.normalize_safe	();
 		B.normalize_safe	();
-
-		// --#SM+#--
-		_P[0]		= P.x;
-		_P[1]		= P.y;
-		_P[2]		= P.z;
+		_P[0]		= q_P	(P.x);
+		_P[1]		= q_P	(P.y);
+		_P[2]		= q_P	(P.z);
 		_P[3]		= 1;
-		// --#SM+#--
-
 		_N_w		= color_rgba(q_N(N.x), q_N(N.y), q_N(N.z), u8(clampr(iFloor(w0*255.f+.5f),0,255)));
 		_T_w		= color_rgba(q_N(T.x), q_N(T.y), q_N(T.z), u8(clampr(iFloor(w1*255.f+.5f),0,255)));
 		_B_w		= color_rgba(q_N(B.x), q_N(B.y), q_N(B.z), u8(clampr(iFloor(w2*255.f+.5f),0,255)));
-
-		// --#SM+#--
-		_tc[0]		= tc.x;
-		_tc[1]		= tc.y;
-		// --#SM+#--
-		
+		_tc[0]		= q_tc	(tc.x);
+		_tc[1]		= q_tc	(tc.y);
 		_i		= color_rgba( u8(index0), u8(index1), u8(index2), u8(index3));
 	}
 	float get_weight0() const
@@ -328,11 +301,11 @@ struct	vertHW_4W
 		R_ASSERT(0);
 		return 0;
 	}
-	void get_pos(Fvector& p) const // --#SM+#--
+	void get_pos(Fvector& p) const
 	{
-		p.x			= _P[0];
-		p.y			= _P[1];
-		p.z			= _P[2];
+		p.x			= u_P(_P[0]);
+		p.y			= u_P(_P[1]);
+		p.z			= u_P(_P[2]);
 	}
 	void get_pos_bones( Fvector& p, CKinematics* Parent ) const
 	{
@@ -1063,58 +1036,50 @@ void	CSkeletonX_PM::		EnumBoneVertices( SEnumVerticesCallback &C, u16 bone_id )
 
 void CSkeletonX_ext::_FillVerticesHW1W(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, Fvisual* V, u16* indices, CBoneData::FacesVec& faces)
 {
-	R_ASSERT2(false, "Should use _FillVerticesSoft1W on R3!");
+	R_ASSERT2(0,"CSkeletonX_ext::_FillVerticesHW1W not implemented");
 }
 void CSkeletonX_ext::_FillVerticesHW2W(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, Fvisual* V, u16* indices, CBoneData::FacesVec& faces)
 {
-	R_ASSERT2(false, "Should use _FillVerticesSoft2W on R3!");
+	R_ASSERT2(0,"CSkeletonX_ext::_FillVerticesHW2W not implemented");
 }
 
 void CSkeletonX_ext::_FillVerticesHW3W(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, Fvisual* V, u16* indices, CBoneData::FacesVec& faces)
 {
-	R_ASSERT2(false, "Should use _FillVerticesSoft3W on R3!");
+	R_ASSERT2(0,"CSkeletonX_ext::_FillVerticesHW3W not implemented");
 }
 
 void CSkeletonX_ext::_FillVerticesHW4W(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, Fvisual* V, u16* indices, CBoneData::FacesVec& faces)
 {
-	R_ASSERT2(false, "Should use _FillVerticesSoft4W on R3!");
+	R_ASSERT2(0,"CSkeletonX_ext::_FillVerticesHW4W not implemented");
 }
 
 #else	//	USE_DX10
 
 void CSkeletonX_ext::_FillVerticesHW1W(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, Fvisual* V, u16* indices, CBoneData::FacesVec& faces)
 {
-	vertHW_1W* vertices;
-	CHK_DX(V->p_rm_Vertices->Lock(V->vBase, V->vCount, (void**)&vertices,D3DLOCK_READONLY));
-	for (CBoneData::FacesVecIt it = faces.begin(); it != faces.end(); it++)
-	{
-		Fvector	p[3];
-		u32 idx	= (*it)*3;
+	vertHW_1W*			vertices;
+	CHK_DX				(V->p_rm_Vertices->Lock(V->vBase,V->vCount,(void**)&vertices,D3DLOCK_READONLY));
+	for (CBoneData::FacesVecIt it=faces.begin(); it!=faces.end(); it++){
+		Fvector			p[3];
+		u32 idx			= (*it)*3;
 		CSkeletonWallmark::WMFace F;
-		for (u32 k = 0; k < 3; k++)
-		{
+		for (u32 k=0; k<3; k++){
 			vertHW_1W& vert			= vertices[indices[idx+k]];
 			F.bone_id[k][0]			= vert.get_bone();
 			F.bone_id[k][1]			= F.bone_id[k][0];
-			F.bone_id[k][2]			= F.bone_id[k][0];
-			F.bone_id[k][3]			= F.bone_id[k][0];
-			F.weight[k][0]			= 0.f;
-			F.weight[k][1]			= 0.f;
-			F.weight[k][2]			= 0.f;
+			F.weight[k]				= 0.f;
 			const Fmatrix& xform	= Parent->LL_GetBoneInstance(F.bone_id[k][0]).mRenderTransform; 
 			vert.get_pos			(F.vert[k]);
 			xform.transform_tiny	(p[k],F.vert[k]);
 		}
 		Fvector test_normal;
-		test_normal.mknormal		(p[0],p[1],p[2]);
-		float cosa = test_normal.dotproduct(normal);
-		if (cosa < EPS) continue;
-
+		test_normal.mknormal	(p[0],p[1],p[2]);
+		float cosa				= test_normal.dotproduct(normal);
+		if (cosa<EPS)			continue;
 		if (CDB::TestSphereTri(wm.ContactPoint(),size,p))
 		{
-			Fvector UV;
-			for (u32 k = 0; k < 3; k++)
-			{
+			Fvector				UV;
+			for (u32 k=0; k<3; k++){
 				Fvector2& uv	= F.uv[k];
 				view.transform_tiny(UV,p[k]);
 				uv.x			= (1+UV.x)*.5f;
@@ -1127,43 +1092,38 @@ void CSkeletonX_ext::_FillVerticesHW1W(const Fmatrix& view, CSkeletonWallmark& w
 }
 void CSkeletonX_ext::_FillVerticesHW2W(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, Fvisual* V, u16* indices, CBoneData::FacesVec& faces)
 {
-	vertHW_2W* vertices;
-	CHK_DX(V->p_rm_Vertices->Lock(V->vBase, V->vCount, (void**)&vertices, D3DLOCK_READONLY));
+	vertHW_2W*			vertices;
+	CHK_DX				(V->p_rm_Vertices->Lock(V->vBase,V->vCount,(void**)&vertices,D3DLOCK_READONLY));
 
-	for (CBoneData::FacesVecIt it = faces.begin(); it != faces.end(); ++it)
+	for (CBoneData::FacesVecIt it=faces.begin(); it!=faces.end(); ++it)
 	{
-		Fvector p[3];
-		u32 idx = (*it)*3;
-		CSkeletonWallmark::WMFace F;
+		Fvector						p[3];
+		u32 idx						= (*it)*3;
+		CSkeletonWallmark::WMFace	F;
 
-		for (u32 k = 0; k < 3; k++)
+		for (u32 k=0; k<3; k++)
 		{
 			Fvector P0,P1;
 			vertHW_2W& vert			= vertices[indices[idx+k]];
 			F.bone_id[k][0]			= vert.get_bone(0);
 			F.bone_id[k][1]			= vert.get_bone(1);
-			F.bone_id[k][2]			= F.bone_id[k][1];
-			F.bone_id[k][3]			= F.bone_id[k][1];
-			F.weight[k][0]			= vert.get_weight();
-			F.weight[k][1]			= 0.f;
-			F.weight[k][2]			= 0.f;
+			F.weight[k]				= vert.get_weight();
 			Fmatrix& xform0			= Parent->LL_GetBoneInstance(F.bone_id[k][0]).mRenderTransform; 
 			Fmatrix& xform1			= Parent->LL_GetBoneInstance(F.bone_id[k][1]).mRenderTransform; 
 			vert.get_pos			(F.vert[k]);		
 			xform0.transform_tiny	(P0,F.vert[k]);
 			xform1.transform_tiny	(P1,F.vert[k]);
-			p[k].lerp				(P0,P1,F.weight[k][0]);
+			p[k].lerp				(P0,P1,F.weight[k]);
 		}
 		Fvector test_normal;
-		test_normal.mknormal		(p[0],p[1],p[2]);
-		float cosa = test_normal.dotproduct(normal);
-		if (cosa<EPS) continue;
+		test_normal.mknormal	(p[0],p[1],p[2]);
+		float cosa				= test_normal.dotproduct(normal);
+		if (cosa<EPS)			continue;
 
 		if (CDB::TestSphereTri(wm.ContactPoint(),size,p))
 		{
-			Fvector UV;
-			for (u32 k = 0; k < 3; k++)
-			{
+			Fvector				UV;
+			for (u32 k=0; k<3; k++){
 				Fvector2& uv	= F.uv[k];
 				view.transform_tiny(UV,p[k]);
 				uv.x			= (1+UV.x)*.5f;
@@ -1177,126 +1137,45 @@ void CSkeletonX_ext::_FillVerticesHW2W(const Fmatrix& view, CSkeletonWallmark& w
 
 void CSkeletonX_ext::_FillVerticesHW3W(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, Fvisual* V, u16* indices, CBoneData::FacesVec& faces)
 {
-	vertHW_3W* vertices;
-	CHK_DX(V->p_rm_Vertices->Lock(V->vBase, V->vCount, (void**)&vertices, D3DLOCK_READONLY));
-
-	for (CBoneData::FacesVecIt it = faces.begin(); it != faces.end(); ++it)
-	{
-		Fvector p[3];
-		u32 idx = (*it) * 3;
-		CSkeletonWallmark::WMFace F;
-
-		for (u32 k = 0; k < 3; k++)
-		{
-			vertHW_3W& vert			= vertices[indices[idx + k]];
-			F.bone_id[k][0]			= vert.get_bone(0);
-			F.bone_id[k][1]			= vert.get_bone(1);
-			F.bone_id[k][2]			= vert.get_bone(2);
-			F.bone_id[k][3]			= F.bone_id[k][2];
-			F.weight[k][0]			= vert.get_weight0();
-			F.weight[k][1]			= vert.get_weight1();
-			F.weight[k][2]			= 0.f;
-			vert.get_pos			(F.vert[k]);
-			vert.get_pos_bones		(p[k], Parent);
-		}
-		Fvector test_normal;
-		test_normal.mknormal		(p[0], p[1], p[2]);
-		float cosa = test_normal.dotproduct(normal);
-		if (cosa < EPS) continue;
-
-		if (CDB::TestSphereTri(wm.ContactPoint(), size, p))
-		{
-			Fvector	UV;
-			for (u32 k = 0; k < 3; k++) 
-			{
-				Fvector2& uv		= F.uv[k];
-				view.transform_tiny	(UV, p[k]);
-				uv.x =				(1 + UV.x)*.5f;
-				uv.y =				(1 - UV.y)*.5f;
-			}
-			wm.m_Faces.push_back(F);
-		}
-	}
-	CHK_DX(V->p_rm_Vertices->Unlock());
+	R_ASSERT2(0,"CSkeletonX_ext::_FillVerticesHW3W not implemented");
 }
 
 void CSkeletonX_ext::_FillVerticesHW4W(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, Fvisual* V, u16* indices, CBoneData::FacesVec& faces)
 {
-	vertHW_4W* vertices;
-	CHK_DX(V->p_rm_Vertices->Lock(V->vBase, V->vCount, (void**)&vertices, D3DLOCK_READONLY));
-
-	for (CBoneData::FacesVecIt it = faces.begin(); it != faces.end(); ++it)
-	{
-		Fvector	p[3];
-		u32 idx = (*it) * 3;
-		CSkeletonWallmark::WMFace F;
-
-		for (u32 k = 0; k < 3; k++)
-		{
-			vertHW_4W& vert			= vertices[indices[idx + k]];
-			F.bone_id[k][0]			= vert.get_bone(0);
-			F.bone_id[k][1]			= vert.get_bone(1);
-			F.bone_id[k][2]			= vert.get_bone(2);
-			F.bone_id[k][3]			= vert.get_bone(3);
-			F.weight[k][0]			= vert.get_weight0();
-			F.weight[k][1]			= vert.get_weight1();
-			F.weight[k][2]			= vert.get_weight2();
-			vert.get_pos			(F.vert[k]);
-			vert.get_pos_bones		(p[k], Parent);
-		}
-		Fvector test_normal;
-		test_normal.mknormal		(p[0], p[1], p[2]);
-		float cosa = test_normal.dotproduct(normal);
-		if (cosa < EPS) continue;
-
-		if (CDB::TestSphereTri(wm.ContactPoint(), size, p))
-		{
-			Fvector	UV;
-			for (u32 k = 0; k < 3; k++) 
-			{
-				Fvector2& uv		= F.uv[k];
-				view.transform_tiny	(UV, p[k]);
-				uv.x =				(1 + UV.x)*.5f;
-				uv.y =				(1 - UV.y)*.5f;
-			}
-			wm.m_Faces.push_back(F);
-		}
-	}
-	CHK_DX(V->p_rm_Vertices->Unlock());
+	R_ASSERT2(0,"CSkeletonX_ext::_FillVerticesHW4W not implemented");
 }
 #endif	//	USE_DX10
 
 
 void CSkeletonX_ext::_FillVertices(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, Fvisual* V, u16 bone_id, u32 iBase, u32 iCount)
 {
-	VERIFY(Parent && (ChildIDX != u16(-1)));
-    CBoneData& BD				= Parent->LL_GetData(bone_id);
-    CBoneData::FacesVec*faces	= &BD.child_faces[ChildIDX];
-    u16* indices				= 0;
-#ifdef	USE_DX10
-    indices						= *m_Indices;
-#else	//	USE_DX10
-    CHK_DX(V->p_rm_Indices->Lock(0, V->dwPrimitives * 3, (void**)&indices, D3DLOCK_READONLY));
-    // fill vertices
-	switch (RenderMode)
+	R_ASSERT2(0,"CSkeletonX_ext::_FillVertices not implemented");
+}
+/*
+void CSkeletonX_ext::_FillVertices(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, Fvisual* V, u16 bone_id, u32 iBase, u32 iCount)
+{
+	VERIFY				(Parent&&(ChildIDX!=u16(-1)));
+	CBoneData& BD					= Parent->LL_GetData(bone_id);
+	CBoneData::FacesVec*	faces	= &BD.child_faces[ChildIDX];
+	u16* indices		= 0;
+	//.	R_CHK				(V->pIndices->Lock(iBase,iCount,		(void**)&indices,	D3DLOCK_READONLY));
+	CHK_DX				(V->p_rm_Indices->Lock(0,V->dwPrimitives*3,(void**)&indices,D3DLOCK_READONLY));
+	// fill vertices
+	switch	(RenderMode)
 	{
 	case RM_SKINNING_SOFT:
-#endif	//	USE_DX10
-		if (*Vertices1W)			_FillVerticesSoft1W(view, wm, normal, size, indices + iBase, *faces);
-		else if (*Vertices2W)		_FillVerticesSoft2W(view, wm, normal, size, indices + iBase, *faces);
-		else if (*Vertices3W)		_FillVerticesSoft3W(view, wm, normal, size, indices + iBase, *faces);
-		else						_FillVerticesSoft4W(view, wm, normal, size, indices + iBase, *faces);
-#ifndef	USE_DX10
+		if (*Vertices1W)			_FillVerticesSoft1W		(view,wm,normal,size,indices+iBase,*faces);
+		else						_FillVerticesSoft2W		(view,wm,normal,size,indices+iBase,*faces);
 		break;
 	case RM_SINGLE:
-	case RM_SKINNING_1B:			_FillVerticesHW1W(view, wm, normal, size, V, indices + iBase, *faces);	break;
-	case RM_SKINNING_2B:			_FillVerticesHW2W(view, wm, normal, size, V, indices + iBase, *faces);	break;
-	case RM_SKINNING_3B:			_FillVerticesHW3W(view, wm, normal, size, V, indices + iBase, *faces);	break;
-	case RM_SKINNING_4B:			_FillVerticesHW4W(view, wm, normal, size, V, indices + iBase, *faces);	break;
+	case RM_SKINNING_1B:			_FillVerticesHW1W		(view,wm,normal,size,V,indices+iBase,*faces);		break;
+	case RM_SKINNING_2B:			_FillVerticesHW2W		(view,wm,normal,size,V,indices+iBase,*faces);		break;
+	case RM_SKINNING_3B:			_FillVerticesHW3W		(view,wm,normal,size,V,indices+iBase,*faces);		break;
+	case RM_SKINNING_4B:			_FillVerticesHW4W		(view,wm,normal,size,V,indices+iBase,*faces);		break;
 	}
-    CHK_DX(V->p_rm_Indices->Unlock());
-#endif	//	USE_DX10
+	CHK_DX				(V->p_rm_Indices->Unlock());
 }
+*/
 
 void CSkeletonX_ST::FillVertices	(const Fmatrix& view, CSkeletonWallmark& wm, const Fvector& normal, float size, u16 bone_id)
 {

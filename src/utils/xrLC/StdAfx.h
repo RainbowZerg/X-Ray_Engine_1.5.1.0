@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include <Windows.h>
-
 #include "../../xrCore/xrCore.h"
 
 #include "../xrLC_Light/xrLC_Light.h"

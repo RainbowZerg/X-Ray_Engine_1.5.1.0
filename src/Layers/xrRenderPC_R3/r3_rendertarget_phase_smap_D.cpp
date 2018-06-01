@@ -2,8 +2,12 @@
 
 void	CRenderTarget::phase_smap_direct		(light* L, u32 sub_phase)
 {
+	//	TODO: DX10: Check thst we will never need old SMap implementation
 	// Targets
-	u_setrt	(rt_smap_surf, NULL, NULL, rt_smap_depth->pZRT);
+	if (RImplementation.o.HW_smap)		u_setrt	(rt_smap_surf, NULL, NULL, rt_smap_depth->pZRT);
+	//else								u_setrt	(rt_smap_surf, NULL, NULL, rt_smap_ZB);
+	else								VERIFY(!"Use HW SMap only for DX10!");
+
 
 	//	Don't have rect clear for DX10
 	//	TODO: DX9:	Full clear must be faster for the near phase for SLI

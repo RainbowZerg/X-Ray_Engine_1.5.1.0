@@ -70,8 +70,6 @@ static void object_contactCallbackFun(bool& do_colide,bool bo1,dContact& c,SGame
 	virtual void PhDataUpdate(dReal step);
 	virtual void PhTune(dReal step);
 	virtual void NetRelcase		(CPhysicsShell *s);
-public:
-	CPhysicsShellHolder*  taget_object() const { return m_taget_object; };
 
 };
 #endif

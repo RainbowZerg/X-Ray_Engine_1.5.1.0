@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "light.h"
 
-//static const float	SQRT2		=	1.4142135623730950488016887242097f;
+static const float	SQRT2		=	1.4142135623730950488016887242097f;
 static const float	RSQRTDIV2	=	0.70710678118654752440084436210485f;
 
 light::light		(void)	: ISpatial(g_SpatialSpace)
@@ -13,8 +13,6 @@ light::light		(void)	: ISpatial(g_SpatialSpace)
 	flags.bShadow	= false;
 	flags.bVolumetric = false;
 	flags.bHudMode	= false;
-	flags.bFlare	= true;
-
 	position.set	(0,-1000,0);
 	direction.set	(0,-1,0);
 	right.set		(0,0,0);
@@ -23,13 +21,13 @@ light::light		(void)	: ISpatial(g_SpatialSpace)
 	color.set		(1,1,1,1);
 
 	m_volumetric_quality	= 1;
+	//m_volumetric_quality	= 0.5;
 	m_volumetric_intensity	= 1;
 	m_volumetric_distance	= 1;
 
 	frame_render	= 0;
 
 #if (RENDER==R_R2) || (RENDER==R_R3)
-	virtual_size	= 0.1f; // Ray Twitty (aka Shadows): по умолчанию надо 0.1, чтобы не пришлось вызывать для каждого лайта установку виртуального размера
 	ZeroMemory		(omnipart,sizeof(omnipart));
 	s_spot			= NULL;
 	s_point			= NULL;
@@ -38,8 +36,6 @@ light::light		(void)	: ISpatial(g_SpatialSpace)
 	vis.query_order	= 0;
 	vis.visible		= true;
 	vis.pending		= false;
-
-	fBlend			= 0;
 #endif
 }
 
@@ -57,9 +53,9 @@ light::~light	()
 #endif
 }
 
+#if (RENDER==R_R2) || (RENDER==R_R3)
 void light::set_texture		(LPCSTR name)
 {
-#if (RENDER==R_R2) || (RENDER==R_R3)
 	if ((0==name) || (0==name[0]))
 	{
 		// default shaders
@@ -70,38 +66,38 @@ void light::set_texture		(LPCSTR name)
 	}
 
 #pragma todo				("Only shadowed spot implements projective texture")
-	string256 temp_spot, temp_point;
-	strconcat(sizeof(temp_spot), temp_spot, "r2\\accum_spot_", name);
-	strconcat(sizeof(temp_point), temp_point, "r2\\accum_point_", name);
-
+	string256				temp;
+	
+	strconcat(sizeof(temp),temp,"r2\\accum_spot_",name);
 	//strconcat(sizeof(temp),temp,"_nomsaa",name);
-	s_spot.create(RImplementation.Target->b_accum_spot, temp_spot, name);
-	s_point.create(RImplementation.Target->b_accum_point, temp_point, name);
+	s_spot.create			(RImplementation.Target->b_accum_spot,temp,name);
 
 #if	RENDER!=R_R3
 	s_volumetric.create		("accum_volumetric", name);
 #else	//	RENDER!=R_R3
-	string256 temp_vol_msaa;
-	strconcat(sizeof(temp_vol_msaa), temp_vol_msaa, "r2\\accum_volumetric_", name);
-
 	s_volumetric.create		("accum_volumetric_nomsaa", name);
-	if (RImplementation.o.dx10_msaa)
+	if( RImplementation.o.dx10_msaa )
 	{
 		int bound = 1;
 
-		if (!RImplementation.o.dx10_msaa_opt)
+		if( !RImplementation.o.dx10_msaa_opt )
 			bound = RImplementation.o.dx10_msaa_samples;
 
-		for (int i = 0; i < bound; ++i)
+		for( int i = 0; i < bound; ++i )
 		{
-			s_spot_msaa[i].create		(RImplementation.Target->b_accum_spot_msaa[i], temp_spot, name);
-			s_point_msaa[i].create		(RImplementation.Target->b_accum_point_msaa[i], temp_point, name);
-			s_volumetric_msaa[i].create	(RImplementation.Target->b_accum_volumetric_msaa[i], temp_vol_msaa, name);
+			s_spot_msaa[i].create				(RImplementation.Target->b_accum_spot_msaa[i],strconcat(sizeof(temp),temp,"r2\\accum_spot_",name),name);
+			s_volumetric_msaa[i].create	(RImplementation.Target->b_accum_volumetric_msaa[i],strconcat(sizeof(temp),temp,"r2\\accum_volumetric_",name),name);
 		}
 	}
 #endif	//	RENDER!=R_R3
-#endif
 }
+#endif
+
+#if RENDER==R_R1
+void light::set_texture		(LPCSTR name)
+{
+}
+#endif
 
 void light::set_active		(bool a)
 {
@@ -293,35 +289,22 @@ static	Fvector cmDir[6]	= {{1.f,0.f,0.f}, {-1.f,0.f,0.f},{0.f,1.f,0.f}, {0.f,-1.
 
 void	light::export		(light_Package& package)
 {
-	if (flags.bShadow)			
-	{
-		switch (flags.type)	
-		{
+	if (flags.bShadow)			{
+		switch (flags.type)	{
 			case IRender_Light::POINT:
 				{
 					// tough: create/update 6 shadowed lights
-					if (0 == omnipart[0])
-					{
-						for (int f = 0; f < 6; f++)
-							omnipart[f] = xr_new<light>();
-					}
-
-					for (int f=0; f<6; f++)	
-					{
+					if (0==omnipart[0])	for (int f=0; f<6; f++)	omnipart[f] = xr_new<light> ();
+					for (int f=0; f<6; f++)	{
 						light*	L			= omnipart[f];
 						Fvector				R;
 						R.crossproduct		(cmNorm[f],cmDir[f]);
 						L->set_type			(IRender_Light::OMNIPART);
 						L->set_shadow		(true);
-						L->set_flare		(flags.bFlare);
 						L->set_position		(position);
 						L->set_rotation		(cmDir[f],	R);
 						L->set_cone			(PI_DIV_2);
 						L->set_range		(range);
-						/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
-						// надо еще экспортировать
-						L->set_virtual_size (virtual_size);
-						/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 						L->set_color		(color);
 						L->spatial.sector	= spatial.sector;	//. dangerous?
 						L->s_spot			= s_spot	;
@@ -359,9 +342,7 @@ void	light::export		(light_Package& package)
 				package.v_shadowed.push_back			(this);
 				break;
 		}
-	}	
-	else	
-	{
+	}	else	{
 		switch (flags.type)	{
 			case IRender_Light::POINT:		package.v_point.push_back	(this);	break;
 			case IRender_Light::SPOT:		package.v_spot.push_back	(this);	break;

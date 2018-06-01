@@ -78,13 +78,15 @@ void CRadioactiveZone::Affect(SZoneObjectInfo* O)
 	}//while
 }
 
-void CRadioactiveZone::feel_touch_new(CObject* O)
+void CRadioactiveZone::feel_touch_new					(CObject* O	)
 {
 	inherited::feel_touch_new(O);
 	if (GameID() != eGameIDSingle)
 	{
 		if (smart_cast<CActor*>(O))
+		{
 			CreateHit(O->ID(),ID(),Fvector().set(0, 0, 0),0.0f,0.0f,BI_NONE,Fvector().set(0, 0, 0),0.0f,m_eHitTypeBlowout);// ALife::eHitTypeRadiation
+		}
 	};
 };
 

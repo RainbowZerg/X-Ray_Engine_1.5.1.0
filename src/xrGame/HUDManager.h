@@ -54,7 +54,6 @@ public:
 	
 	virtual		void		Render_First		();
 	virtual		void		Render_Last			();	   
-	virtual		void		Render_Actor_Shadow	();	// added by KD
 	virtual		void		OnFrame				();
 
 	virtual		void		RenderUI			();
@@ -80,7 +79,7 @@ public:
 
 	void					SetHitmarkType		( LPCSTR tex_name );
 	void					SetGrenadeMarkType	( LPCSTR tex_name );
-	virtual void			OnScreenResolutionChanged();
+	virtual void			OnScreenRatioChanged();
 	virtual void			OnDisconnected		();
 	virtual void			OnConnected			();
 	virtual	void			RenderActiveItemUI	();

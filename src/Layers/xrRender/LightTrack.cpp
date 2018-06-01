@@ -220,31 +220,30 @@ void	CROS_impl::update	(IRenderable* O)
 #if RENDER!=R_R1
 		float hemi_cube_light[NUM_FACES] = {0,0,0,0,0,0};
 #endif
-		for (u32 lit = 0; lit < lights.size(); lit++)	
-		{
-			Light	cur_light	= lights[lit];
-			light*	light_src	= cur_light.source;
-			float	dist		= light_src->position.distance_to(position);
+		for (u32 lit=0; lit<lights.size(); lit++)	{
+			light*	L	=	lights[lit].source;
+			float	d	=	L->position.distance_to(position);
 			
 #if RENDER!=R_R1
-			float a	= (1/(light_src->attenuation0 + light_src->attenuation1*dist + light_src->attenuation2*dist*dist) - dist*light_src->falloff) *(light_src->flags.bStatic?1.f:2.f);
+			float	a	=	(1/(L->attenuation0 + L->attenuation1*d + L->attenuation2*d*d) - d*L->falloff) *(L->flags.bStatic?1.f:2.f);
 			a	=	(a > 0) ? a : 0.0f;
 
-			Fvector3 dir;
-			dir.sub(light_src->position, position);
+			Fvector3	dir;
+			dir.sub(L->position, position);
 			dir.normalize_safe();
 			
 			//multiply intensity on attenuation and accumulate result in hemi cube face
-			float koef = (cur_light.color.r + cur_light.color.g + cur_light.color.b) / 3.0f * a * ps_r2_dhemi_light_scale;
+			float koef = (lights[lit].color.r + lights[lit].color.g + lights[lit].color.b) / 3.0f * a
+						* ps_r2_dhemi_light_scale;
 			
 			accum_hemi(hemi_cube_light, dir, koef);
 #else
-			float	r	=	light_src->range;
-			float	a	=	clampr(1.f - dist/(r+EPS),0.f,1.f)*(light_src->flags.bStatic?1.f:2.f);
+			float	r	=	L->range;
+			float	a	=	clampr(1.f - d/(r+EPS),0.f,1.f)*(L->flags.bStatic?1.f:2.f);
 #endif
-			lacc.x	+=	cur_light.color.r*a;
-			lacc.y	+=	cur_light.color.g*a;
-			lacc.z	+=	cur_light.color.b*a;
+			lacc.x		+=	lights[lit].color.r*a;
+			lacc.y		+=	lights[lit].color.g*a;
+			lacc.z		+=	lights[lit].color.b*a;
 		}
 #if RENDER!=R_R1
 		const float	minHemiValue = 1/255.f;
@@ -266,9 +265,7 @@ void	CROS_impl::update	(IRenderable* O)
 //		lacc.z		*= desc.lmap_color.z;
 //		Msg				("- rgb[%f,%f,%f]",lacc.x,lacc.y,lacc.z);
 		accum.add		(lacc);
-	} 
-	else 			
-		accum.set	(0.1f, 0.1f, 0.1f);
+	} else 			accum.set	( .1f, .1f, .1f );
 
 
 	//clamp(hemi_value, 0.0f, 1.0f); //Possibly can change hemi value
@@ -367,13 +364,13 @@ void CROS_impl::calc_sun_value(Fvector& position, CObject* _object)
 {
 
 #if RENDER==R_R1
-	light*	sun		=		(light*)RImplementation.L_DB->sun._get();
+	light*	sun		=		(light*)RImplementation.L_DB->sun_adapted._get()	;
 #else
-	light*	sun		=		(light*)RImplementation.Lights.sun._get();
+	light*	sun		=		(light*)RImplementation.Lights.sun_adapted._get()	;
 #endif
 	if	(MODE & IRender_ObjectSpecific::TRACE_SUN)	{
 		if  (--result_sun	< 0)	{
-			result_sun		+=		::Random.randI(lt_hemisamples/4,lt_hemisamples/2);
+			result_sun		+=		::Random.randI(lt_hemisamples/4,lt_hemisamples/2)	;
 			Fvector	direction;	direction.set	(sun->direction).invert().normalize	();
 			sun_value		=	!(g_pGameLevel->ObjectSpace.RayTest(position,direction,500.f,collide::rqtBoth,&cache_sun,_object))?1.f:0.f;
 		}
@@ -454,7 +451,7 @@ void CROS_impl::prepare_lights(Fvector& position, IRenderable* O)
 		// Trace visibility
 		lights.clear	();
 #if RENDER==R_R1 
-		float traceR	= radius*0.5f;
+		float traceR	= radius*.5f;
 #endif
 		for (s32 id=0; id<s32(track.size()); id++)
 		{
@@ -494,7 +491,7 @@ void CROS_impl::prepare_lights(Fvector& position, IRenderable* O)
 		}
 
 #if RENDER==R_R1
-		light* sun		=		(light*)RImplementation.L_DB->sun._get();
+		light*	sun		=		(light*)RImplementation.L_DB->sun_adapted._get()	;
 
 		// Sun
 		float	E			=	sun_smooth * sun->color.intensity	();

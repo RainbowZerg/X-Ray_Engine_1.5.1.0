@@ -1,4 +1,5 @@
-#pragma once
+#ifndef xr_efflensflareH
+#define xr_efflensflareH
 
 #include "xr_collide_defs.h"
 
@@ -59,15 +60,6 @@ public:
 };
 DEFINE_VECTOR(CLensFlareDescriptor*,LensFlareDescVec,LensFlareDescIt); 
 
-IC void	blend_lerp (float& cur, float tgt, float speed, float dt)
-{
-	float diff		= tgt - cur;
-	float diff_a	= abs(diff);
-	if (diff_a<EPS_S)	return;
-	float mot		= speed*dt;
-	if (mot>diff_a) mot = diff_a;
-	cur				+= (diff/diff_a)*mot;
-}
 
 class ENGINE_API CLensFlare
 {
@@ -130,3 +122,5 @@ public:
 
 	void				Invalidate		(){m_State=lfsNone;}
 };
+
+#endif // xr_efflensflareH

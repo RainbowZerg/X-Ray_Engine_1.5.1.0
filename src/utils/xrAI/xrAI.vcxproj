@@ -138,14 +138,14 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;./;../../xrServerEntities/;../../../sdk/include/stlport;../../../sdk/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../../xrServerEntities/;../../../sdk/include/stlport;../../../sdk/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;AI_COMPILER;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -160,7 +160,6 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -169,7 +168,7 @@
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\..\..\sdk\libraries;$(SolutionDir)libraries\$(Configuration);$(DXSDK_DIR)Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\sdk\libraries;..\..\..\..\libraries;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
@@ -181,7 +180,6 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ImportLibrary>$(SolutionDir)libraries\$(Configuration)\$(TargetName).lib</ImportLibrary>
       <TargetMachine>NotSet</TargetMachine>
-      <AdditionalDependencies>MagicFM.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">
@@ -505,12 +503,6 @@
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\xrCDB\xrCDB.vcxproj">
-      <Project>{a19b1df2-82ec-4364-8bdf-85d13a1c89b5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\xrCore\xrCore.vcxproj">
-      <Project>{a0f7d1fb-59a7-4717-a7e4-96f37e91998e}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\xrSE_Factory\xrSE_Factory.vcxproj">
       <Project>{3ad26fd3-4f52-4e22-a4cf-ad4c49e74c61}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

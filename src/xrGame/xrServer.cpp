@@ -87,6 +87,15 @@ xrServer::~xrServer()
 	entities.clear();
 }
 
+bool  xrServer::HasBattlEye()
+{
+#ifdef BATTLEYE
+	return (g_pGameLevel && Level().battleye_system.server)? true : false;
+#else
+	return false;
+#endif // BATTLEYE
+}
+
 //--------------------------------------------------------------------
 
 CSE_Abstract*	xrServer::ID_to_entity		(u16 ID)
@@ -456,6 +465,12 @@ void xrServer::SendUpdatesToAll()
 #endif			
 	if (game->sv_force_sync)	Perform_game_export();
 	VERIFY						(verify_entities());
+#ifdef BATTLEYE
+	if ( g_pGameLevel )
+	{
+		Level().battleye_system.UpdateServer( this );
+	}
+#endif // BATTLEYE
 }
 
 xr_vector<shared_str>	_tmp_log;
@@ -619,6 +634,13 @@ u32 xrServer::OnMessage	(NET_Packet& P, ClientID sender)			// Non-Zero means bro
 				CL->ps->DeathTime = Device.dwTimeGlobal;
 				game->OnPlayerConnectFinished(sender);
 				CL->ps->setName( CL->name.c_str() );
+				
+#ifdef BATTLEYE
+				if ( g_pGameLevel && Level().battleye_system.server )
+				{
+					Level().battleye_system.server->AddConnected_OnePlayer( CL );
+				}
+#endif // BATTLEYE
 			};
 			game->signal_Syncronize	();
 			VERIFY					(verify_entities());
@@ -746,6 +768,15 @@ u32 xrServer::OnMessage	(NET_Packet& P, ClientID sender)			// Non-Zero means bro
 	case M_REMOTE_CONTROL_CMD:
 		{
 			AddDelayedPacket(P, sender);
+		}break;
+	case M_BATTLEYE:
+		{
+#ifdef BATTLEYE
+			if ( g_pGameLevel )
+			{
+				Level().battleye_system.ReadPacketServer( sender.value(), &P );
+			}
+#endif // BATTLEYE
 		}break;
 	case M_FILE_TRANSFER:
 		{

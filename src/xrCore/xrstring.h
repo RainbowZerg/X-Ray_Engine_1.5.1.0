@@ -7,7 +7,6 @@
 typedef const char*		str_c;
 
 //////////////////////////////////////////////////////////////////////////
-#pragma warning(push)
 #pragma warning(disable : 4200)
 struct		XRCORE_API	str_value
 {
@@ -25,7 +24,8 @@ struct		XRCORE_API	str_value_cmp	{ // less
 struct		XRCORE_API	str_hash_function {
 	IC u32		operator ()	(str_value const* const value) const	{ return value->dwCRC;	};
 };
-#pragma warning(pop)
+
+#pragma warning(default : 4200)
 
 struct str_container_impl;
 

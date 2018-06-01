@@ -15,9 +15,9 @@ using namespace luabind;
 
 void LuaLog(LPCSTR caMessage)
 {
-//#ifndef MASTER_GOLD
+#ifndef MASTER_GOLD
 	ai().script_engine().script_log	(ScriptStorage::eLuaMessageTypeMessage,"%s",caMessage);
-//#endif // #ifndef MASTER_GOLD
+#endif // #ifndef MASTER_GOLD
 
 #ifdef USE_DEBUGGER
 #	ifndef USE_LUA_STUDIO
@@ -41,10 +41,10 @@ void ErrorLog(LPCSTR caMessage)
 
 void FlushLogs()
 {
-//#ifdef DEBUG
+#ifdef DEBUG
 	FlushLog();
 	ai().script_engine().flush_log();
-//#endif // DEBUG
+#endif // DEBUG
 }
 
 void verify_if_thread_is_running()

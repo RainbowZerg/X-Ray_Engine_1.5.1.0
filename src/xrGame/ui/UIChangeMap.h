@@ -7,6 +7,7 @@ class CUI3tButtonEx;
 class CUIFrameWindow;
 class CUIListBox;
 class CUIXml;
+class CExtraContentFilter;
 
 class CUIChangeMap : public CUIDialogWnd 
 {
@@ -36,6 +37,8 @@ protected:
 
 	CUI3tButtonEx*	btn_ok;
 	CUI3tButtonEx*	btn_cancel;
+
+	CExtraContentFilter*	m_pExtraContentFilter;
 
 	u32						m_prev_upd_time;
 };

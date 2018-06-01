@@ -19,14 +19,8 @@
 #	include "../../xrEngine/environment.h"
 #endif
 
-//const float dbgOffset			= 0.f;
-//const int	dbgItems			= 128;
-u32 reset_frame = 0;
-
-bool IsMainMenuActive() 
-{ 
-	return  g_pGamePersistent && g_pGamePersistent->m_pMainMenu && g_pGamePersistent->m_pMainMenu->IsActive(); 
-}
+const float dbgOffset			= 0.f;
+const int	dbgItems			= 128;
 
 //--------------------------------------------------- Decompression
 static int magic4x4[4][4] =
@@ -78,59 +72,27 @@ void CDetailManager::SSwingValue::lerp(const SSwingValue& A, const SSwingValue& 
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CDetailManager::CDetailManager() : dtFS(0), dtSlots(0), soft_Geom(0), hw_Geom(0), hw_BatchSize(0), hw_VB(0), hw_IB(0), m_time_rot_1(0), m_time_rot_2(0), m_time_pos(0), m_global_time_old(0)
+CDetailManager::CDetailManager	()
 {
-#ifdef DYNAMIC_DETAILS
-	dm_current_size			= dm_size;
-	dm_current_cache_line	= dm_cache_line;
-	dm_current_cache1_line	= dm_cache1_line;
-	dm_current_cache_size	= dm_cache_size;
-	dm_current_fade			= dm_fade;
-	ps_r__Detail_density	= ps_current_detail_density;
-
-	cache_level1	= (CacheSlot1**)Memory.mem_alloc(dm_current_cache1_line*sizeof(CacheSlot1*));
-	for (u32 i = 0; i < dm_current_cache1_line; ++i)
-	{
-		cache_level1[i]	= (CacheSlot1*)Memory.mem_alloc(dm_current_cache1_line*sizeof(CacheSlot1));
-		for (u32 j = 0; j < dm_current_cache1_line; ++j)
-			new (&(cache_level1[i][j])) CacheSlot1();
-	}
-
-	cache	= (Slot***)Memory.mem_alloc(dm_current_cache_line*sizeof(Slot**));
-	for (u32 i = 0; i < dm_current_cache_line; ++i)
-		cache[i] = (Slot**)Memory.mem_alloc(dm_current_cache_line*sizeof(Slot*));
-
-	cache_pool	= (Slot *)Memory.mem_alloc(dm_current_cache_size*sizeof(Slot));
-	for (u32 i = 0; i < dm_current_cache_size; ++i)
-		new (&(cache_pool[i])) Slot();
-
-#endif
+	dtFS 		= 0;
+	dtSlots		= 0;
+	soft_Geom	= 0;
+	hw_Geom		= 0;
+	hw_BatchSize= 0;
+	hw_VB		= 0;
+	hw_IB		= 0;
+	m_time_rot_1 = 0;
+	m_time_rot_2 = 0;
+	m_time_pos	= 0;
+	m_global_time_old = 0;
 }
 
 CDetailManager::~CDetailManager	()
 {
-#ifdef DYNAMIC_DETAILS
-	for (u32 i = 0; i < dm_current_cache_size; ++i)
-		cache_pool[i].~Slot();
 
-	Memory.mem_free(cache_pool);
-
-	for (u32 i = 0; i < dm_current_cache_line; ++i)
-		Memory.mem_free(cache[i]);
-
-	Memory.mem_free(cache);
-
-	for (u32 i = 0; i < dm_current_cache1_line; ++i)
-	{
-		for (u32 j = 0; j < dm_current_cache1_line; ++j)
-			cache_level1[i][j].~CacheSlot1();
-
-		Memory.mem_free(cache_level1[i]);
-	}
-	Memory.mem_free(cache_level1);
-#endif
 }
-
+/*
+*/
 #ifndef _EDITOR
 
 /*
@@ -208,12 +170,10 @@ void CDetailManager::Unload		()
 	if (UseVS())	hw_Unload	();
 	else			soft_Unload	();
 
-	for (DetailIt it=objects.begin(); it!=objects.end(); it++)
-	{
+	for (DetailIt it=objects.begin(); it!=objects.end(); it++){
 		(*it)->Unload();
 		xr_delete		(*it);
     }
-
 	objects.clear		();
 	m_visibles[0].clear	();
 	m_visibles[1].clear	();
@@ -227,32 +187,21 @@ void CDetailManager::UpdateVisibleM()
 {
 	Fvector		EYE				= Device.vCameraPosition;
 	
-	// ZergO: остался ли баг с фрустумом в ЧН? Похоже, что нет, трава не мигает.
-	/* KD: there is some bug: frustrum created from full transform matrix seems to be broken in some frames, so we should use saved frustrum from render interface*/
-	//CFrustum	View = RImplementation.ViewBase;
-	CFrustum View; View.CreateFromMatrix(Device.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
+	CFrustum	View;
+	View.CreateFromMatrix		(Device.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 
-	float fade_limit			= dm_current_fade*dm_current_fade;
-	float fade_start			= 0.f;
+	float fade_limit			= dm_fade;	fade_limit=fade_limit*fade_limit;
+	float fade_start			= 1.f;		fade_start=fade_start*fade_start;
 	float fade_range			= fade_limit-fade_start;
-	float r_ssaCHEAP			= 140*r_ssaDISCARD; // 16*
-
-	//clear 'vis'
-	for (u8 i = 0; i != 3; i++)
-	{
-		vis_list& list = m_visibles[i];
-		for (u32 j = 0; j != list.size(); j++)
-			list[j].clear_not_free();
-	}
+	float		r_ssaCHEAP		= 16*r_ssaDISCARD;
 
 	// Initialize 'vis' and 'cache'
 	// Collect objects for rendering
 	Device.Statistic->RenderDUMP_DT_VIS.Begin	();
-	for (u32 _mz=0; _mz<dm_current_cache1_line; _mz++){
-		for (u32 _mx=0; _mx<dm_current_cache1_line; _mx++){
+	for (int _mz=0; _mz<dm_cache1_line; _mz++){
+		for (int _mx=0; _mx<dm_cache1_line; _mx++){
 			CacheSlot1& MS		= cache_level1[_mz][_mx];
 			if (MS.empty)		continue;
-
 			u32 mask			= 0xff;
 			u32 res				= View.testSAABB		(MS.vis.sphere.P,MS.vis.sphere.R,MS.vis.box.data(),mask);
 			if (fcvNone==res)						 	continue;	// invisible-view frustum
@@ -263,20 +212,18 @@ void CDetailManager::UpdateVisibleM()
 
 				// if slot empty - continue
 				if (S.empty)	continue;
-#ifndef _EDITOR
-				if (!RImplementation.HOM.visible(S.vis))	continue;	// invisible-occlusion
-#endif
+
 				// if upper test = fcvPartial - test inner slots
-				if (fcvPartial==res)
-				{
+				if (fcvPartial==res){
 					u32 _mask	= mask;
 					u32 _res	= View.testSAABB			(S.vis.sphere.P,S.vis.sphere.R,S.vis.box.data(),_mask);
 					if (fcvNone==_res)						continue;	// invisible-view frustum
 				}
-
+#ifndef _EDITOR
+				if (!RImplementation.HOM.visible(S.vis))	continue;	// invisible-occlusion
+#endif
 				// Add to visibility structures
-				if (Device.dwFrame>S.frame)
-				{
+				if (Device.dwFrame>S.frame){
 					// Calc fade factor	(per slot)
 					float	dist_sq		= EYE.distance_to_sqr	(S.vis.sphere.P);
 					if		(dist_sq>fade_limit)				continue;
@@ -285,8 +232,7 @@ void CDetailManager::UpdateVisibleM()
 					float	dist_sq_rcp	= 1.f / dist_sq;
 
 					S.frame			= Device.dwFrame+Random.randI(15,30);
-					for (int sp_id=0; sp_id<dm_obj_in_slot; sp_id++)
-					{
+					for (int sp_id=0; sp_id<dm_obj_in_slot; sp_id++){
 						SlotPart&			sp	= S.G		[sp_id];
 						if (sp.id==DetailSlot::ID_Empty)	continue;
 
@@ -294,19 +240,16 @@ void CDetailManager::UpdateVisibleM()
 						sp.r_items[1].clear_not_free();
 						sp.r_items[2].clear_not_free();
 
-						float R			= objects[sp.id]->bv_sphere.R;
-						float Rq_drcp	= R*R*dist_sq_rcp;	// reordered expression for 'ssa' calc
+						float				R		= objects	[sp.id]->bv_sphere.R;
+						float				Rq_drcp	= R*R*dist_sq_rcp;	// reordered expression for 'ssa' calc
 
-						SlotItem **siIT=&(*sp.items.begin()), **siEND=&(*sp.items.end());
-						for (; siIT!=siEND; siIT++)
-						{
-							if (!(*siIT)) continue;
-
+						SlotItem			**siIT=&(*sp.items.begin()), **siEND=&(*sp.items.end());
+						for (; siIT!=siEND; siIT++){
 							SlotItem& Item			= *(*siIT);
-							float scale				= Item.scale_calculated	= Item.scale*alpha_i;
-							float ssa				= scale*scale*Rq_drcp;
+							float   scale			= Item.scale_calculated	= Item.scale*alpha_i;
+							float	ssa				= scale*scale*Rq_drcp;
 							if (ssa < r_ssaDISCARD) continue;
-							u32 vis_id				= 0;
+							u32		vis_id			= 0;
 							if (ssa > r_ssaCHEAP)	vis_id = Item.vis_ID;
 							
 							sp.r_items[vis_id].push_back	(*siIT);
@@ -315,9 +258,8 @@ void CDetailManager::UpdateVisibleM()
 						}
 					}
 				}
-				for (int sp_id=0; sp_id<dm_obj_in_slot; sp_id++)
-				{
-					SlotPart& sp = S.G[sp_id];
+				for (int sp_id=0; sp_id<dm_obj_in_slot; sp_id++){
+					SlotPart&			sp	= S.G		[sp_id];
 					if (sp.id==DetailSlot::ID_Empty)	continue;
 					if (!sp.r_items[0].empty()) m_visibles[0][sp.id].push_back(&sp.r_items[0]);
 					if (!sp.r_items[1].empty()) m_visibles[1][sp.id].push_back(&sp.r_items[1]);
@@ -332,10 +274,8 @@ void CDetailManager::UpdateVisibleM()
 void CDetailManager::Render	()
 {
 #ifndef _EDITOR
-	if (0 == RImplementation.Details)	return;
-	if (0 == dtFS)						return;
+	if (0==dtFS)						return;
 	if (!psDeviceFlags.is(rsDetails))	return;
-	if (IsMainMenuActive())				return; // не рисовать траву в меню
 #endif
 
 	// MT
@@ -362,28 +302,25 @@ void CDetailManager::Render	()
 void __stdcall	CDetailManager::MT_CALC		()
 {
 #ifndef _EDITOR
-	if (reset_frame == Device.dwFrame)	return; // !!! ogse
-
-	if (0 == RImplementation.Details)	return;	// possibly deleted
+	if (0==RImplementation.Details)		return;	// possibly deleted
+	if (0==dtFS)						return;
 	if (!psDeviceFlags.is(rsDetails))	return;
-	if (0 == dtFS)						return;
-	if (IsMainMenuActive())				return; // не рисовать траву в меню
 #endif    
 
 	MT.Enter					();
 	if (m_frame_calc!=Device.dwFrame)	
 		if ((m_frame_rendered+1)==Device.dwFrame) //already rendered
 		{
-			Fvector EYE			= Device.vCameraPosition;
-			int s_x				= iFloor(EYE.x/dm_slot_size+.5f);
-			int s_z				= iFloor(EYE.z/dm_slot_size+.5f);
+			Fvector		EYE				= Device.vCameraPosition;
+			int s_x	= iFloor			(EYE.x/dm_slot_size+.5f);
+			int s_z	= iFloor			(EYE.z/dm_slot_size+.5f);
 
 			Device.Statistic->RenderDUMP_DT_Cache.Begin	();
-			cache_Update		(s_x,s_z,EYE,dm_max_decompress);
+			cache_Update				(s_x,s_z,EYE,dm_max_decompress);
 			Device.Statistic->RenderDUMP_DT_Cache.End	();
 
-			UpdateVisibleM		();
-			m_frame_calc		= Device.dwFrame;
+			UpdateVisibleM				();
+			m_frame_calc				= Device.dwFrame;
 		}
-	MT.Leave();
+	MT.Leave					        ();
 }

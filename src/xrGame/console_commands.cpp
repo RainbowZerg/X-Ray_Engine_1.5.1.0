@@ -76,19 +76,20 @@ extern	int		psLUA_GCSTEP;
 
 extern	int		x_m_x;
 extern	int		x_m_z;
-extern	BOOL	net_cl_inputguaranteed;
-extern	BOOL	net_sv_control_hit;
-extern	int		g_dwInputUpdateDelta;
+extern	BOOL	net_cl_inputguaranteed	;
+extern	BOOL	net_sv_control_hit		;
+extern	int		g_dwInputUpdateDelta	;
 #ifdef DEBUG
-extern	BOOL	g_ShowAnimationInfo;
+extern	BOOL	g_ShowAnimationInfo		;
 #endif // DEBUG
-extern	BOOL	g_bShowHitSectors;
-extern	BOOL	g_bDebugDumpPhysicsStep;
+extern	BOOL	g_bShowHitSectors		;
+extern	BOOL	g_bDebugDumpPhysicsStep	;
 extern	ESingleGameDifficulty g_SingleGameDifficulty;
-extern	BOOL	g_show_wnd_rect2;
+extern	BOOL	g_show_wnd_rect2			;
 //-----------------------------------------------------------
 extern	float	g_fTimeFactor;
-extern  BOOL	g_old_style_ui_hud;
+extern	BOOL	b_toggle_weapon_aim;
+//extern  BOOL	g_old_style_ui_hud;
 
 extern float	g_smart_cover_factor;
 extern int		g_upgrades_log;
@@ -125,6 +126,10 @@ extern BOOL		dbg_imotion_collide_debug;
 extern float	dbg_imotion_draw_velocity_scale;
 #endif
 int g_AI_inactive_time = 0;
+Flags32 g_uCommonFlags;
+enum E_COMMON_FLAGS{
+	flAiUseTorchDynamicLights = 1
+};
 
 CUIOptConCom g_OptConCom;
 
@@ -1045,7 +1050,7 @@ struct CCC_ClearSmartCastStats : public IConsole_Command {
 };
 #endif
 
-//#ifndef MASTER_GOLD
+#ifndef MASTER_GOLD
 #	include "game_graph.h"
 struct CCC_JumpToLevel : public IConsole_Command {
 	CCC_JumpToLevel(LPCSTR N) : IConsole_Command(N)  {};
@@ -1140,7 +1145,7 @@ public:
 	}
 };
 
-//#endif // MASTER_GOLD
+#endif // MASTER_GOLD
 
 #include "GamePersistent.h"
 
@@ -1552,13 +1557,11 @@ void CCC_RegisterCommands()
 
 	CMD1(CCC_MemStats,			"stat_memory"			);
 	// game
-	CMD3(CCC_Mask,				"g_autopickup",			&psActorFlags,	AF_AUTOPICKUP	);
-	CMD3(CCC_Mask,				"g_dynamic_music",		&psActorFlags,	AF_DYNAMIC_MUSIC);
-	CMD4(CCC_Float,				"g_fov",				&g_fov,			5.0f,	180.0f	);
-	CMD1(CCC_GameDifficulty,	"g_game_difficulty"										);
-	CMD3(CCC_Mask,				"g_god",				&psActorFlags,	AF_GODMODE		);
-	CMD3(CCC_Mask,				"g_unlimitedammo",		&psActorFlags,	AF_UNLIMITEDAMMO);
-	CMD3(CCC_Mask,				"g_wpn_aim_toggle",		&psActorFlags,  AF_WPNAIMTOGGLE	);
+	psActorFlags.set(AF_ALWAYSRUN, true);
+	CMD3(CCC_Mask,				"g_always_run",			&psActorFlags,	AF_ALWAYSRUN);
+	CMD1(CCC_GameDifficulty,	"g_game_difficulty"		);
+
+	CMD3(CCC_Mask,				"g_backrun",			&psActorFlags,	AF_RUN_BACKWARD);
 
 	// alife
 #ifdef DEBUG
@@ -1572,29 +1575,34 @@ void CCC_RegisterCommands()
 	CMD1(CCC_FlushLog,			"flush"					);		// flush log
 	CMD1(CCC_ClearLog,			"clear_log"					);
 
-//#ifndef MASTER_GOLD
+#ifndef MASTER_GOLD
 	CMD1(CCC_ALifeTimeFactor,		"al_time_factor"		);		// set time factor
 	CMD1(CCC_ALifeSwitchDistance,	"al_switch_distance"	);		// set switch distance
 	CMD1(CCC_ALifeProcessTime,		"al_process_time"		);		// set process time
 	CMD1(CCC_ALifeObjectsPerUpdate,	"al_objects_per_update"	);		// set process time
 	CMD1(CCC_ALifeSwitchFactor,		"al_switch_factor"		);		// set switch factor
-//#endif // MASTER_GOLD
+#endif // MASTER_GOLD
 
 
-	psHUD_Flags.set(HUD_CROSSHAIR, true);
-	psHUD_Flags.set(HUD_WEAPON, true);
-	psHUD_Flags.set(HUD_DRAW, true);
-	psHUD_Flags.set(HUD_INFO, true);
+	CMD3(CCC_Mask,				"hud_weapon",			&psHUD_Flags,	HUD_WEAPON);
+	CMD3(CCC_Mask,				"hud_info",				&psHUD_Flags,	HUD_INFO);
 
+#ifndef MASTER_GOLD
+	CMD3(CCC_Mask,				"hud_draw",				&psHUD_Flags,	HUD_DRAW);
+#endif // MASTER_GOLD
 	// hud
+	psHUD_Flags.set(HUD_CROSSHAIR,		true);
+	psHUD_Flags.set(HUD_WEAPON,			true);
+	psHUD_Flags.set(HUD_DRAW,			true);
+	psHUD_Flags.set(HUD_INFO,			true);
+
 	CMD3(CCC_Mask,				"hud_crosshair",		&psHUD_Flags,	HUD_CROSSHAIR);
 	CMD3(CCC_Mask,				"hud_crosshair_dist",	&psHUD_Flags,	HUD_CROSSHAIR_DIST);
-	CMD3(CCC_Mask,				"hud_crosshair_dynamic",&psHUD_Flags,	HUD_CROSSHAIR_DYNAMIC);
-	CMD3(CCC_Mask,				"hud_crosshair_old",    &psHUD_Flags,	HUD_CROSSHAIR_OLD);
-	CMD3(CCC_Mask,				"hud_draw",				&psHUD_Flags,	HUD_DRAW);
+
+#ifdef DEBUG
 	CMD4(CCC_Float,				"hud_fov",				&psHUD_FOV,		0.1f,	1.0f);
-	CMD3(CCC_Mask,				"hud_info",				&psHUD_Flags,	HUD_INFO);
-	CMD3(CCC_Mask,				"hud_weapon",			&psHUD_Flags,	HUD_WEAPON);
+	CMD4(CCC_Float,				"fov",					&g_fov,			5.0f,	180.0f);
+#endif // DEBUG
 
 	// Demo
 	CMD1(CCC_DemoPlay,			"demo_play"				);
@@ -1726,12 +1734,17 @@ CMD4(CCC_Integer,			"hit_anims_tune",						&tune_hit_anims,		0, 1);
 	CMD4(CCC_FloatBlock,		"ph_tri_query_ex_aabb_rate",	&ph_tri_query_ex_aabb_rate	,			1.01f	,3.f			);
 #endif // DEBUG
 
-//#ifndef MASTER_GOLD
+#ifndef MASTER_GOLD
 	CMD1(CCC_JumpToLevel,	"jump_to_level"		);
+	CMD3(CCC_Mask,			"g_god",			&psActorFlags,	AF_GODMODE	);
+	CMD3(CCC_Mask,			"g_unlimitedammo",	&psActorFlags,	AF_UNLIMITEDAMMO);
 	CMD1(CCC_Script,		"run_script");
 	CMD1(CCC_ScriptCommand,	"run_string");
 	CMD1(CCC_TimeFactor,	"time_factor");		
-//#endif // MASTER_GOLD
+#endif // MASTER_GOLD
+
+	CMD3(CCC_Mask,		"g_autopickup",			&psActorFlags,	AF_AUTOPICKUP);
+	CMD3(CCC_Mask,		"g_dynamic_music",		&psActorFlags,	AF_DYNAMIC_MUSIC);
 
 
 #ifdef DEBUG
@@ -1873,12 +1886,19 @@ CMD4(CCC_FloatBlock,		"dbg_text_height_scale",	&dbg_text_height_scale	,			0.2f	,
 
 #endif
 
+	CMD3(CCC_Mask,			"cl_dynamiccrosshair",	&psHUD_Flags,	HUD_CROSSHAIR_DYNAMIC);
 	CMD1(CCC_MainMenu,		"main_menu"				);
 
 #ifndef MASTER_GOLD
 	CMD1(CCC_StartTimeSingle,	"start_time_single");
 	CMD4(CCC_TimeFactorSingle,	"time_factor_single", &g_fTimeFactor, 0.f,flt_max);
 #endif // MASTER_GOLD
+
+
+	g_uCommonFlags.zero();
+	g_uCommonFlags.set(flAiUseTorchDynamicLights, TRUE);
+
+	CMD3(CCC_Mask,		"ai_use_torch_dynamic_lights",	&g_uCommonFlags, flAiUseTorchDynamicLights);
 
 #ifndef MASTER_GOLD
 	CMD4(CCC_Vector3,		"psp_cam_offset",				&CCameraLook2::m_cam_offset, Fvector().set(-1000,-1000,-1000),Fvector().set(1000,1000,1000));
@@ -1909,7 +1929,8 @@ extern BOOL dbg_moving_bones_snd_player;
 	CMD4(CCC_Integer,   "dbg_bones_snd_player",		&dbg_moving_bones_snd_player, FALSE, TRUE );
 #endif
 	CMD4(CCC_Float,		"con_sensitive",			&g_console_sensitive,	0.01f, 1.0f );
-	CMD4(CCC_Integer,	"hud_old_style",			&g_old_style_ui_hud, 0, 1);
+	CMD4(CCC_Integer,	"wpn_aim_toggle",			&b_toggle_weapon_aim, 0, 1);
+//	CMD4(CCC_Integer,	"hud_old_style",			&g_old_style_ui_hud, 0, 1);
 
 #ifdef DEBUG
 	CMD4(CCC_Float,		"ai_smart_cover_animation_speed_factor",	&g_smart_cover_animation_speed_factor,	.1f, 10.f);

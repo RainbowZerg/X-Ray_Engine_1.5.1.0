@@ -176,7 +176,7 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 			{
 				character_physics_support()->movement()->EnableCharacter();
 				bool Crouched = false;
-				if (isActorAccelerated(mstate_wf, IsZoomAimingMode()))
+				if(isActorAccelerated(mstate_wf, IsZoomAimingMode()))
 					Crouched = character_physics_support()->movement()->ActivateBoxDynamic(1);
 				else
 					Crouched = character_physics_support()->movement()->ActivateBoxDynamic(2);
@@ -187,10 +187,6 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 		}
 		// jump
 		m_fJumpTime				-=	dt;
-
-		float tot_mass		= GetMass() + GetCarryWeight();
-		float max_mass		= GetMass() + MaxCarryWeight();
-		float over_weight_coef	=  tot_mass / max_mass; // при значении больше 1 - перевес
 
 		if( CanJump() && (mstate_wf&mcJump) )
 		{
@@ -244,28 +240,23 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 		{
 			BOOL	bAccelerated		= isActorAccelerated(mstate_real, IsZoomAimingMode())&&CanAccelerate();
 
-			clamp<float>(over_weight_coef, 0.85, 3);
-
 			// correct "mstate_real" if opposite keys pressed
 			if (_abs(vControlAccel.z)<EPS)	mstate_real &= ~(mcFwd+mcBack		);
 			if (_abs(vControlAccel.x)<EPS)	mstate_real &= ~(mcLStrafe+mcRStrafe);
 
 			// normalize and analyze crouch and run
-			float scale	= vControlAccel.magnitude();
-			if (scale>EPS)	
+			float	scale			= vControlAccel.magnitude();
+			if(scale>EPS)	
 			{
 				scale	=	m_fWalkAccel/scale;
-				scale   /=  over_weight_coef;
-
 				if (bAccelerated)
-				{
 					if (mstate_real&mcBack)
 						scale *= m_fRunBackFactor;
 					else
 						scale *= m_fRunFactor;
-				}
-				else if (mstate_real&mcBack)
-					scale *= m_fWalkBackFactor;
+				else
+					if (mstate_real&mcBack)
+						scale *= m_fWalkBackFactor;
 
 
 
@@ -521,16 +512,26 @@ void CActor::g_sv_Orientate(u32 /**mstate_rl/**/, float /**dt/**/)
 
 bool isActorAccelerated(u32 mstate, bool ZoomMode) 
 {
-	bool res = (mstate&mcAccel) ? false : true;
-
-	if (mstate & (mcCrouch|mcClimb|mcJump|mcLanding|mcLanding2))	return res;
-	if (mstate & mcLookout || ZoomMode)								return false;
+	bool res = false;
+	if (mstate&mcAccel)
+		res = psActorFlags.test(AF_ALWAYSRUN)?false:true;
+	else
+		res = psActorFlags.test(AF_ALWAYSRUN)?true :false;
+	if (mstate&(mcCrouch|mcClimb|mcJump|mcLanding|mcLanding2))
+		return res;
+	if (mstate & mcLookout || ZoomMode)
+		return false;
 	return res;
 }
 
 bool CActor::CanAccelerate()
 {
-	return !conditions().IsLimping() && !character_physics_support()->movement()->PHCapture() && (m_time_lock_accel < Device.dwTimeGlobal);
+	bool can_accel = !conditions().IsLimping() &&
+		!character_physics_support()->movement()->PHCapture() && 
+		(m_time_lock_accel < Device.dwTimeGlobal)
+	;		
+
+	return can_accel;
 }
 
 bool CActor::CanRun()

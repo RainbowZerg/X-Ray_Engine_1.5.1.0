@@ -500,10 +500,16 @@ void R_dsgraph_structure::r_dsgraph_render_hud_ui()
 	RCache.set_RT(0,	1);
 	RCache.set_RT(0,	2);
 #if	RENDER==R_R3
-	if (!RImplementation.o.dx10_msaa)
-		RImplementation.Target->u_setrt	(RImplementation.Target->rt_Color, rt_null, rt_null, HW.pBaseZB);
+	if( !RImplementation.o.dx10_msaa )
+	{
+		if (RImplementation.o.albedo_wo)	RImplementation.Target->u_setrt		(RImplementation.Target->rt_Accumulator,	rt_null,	rt_null,	HW.pBaseZB);
+		else								RImplementation.Target->u_setrt		(RImplementation.Target->rt_Color,			rt_null,	rt_null,	HW.pBaseZB);
+	}
 	else
-		RImplementation.Target->u_setrt	(RImplementation.Target->rt_Color, rt_null, rt_null, RImplementation.Target->rt_MSAADepth->pZRT);
+	{
+		if (RImplementation.o.albedo_wo)	RImplementation.Target->u_setrt		(RImplementation.Target->rt_Accumulator,	rt_null,	rt_null,	RImplementation.Target->rt_MSAADepth->pZRT);
+		else								RImplementation.Target->u_setrt		(RImplementation.Target->rt_Color,			rt_null,	rt_null,	RImplementation.Target->rt_MSAADepth->pZRT);
+	}
 #else
 	if (RImplementation.o.albedo_wo)	RImplementation.Target->u_setrt		(RImplementation.Target->rt_Accumulator,	rt_null,	rt_null,	HW.pBaseZB);
 	else								RImplementation.Target->u_setrt		(RImplementation.Target->rt_Color,			rt_null,	rt_null,	HW.pBaseZB);
@@ -666,9 +672,6 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 				renderable->renderable_Render	();
 			}
 		}
-#if RENDER!=R_R1
-		if (g_pGameLevel && phase==RImplementation.PHASE_SMAP)	g_hud->Render_Actor_Shadow();		// R2 actor Shadow
-#endif
 	}
 
 	// Restore
@@ -676,7 +679,9 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 	View							= 0;
 }
 
+#include "fhierrarhyvisual.h"
 #include "SkeletonCustom.h"
+#include "../../xrEngine/fmesh.h"
 #include "flod.h"
 
 void	R_dsgraph_structure::r_dsgraph_render_R1_box	(IRender_Sector* _S, Fbox& BB, int sh)

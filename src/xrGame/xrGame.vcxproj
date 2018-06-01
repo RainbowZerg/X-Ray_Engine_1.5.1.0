@@ -827,6 +827,8 @@
     <ClInclude Include="base_client_classes.h" />
     <ClInclude Include="base_client_classes_wrappers.h" />
     <ClInclude Include="BastArtifact.h" />
+    <ClInclude Include="battleye.h" />
+    <ClInclude Include="battleye_system.h" />
     <ClInclude Include="BlackDrops.h" />
     <ClInclude Include="BlackGraviArtifact.h" />
     <ClInclude Include="BlockAllocator.h" />
@@ -967,7 +969,7 @@
     <ClInclude Include="file_transfer.h" />
     <ClInclude Include="fire_disp_controller.h" />
     <ClInclude Include="first_bullet_controller.h" />
-    <ClInclude Include="Flare.h" />
+    <ClInclude Include="flare.h" />
     <ClInclude Include="FoodItem.h" />
     <ClInclude Include="FryupZone.h" />
     <ClInclude Include="fs_registrator.h" />
@@ -1350,7 +1352,6 @@
     <ClInclude Include="rat_state_base_inline.h" />
     <ClInclude Include="rat_state_manager.h" />
     <ClInclude Include="rat_state_manager_inline.h" />
-    <ClInclude Include="RayPick.h" />
     <ClInclude Include="refreshable_obstacles_query.h" />
     <ClInclude Include="refreshable_obstacles_query_inline.h" />
     <ClInclude Include="RegistryFuncs.h" />
@@ -1410,7 +1411,6 @@
     <ClInclude Include="script_hit.h" />
     <ClInclude Include="script_hit_inline.h" />
     <ClInclude Include="script_lanim.h" />
-    <ClInclude Include="script_light_ext.h" />
     <ClInclude Include="script_monster_action.h" />
     <ClInclude Include="script_monster_action_inline.h" />
     <ClInclude Include="script_monster_hit_info.h" />
@@ -1654,6 +1654,7 @@
     <ClInclude Include="UITeamState.h" />
     <ClInclude Include="UIZoneMap.h" />
     <ClInclude Include="ui\ArtefactDetectorUI.h" />
+    <ClInclude Include="ui\CExtraContentFilter.h" />
     <ClInclude Include="ui\FactionState.h" />
     <ClInclude Include="ui\FactionState_inline.h" />
     <ClInclude Include="ui\KillMessageStruct.h" />
@@ -1872,9 +1873,11 @@
     <ClInclude Include="xrServer.h" />
     <ClInclude Include="xrServerMapSync.h" />
     <ClInclude Include="xrServer_svclient_validation.h" />
+    <ClInclude Include="xr_Client_BattlEye.h" />
     <ClInclude Include="xr_dsa_signer.h" />
     <ClInclude Include="xr_dsa_verifyer.h" />
     <ClInclude Include="xr_level_controller.h" />
+    <ClInclude Include="xr_Server_BattlEye.h" />
     <ClInclude Include="xr_time.h" />
     <ClInclude Include="ZoneCampfire.h" />
     <ClInclude Include="ZoneVisual.h" />
@@ -2911,6 +2914,7 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="BastArtifact.cpp" />
+    <ClCompile Include="battleye_system.cpp" />
     <ClCompile Include="BlackDrops.cpp" />
     <ClCompile Include="BlackGraviArtifact.cpp" />
     <ClCompile Include="Bolt.cpp" />
@@ -3124,7 +3128,7 @@
     <ClCompile Include="file_transfer.cpp" />
     <ClCompile Include="fire_disp_controller.cpp" />
     <ClCompile Include="first_bullet_controller.cpp" />
-    <ClCompile Include="Flare.cpp" />
+    <ClCompile Include="flare.cpp" />
     <ClCompile Include="FoodItem.cpp" />
     <ClCompile Include="FryupZone.cpp" />
     <ClCompile Include="fs_registrator_script.cpp">
@@ -3916,7 +3920,6 @@
     <ClCompile Include="rat_states.cpp" />
     <ClCompile Include="rat_state_base.cpp" />
     <ClCompile Include="rat_state_manager.cpp" />
-    <ClCompile Include="RayPick.cpp" />
     <ClCompile Include="RegistryFuncs.cpp" />
     <ClCompile Include="relation_registry.cpp" />
     <ClCompile Include="relation_registry_actions.cpp">
@@ -4158,10 +4161,6 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="script_game_object_testing.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
@@ -4756,6 +4755,14 @@
     <ClCompile Include="TeleWhirlwind.cpp" />
     <ClCompile Include="ThornArtifact.cpp" />
     <ClCompile Include="Torch.cpp" />
+    <ClCompile Include="torch_script.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch_script.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">pch_script.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch_script.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
     <ClCompile Include="TorridZone.cpp" />
     <ClCompile Include="Tracer.cpp" />
     <ClCompile Include="trade.cpp">
@@ -4858,6 +4865,7 @@
     <ClCompile Include="UITeamState.cpp" />
     <ClCompile Include="UIZoneMap.cpp" />
     <ClCompile Include="ui\ArtefactDetectorUI.cpp" />
+    <ClCompile Include="ui\CExtraContentFilter.cpp" />
     <ClCompile Include="ui\FactionState.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
@@ -5608,16 +5616,13 @@
     <ClCompile Include="xrServer_secure_messaging.cpp" />
     <ClCompile Include="xrServer_sls_clear.cpp" />
     <ClCompile Include="xrServer_svclient_validation.cpp" />
+    <ClCompile Include="xr_Client_BattlEye.cpp" />
     <ClCompile Include="xr_dsa_signer.cpp" />
     <ClCompile Include="xr_dsa_verifyer.cpp" />
     <ClCompile Include="xr_level_controller.cpp" />
+    <ClCompile Include="xr_Server_BattlEye.cpp" />
     <ClCompile Include="xr_time.cpp" />
     <ClCompile Include="ZoneCampfire.cpp" />
-    <ClCompile Include="ZoneCampfire_script.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="ZoneVisual.cpp" />
     <ClCompile Include="zone_effector.cpp" />
     <ClCompile Include="ZudaArtifact.cpp" />
@@ -5629,6 +5634,14 @@
     </ProjectReference>
     <ProjectReference Include="..\3rd party\cximage\CxImage\cximage.vcxproj">
       <Project>{880cd250-ba77-4daf-a8d4-552f12dd3ae4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\3rd party\luabind\luabind.beta7-devel.rc4.vcxproj">
+      <Project>{cc52e0b3-cc35-4934-9302-035b748f3f2c}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\3rd party\luajit\lua.JIT.1.1.4.vcxproj">
+      <Project>{f6c4f74a-152c-4612-9e3b-d02346234855}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\3rd party\ode\contrib\msvc7\ode_default\default.vcxproj">

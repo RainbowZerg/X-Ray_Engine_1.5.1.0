@@ -11,7 +11,7 @@
 #endif
 
 //--------------------------------------------------- Decompression
-IC float	Interpolate			(float* base, u32 x, u32 y, u32 size)
+IC float	Interpolate			(float* base,		u32 x, u32 y, u32 size)
 {
 	float	f	= float(size);
 	float	fx	= float(x)/f; float ifx = 1.f-fx;
@@ -28,7 +28,7 @@ IC float	Interpolate			(float* base, u32 x, u32 y, u32 size)
 	return	(cx+cy)/2;
 }
 
-IC bool		InterpolateAndDither (float* alpha255,	u32 x, u32 y, u32 sx, u32 sy, u32 size, int dither[16][16])
+IC bool		InterpolateAndDither(float* alpha255,	u32 x, u32 y, u32 sx, u32 sy, u32 size, int dither[16][16] )
 {
 	clamp 	(x,(u32)0,size-1);
 	clamp 	(y,(u32)0,size-1);
@@ -270,11 +270,6 @@ Device.Statistic->TEST0.End		();
 #endif
 			Item.c_hemi						=	DS.r_qclr	(DS.c_hemi,	15);
 			Item.c_sun						=	DS.r_qclr	(DS.c_dir,	15);
-
-			// KD
-			Item.need_to_render_anyway[0]	= (Random.randI(100) > 15)?true:false;
-			Item.need_to_render_anyway[1]	= (Random.randI(100) > 30)?true:false;
-			Item.need_to_render_anyway[2]	= (Random.randI(100) > 45)?true:false;
 
 			//? hack: RGB = hemi
 			//? Item.c_rgb.add					(ps_r__Detail_rainbow_hemi*Item.c_hemi);

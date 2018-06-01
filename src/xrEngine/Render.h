@@ -46,20 +46,9 @@ public:
 		REFLECTED	= 4,
 	};
 public:
-	virtual bool					get_active			() const							= 0;
-	virtual float					get_cone			() const							= 0;
-	virtual Fcolor					get_color			() const							= 0;
-	virtual float					get_range			() const							= 0;	
-	virtual float					get_virtual_size	() const							= 0;
-	virtual bool					get_volumetric		() const							= 0;
-	virtual float					get_volumetric_intensity() const						= 0;
-	virtual float					get_volumetric_quality	() const						= 0;
-	virtual float					get_volumetric_distance	() const						= 0;
-	virtual bool					get_flare			() const							= 0;
-	virtual bool					get_hud_mode		() const							= 0;
-
 	virtual void					set_type			(LT type)							= 0;
 	virtual void					set_active			(bool)								= 0;
+	virtual bool					get_active			()									= 0;
 	virtual void					set_shadow			(bool)								= 0;
 	virtual void					set_volumetric		(bool)								= 0;
 	virtual void					set_volumetric_quality(float)							= 0;
@@ -75,8 +64,8 @@ public:
 	virtual void					set_color			(const Fcolor& C)					= 0;
 	virtual void					set_color			(float r, float g, float b)			= 0;
 	virtual void					set_hud_mode		(bool b)							= 0;
-	virtual void					set_flare			(bool b)							= 0;
-	virtual ~IRender_Light();
+	virtual bool					get_hud_mode		()									= 0;
+	virtual ~IRender_Light()		;
 };
 struct ENGINE_API		resptrcode_light	: public resptr_base<IRender_Light>
 {
@@ -295,9 +284,6 @@ public:
 	virtual void					rmFar					()											= 0;
 	virtual void					rmNormal				()											= 0;
 	virtual u32						memory_usage			()											= 0;
-
-	// KD: need to know, what R2 phase is active now
-	virtual u32						active_phase			()											= 0;
 
 	// Constructor/destructor
 	virtual ~IRender_interface();

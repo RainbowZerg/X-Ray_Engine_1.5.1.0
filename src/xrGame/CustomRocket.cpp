@@ -300,21 +300,23 @@ void  CCustomRocket::reload		(LPCSTR section)
 
 
 	m_bLightsEnabled = !!pSettings->r_bool(section, "lights_enabled");
-	if (m_bLightsEnabled)
+	if(m_bLightsEnabled)
 	{
-		sscanf(pSettings->r_string(section,"trail_light_color"), "%f,%f,%f", &m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
+		sscanf(pSettings->r_string(section,"trail_light_color"), "%f,%f,%f", 
+			&m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
 		m_fTrailLightRange	= pSettings->r_float(section,"trail_light_range");
-		m_fTrailLightFlare  = !!READ_IF_EXISTS(pSettings, r_bool, section, "trail_light_flare", false);
 	}
 
-	if (pSettings->line_exist(section,"engine_particles")) 
+	if(pSettings->line_exist(section,"engine_particles")) 
 		m_sEngineParticles	= pSettings->r_string(section,"engine_particles");
-
-	if (pSettings->line_exist(section,"fly_particles")) 
+	if(pSettings->line_exist(section,"fly_particles")) 
 		m_sFlyParticles	= pSettings->r_string(section,"fly_particles");
 
-	if (pSettings->line_exist(section,"snd_fly_sound"))
+	if(pSettings->line_exist(section,"snd_fly_sound")){
 		m_flyingSound.create(pSettings->r_string(section,"snd_fly_sound"),st_Effect,sg_SourceType);
+	}
+
+	
 }
 
 void CCustomRocket::Contact(const Fvector &pos, const Fvector &normal)
@@ -512,7 +514,6 @@ void CCustomRocket::StartLights()
 	m_pTrailLight->set_range(m_fTrailLightRange);
 	m_pTrailLight->set_position(Position()); 
 	m_pTrailLight->set_active(true);
-	m_pTrailLight->set_flare(m_fTrailLightFlare);
 }
 
 void CCustomRocket::StopLights()

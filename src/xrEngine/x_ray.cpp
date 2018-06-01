@@ -20,6 +20,7 @@
 #include "resource.h"
 #include "LightAnimLibrary.h"
 #include "ispatial.h"
+#include "CopyProtection.h"
 #include "Text_Console.h"
 #include <process.h>
 #include <locale.h>
@@ -42,6 +43,47 @@ XRCORE_API	u32		build_id;
 #	define NO_MULTI_INSTANCES
 #endif // #ifdef MASTER_GOLD
 
+
+static LPSTR month_id[12] = {
+	"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+};
+
+static int days_in_month[12] = {
+	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+};
+
+static int start_day	= 31;	// 31
+static int start_month	= 1;	// January
+static int start_year	= 1999;	// 1999
+
+void compute_build_id	()
+{
+	build_date			= __DATE__;
+
+	int					days;
+	int					months = 0;
+	int					years;
+	string16			month;
+	string256			buffer;
+	strcpy_s				(buffer,__DATE__);
+	sscanf				(buffer,"%s %d %d",month,&days,&years);
+
+	for (int i=0; i<12; i++) {
+		if (_stricmp(month_id[i],month))
+			continue;
+
+		months			= i;
+		break;
+	}
+
+	build_id			= (years - start_year)*365 + days - start_day;
+
+	for (int i=0; i<months; ++i)
+		build_id		+= days_in_month[i];
+
+	for (int i=0; i<start_month-1; ++i)
+		build_id		-= days_in_month[i];
+}
 //---------------------------------------------------------------------
 // 2446363
 // umbt@ukr.net
@@ -78,6 +120,7 @@ void InitEngine		()
 	Engine.Initialize			( );
 	while (!g_bIntroFinished)	Sleep	(100);
 	Device.Initialize			( );
+	CheckCopyProtection			( );
 }
 
 PROTECT_API void InitSettings	()
@@ -97,18 +140,22 @@ PROTECT_API void InitSettings	()
 PROTECT_API void InitConsole	()
 {
 #ifdef DEDICATED_SERVER
-		Console					= xr_new<CTextConsole>	();		
-#else
-		Console					= xr_new<CConsole>	();
-#endif
-	Console->Initialize			();
-
-	strcpy_s					(Console->ConfigFile,"user.ltx");
-	if (strstr(Core.Params,"-ltx ")) 
 	{
+		Console						= xr_new<CTextConsole>	();		
+	}
+#else
+	//	else
+	{
+		Console						= xr_new<CConsole>	();
+	}
+#endif
+	Console->Initialize			( );
+
+	strcpy_s						(Console->ConfigFile,"user.ltx");
+	if (strstr(Core.Params,"-ltx ")) {
 		string64				c_name;
 		sscanf					(strstr(Core.Params,"-ltx ")+5,"%[^ ] ",c_name);
-		strcpy_s				(Console->ConfigFile,c_name);
+		strcpy_s					(Console->ConfigFile,c_name);
 	}
 }
 
@@ -218,6 +265,7 @@ void Startup()
 	logoWindow					= NULL;
 
 	// Main cycle
+	CheckCopyProtection			( );
 Memory.mem_usage();
 	Device.Run					( );
 
@@ -432,6 +480,52 @@ struct damn_keys_filter {
 #undef dwFilterKeysStructSize
 #undef dwToggleKeysStructSize
 
+// Приблудина для SecuROM-а
+#include "securom_api.h"
+
+// Фунция для тупых требований THQ и тупых американских пользователей
+BOOL IsOutOfVirtualMemory()
+{
+#define VIRT_ERROR_SIZE 256
+#define VIRT_MESSAGE_SIZE 512
+
+	SECUROM_MARKER_HIGH_SECURITY_ON(1)
+
+	MEMORYSTATUSEX statex;
+	DWORD dwPageFileInMB = 0;
+	DWORD dwPhysMemInMB = 0;
+	HINSTANCE hApp = 0;
+	char	pszError[ VIRT_ERROR_SIZE ];
+	char	pszMessage[ VIRT_MESSAGE_SIZE ];
+
+	ZeroMemory( &statex , sizeof( MEMORYSTATUSEX ) );
+	statex.dwLength = sizeof( MEMORYSTATUSEX );
+	
+	if ( ! GlobalMemoryStatusEx( &statex ) )
+		return 0;
+
+	dwPageFileInMB = ( DWORD ) ( statex.ullTotalPageFile / ( 1024 * 1024 ) ) ;
+	dwPhysMemInMB = ( DWORD ) ( statex.ullTotalPhys / ( 1024 * 1024 ) ) ;
+
+	// Довольно отфонарное условие
+	if ( ( dwPhysMemInMB > 500 ) && ( ( dwPageFileInMB + dwPhysMemInMB ) > 2500  ) )
+		return 0;
+
+	hApp = GetModuleHandle( NULL );
+
+	if ( ! LoadString( hApp , RC_VIRT_MEM_ERROR , pszError , VIRT_ERROR_SIZE ) )
+		return 0;
+ 
+	if ( ! LoadString( hApp , RC_VIRT_MEM_TEXT , pszMessage , VIRT_MESSAGE_SIZE ) )
+		return 0;
+
+	MessageBox( NULL , pszMessage , pszError , MB_OK | MB_ICONHAND );
+
+	SECUROM_MARKER_HIGH_SECURITY_OFF(1)
+
+	return 1;
+}
+
 #include "xr_ioc_cmd.h"
 
 //typedef void DUMMY_STUFF (const void*,const u32&,void*);
@@ -512,7 +606,14 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 		}
 	}
 
+//	foo();
 #ifndef DEDICATED_SERVER
+
+	// Check for virtual memory
+
+	if ( ( strstr( lpCmdLine , "--skipmemcheck" ) == NULL ) && IsOutOfVirtualMemory() )
+		return 0;
+
 	// Check for another instance
 #ifdef NO_MULTI_INSTANCES
 	#define STALKER_PRESENCE_MUTEX "STALKER-SoC"
@@ -576,6 +677,7 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 
 //	g_temporary_stuff			= &trivial_encryptor::decode;
 	
+	compute_build_id			();
 	Core._initialize			("xray",NULL, TRUE, fsgame[0] ? fsgame : NULL);
 	InitSettings				();
 
@@ -853,7 +955,7 @@ void CApplication::OnEvent(EVENT E, u64 P1, u64 P2)
 		{		
 			Console->Execute("main_menu off");
 			Console->Hide();
-//			Device.Reset					(false);
+			Device.Reset					(false);
 			//-----------------------------------------------------------
 			g_pGamePersistent->PreStart		(op_server);
 			//-----------------------------------------------------------
@@ -914,6 +1016,8 @@ void CApplication::LoadBegin	()
 #endif
 		phase_timer.Start	();
 		load_stage			= 0;
+
+		CheckCopyProtection	();
 	}
 }
 
@@ -953,6 +1057,7 @@ PROTECT_API void CApplication::LoadDraw		()
 		load_draw_internal			();
 
 	Device.End					();
+	CheckCopyProtection			();
 }
 
 void CApplication::LoadTitleInt(LPCSTR str)
@@ -961,15 +1066,13 @@ void CApplication::LoadTitleInt(LPCSTR str)
 
 	VERIFY						(ll_dwReference);
 	VERIFY						(str && xr_strlen(str)<256);
-	strcpy_s					(app_title, str);
-	Msg							("* phase time: %d ms",phase_timer.GetElapsed_ms());	
-	phase_timer.Start			();
+	strcpy_s						(app_title, str);
+	Msg							("* phase time: %d ms",phase_timer.GetElapsed_ms());	phase_timer.Start();
 	Msg							("* phase cmem: %d K", Memory.mem_usage()/1024);
 //.	Console->Execute			("stat_memory");
 	Log							(app_title);
 	
-	// sp-levels loading fix (SkyLoader)
-	if (g_pGamePersistent->GameType() == eGameIDSingle && !xr_strcmp(g_pGamePersistent->m_game_params.m_alife, "alife"))
+	if (g_pGamePersistent->GameType()==1 && strstr(Core.Params,"alife"))
 		max_load_stage			= 17;
 	else
 		max_load_stage			= 14;
@@ -1047,6 +1150,9 @@ void CApplication::Level_Set(u32 L)
 	else
 		//hLevelLogo.create	("font", "intro\\intro_no_start_picture");
 		m_pRender->setLevelLogo("intro\\intro_no_start_picture");
+		
+
+	CheckCopyProtection		();
 }
 
 int CApplication::Level_ID(LPCSTR name, LPCSTR ver, bool bSet)
@@ -1177,44 +1283,40 @@ int doLauncher()
 
 void doBenchmark(LPCSTR name)
 {
-	g_bBenchmark			= true;
-    string_path				configPath;
-    FS.update_path			(configPath, "$app_data_root$", name);
-    CInifile ini			(configPath);
-	int testCount			= ini.line_count("benchmark");
-	LPCSTR					test_name,t;
-	shared_str				test_command;
-	for(int i=0;i<testCount;++i)
-	{
-		ini.r_line			("benchmark", i, &test_name, &t);
-		strcpy_s			(g_sBenchmarkName, test_name);
+	g_bBenchmark = true;
+	string_path in_file;
+	FS.update_path(in_file,"$app_data_root$", name);
+	CInifile ini(in_file);
+	int test_count = ini.line_count("benchmark");
+	LPCSTR test_name,t;
+	shared_str test_command;
+	for(int i=0;i<test_count;++i){
+		ini.r_line			( "benchmark", i, &test_name, &t);
+		strcpy_s				(g_sBenchmarkName, test_name);
 		
 		test_command		= ini.r_string_wb("benchmark",test_name);
-
-		Core.Params			= (char*)xr_realloc(Core.Params, test_command.size() + 1);
-		strcpy				(Core.Params,*test_command);
-		strlwr				(Core.Params);
-
-		InitInput			();
-
-		if (i)
-		{
+		strcpy_s			(Core.Params,*test_command);
+		_strlwr_s				(Core.Params);
+		
+		InitInput					();
+		if(i){
 			//ZeroMemory(&HW,sizeof(CHW));
 			//	TODO: KILL HW here!
 			//  pApp->m_pRender->KillHW();
 			InitEngine();
 		}
 
-		Engine.External.Initialize();
-		strcpy_s(Console->ConfigFile,"user.ltx");
 
-		if (strstr(Core.Params,"-ltx ")) 
-		{
-			string64			c_name;
-			sscanf				(strstr(Core.Params,"-ltx ")+5,"%[^ ] ",c_name);
-			strcpy_s			(Console->ConfigFile,c_name);
+		Engine.External.Initialize	( );
+
+		strcpy_s						(Console->ConfigFile,"user.ltx");
+		if (strstr(Core.Params,"-ltx ")) {
+			string64				c_name;
+			sscanf					(strstr(Core.Params,"-ltx ")+5,"%[^ ] ",c_name);
+			strcpy_s				(Console->ConfigFile,c_name);
 		}
-		Startup	 			();
+
+		Startup	 				();
 	}
 }
 #pragma optimize("g", off)

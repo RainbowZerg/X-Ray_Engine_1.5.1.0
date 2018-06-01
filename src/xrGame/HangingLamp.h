@@ -10,18 +10,15 @@
 #include "physicsshellholder.h"
 #include "PHSkeleton.h"
 #include "script_export_space.h"
-#include "hit_immunity.h"
-#include "damage_manager.h"
-
 // refs
 class CLAItem;
 class CPhysicsElement;
 class CSE_ALifeObjectHangingLamp;
 class CPHElement;
-
-class CHangingLamp : public CPhysicsShellHolder, public CPHSkeleton, public CHitImmunity, public CDamageManager
-{
-	//need m_pPhysicShell
+class CHangingLamp: 
+public CPhysicsShellHolder,
+public CPHSkeleton
+{//need m_pPhysicShell
 	typedef	CPhysicsShellHolder		inherited;
 private:
 	u16				light_bone;
@@ -36,63 +33,17 @@ private:
 	
 	float			fHealth;
 	float			fBrightness;
-
-	// ZergO: added
-	bool			enabled;
-	bool			usable;
-	bool			use_custom_bone_damage;
-	bool			use_custom_immunities;
-	std::vector<u16> bones_hide_enabled;
-	std::vector<u16> bones_hide_disabled;
-	std::vector<u16> bones_hide_dead;
-	ref_sound		sound_enable;
-	ref_sound		sound_disable;
-	ref_sound		sound_idle;
-	u16				particles_bone;
-	CParticlesObject* particles_object_idle;
-	//
-
 	void			CreateBody		(CSE_ALifeObjectHangingLamp	*lamp);
 	void			Init();
 	void			RespawnInit		();
-public:
-	shared_str		enable_tip;
-	shared_str		disable_tip;
+	bool			Alive			(){return fHealth>0.f;}
 
+
+public:
 					CHangingLamp	();
 	virtual			~CHangingLamp	();
-	virtual DLL_Pure* _construct	();
-
-	bool			Alive			() const { return fHealth>0.f; }
-	bool			Enabled			() const { return enabled; }
-	bool			Usable			() const { return usable; }
-	void			TurnOn			(bool sound = false);
-	void			TurnOff			(bool sound = false);
-	void			Switch			(bool enabled, bool sound = false);
-
-	IRender_Light  *GetLight(int target = 0);
-
-	void			SetAngle		(float angle, int target = 0);
-	void			SetAnimation	(LPCSTR name);
-	void			SetBrightness	(float brightness);
-	void			SetDirection	(const Fvector &v, float bank);
-	void			SetColor		(const Fcolor &color, int target = 0);
-	void			SetColor		(float r, float g, float b, int target = 0);
-		
-	void			SetPosition		(const Fvector &v);
-	void			SetRange	    (float range, int target = 0);
-	void			SetTexture		(LPCSTR texture, int target = 0);
-	void			SetVirtualSize	(float size, int target = 0);
-	
-	void			SetFlare		(bool b, int target = 0);
-
-	void			SetVolumetric				(bool b,  int target = 0);
-	void			SetVolumetricIntensity		(float f, int target = 0);
-	void			SetVolumetricQuality		(float f, int target = 0);
-	void			SetVolumetricDistance		(float f, int target = 0);
-	void			Synchronize		(); // alpet: сохранение данных в серверный объект
-
-
+	void			TurnOn			();
+	void			TurnOff			();
 	virtual void	Load			( LPCSTR section);
 	virtual BOOL	net_Spawn		( CSE_Abstract* DC);
 	virtual void	net_Destroy		();

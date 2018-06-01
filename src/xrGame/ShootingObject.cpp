@@ -83,8 +83,6 @@ void CShootingObject::Light_Create		()
 	light_render				=	::Render->light_create();
 	if (::Render->get_generation()==IRender_interface::GENERATION_R2)	light_render->set_shadow	(true);
 	else																light_render->set_shadow	(false);
-
-	light_render->set_flare(false);
 }
 
 void CShootingObject::Light_Destroy		()

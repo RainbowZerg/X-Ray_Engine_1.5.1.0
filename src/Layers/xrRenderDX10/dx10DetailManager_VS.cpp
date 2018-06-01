@@ -6,11 +6,45 @@
 
 #include "../xrRenderDX10/dx10BufferUtils.h"
 
+const int			quant	= 16384;
+const int			c_hdr	= 10;
+const int			c_size	= 4;
+
+static D3DVERTEXELEMENT9 dwDecl[] =
+{
+	{ 0, 0,  D3DDECLTYPE_FLOAT3,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_POSITION,	0 },	// pos
+	{ 0, 12, D3DDECLTYPE_SHORT4,	D3DDECLMETHOD_DEFAULT, 	D3DDECLUSAGE_TEXCOORD,	0 },	// uv
+	D3DDECL_END()
+};
+
+#pragma pack(push,1)
+struct	vertHW
+{
+	float		x,y,z;
+	short		u,v,t,mid;
+};
+#pragma pack(pop)
+
 short QC (float v);
 //{
 //	int t=iFloor(v*float(quant)); clamp(t,-32768,32767);
 //	return short(t&0xffff);
 //}
+
+void CDetailManager::hw_Load_Shaders()
+{
+	// Create shader to access constant storage
+	ref_shader		S;	S.create("details\\set");
+	R_constant_table&	T0	= *(S->E[0]->passes[0]->constants);
+	R_constant_table&	T1	= *(S->E[1]->passes[0]->constants);
+	hwc_consts			= T0.get("consts");
+	hwc_wave			= T0.get("wave");
+	hwc_wind			= T0.get("dir2D");
+	hwc_array			= T0.get("array");
+	hwc_s_consts		= T1.get("consts");
+	hwc_s_xform			= T1.get("xform");
+	hwc_s_array			= T1.get("array");
+}
 
 void CDetailManager::hw_Render()
 {
@@ -82,6 +116,12 @@ void CDetailManager::hw_Render_dump(const Fvector4 &consts, const Fvector4 &wave
 
 	vis_list& list	=	m_visibles	[var_id];
 
+	CEnvDescriptor&	desc	= *g_pGamePersistent->Environment().CurrentEnv;
+	Fvector					c_sun,c_ambient,c_hemi;
+	c_sun.set				(desc.sun_color.x,	desc.sun_color.y,	desc.sun_color.z);	c_sun.mul(.5f);
+	c_ambient.set			(desc.ambient.x,	desc.ambient.y,		desc.ambient.z);
+	c_hemi.set				(desc.hemi_color.x, desc.hemi_color.y,	desc.hemi_color.z);
+
 	// Iterate
 	for (u32 O=0; O<objects.size(); O++)
 	{
@@ -113,7 +153,7 @@ void CDetailManager::hw_Render_dump(const Fvector4 &consts, const Fvector4 &wave
 				{
 					void*	pVData;
 					RCache.get_ConstantDirect( strArray, 
-						hw_BatchSize*sizeof(Fvector4)*2,
+						hw_BatchSize*sizeof(Fvector4)*4,
 						&pVData, 0, 0);
 					c_storage = (Fvector4*) pVData;
 				}
@@ -123,36 +163,30 @@ void CDetailManager::hw_Render_dump(const Fvector4 &consts, const Fvector4 &wave
 
 				xr_vector <SlotItemVec* >::iterator _vI = vis.begin();
 				xr_vector <SlotItemVec* >::iterator _vE = vis.end();
-				for (; _vI!=_vE; _vI++)
-				{
+				for (; _vI!=_vE; _vI++){
 					SlotItemVec*	items		= *_vI;
 					SlotItemVecIt _iI			= items->begin();
 					SlotItemVecIt _iE			= items->end();
 					for (; _iI!=_iE; _iI++){
-						if (!(*_iI)) continue;
-#ifdef DETAILS_OPT
-						float dist = Device.vCameraPosition.distance_to((*_iI)->mRotY.c);
-
-						if (dist > ps_r__details_opt.z) {
-							if (!(*_iI)->need_to_render_anyway[2]) continue;
-						} else if (dist > ps_r__details_opt.y) {
-							if (!(*_iI)->need_to_render_anyway[1]) continue;
-						} else if (dist > ps_r__details_opt.x) {
-							if (!(*_iI)->need_to_render_anyway[0]) continue;
-						}
-#endif
 						SlotItem&	Instance	= **_iI;
-						u32			base		= dwBatch*2;
+						u32			base		= dwBatch*4;
 
-						// Build color & matrix
+						// Build matrix ( 3x4 matrix, last row - color )
 						float		scale		= Instance.scale_calculated;
 						Fmatrix&	M			= Instance.mRotY;
+						c_storage[base+0].set	(M._11*scale,	M._21*scale,	M._31*scale,	M._41	);
+						c_storage[base+1].set	(M._12*scale,	M._22*scale,	M._32*scale,	M._42	);
+						c_storage[base+2].set	(M._13*scale,	M._23*scale,	M._33*scale,	M._43	);
+						//RCache.set_ca(&*constArray, base+0, M._11*scale,	M._21*scale,	M._31*scale,	M._41	);
+						//RCache.set_ca(&*constArray, base+1, M._12*scale,	M._22*scale,	M._32*scale,	M._42	);
+						//RCache.set_ca(&*constArray, base+2, M._13*scale,	M._23*scale,	M._33*scale,	M._43	);
+
+						// Build color
+						// R2 only needs hemisphere
 						float		h			= Instance.c_hemi;
 						float		s			= Instance.c_sun;
-
-						c_storage[base+0].set	(M._11*scale,	M._31*scale,	s,		h	);
-						c_storage[base+1].set	(M._41,			M._42,		M._43,	scale	);
-
+						c_storage[base+3].set	(s,				s,				s,				h		);
+						//RCache.set_ca(&*constArray, base+3, s,				s,				s,				h		);
 						dwBatch	++;
 						if (dwBatch == hw_BatchSize)	{
 							// flush
@@ -171,7 +205,7 @@ void CDetailManager::hw_Render_dump(const Fvector4 &consts, const Fvector4 &wave
 							{
 								void*	pVData;
 								RCache.get_ConstantDirect( strArray, 
-									hw_BatchSize*sizeof(Fvector4)*2,
+									hw_BatchSize*sizeof(Fvector4)*4,
 									&pVData, 0, 0);
 								c_storage = (Fvector4*) pVData;
 							}
@@ -189,21 +223,11 @@ void CDetailManager::hw_Render_dump(const Fvector4 &consts, const Fvector4 &wave
 					//RCache.get_ConstantCache_Vertex().get_array_f().dirty	(c_base,c_base+dwBatch*4);
 					RCache.Render				(D3DPT_TRIANGLELIST,vOffset,0,dwCNT_verts,iOffset,dwCNT_prims);
 					RCache.stat.r.s_details.add	(dwCNT_verts);
-
-					// restart
-					dwBatch = 0;
 				}
 
 			}
 			// Clean up
-/*
-			// KD: we must not clear vis on r2 since we want details shadows
-			if ((ps_r2_ls_flags.test(R2FLAG_SUN_DETAILS) && (RImplementation.PHASE_SMAP == RImplementation.phase))										// phase smap with shadows
-			|| (ps_r2_ls_flags.test(R2FLAG_SUN_DETAILS) && (RImplementation.PHASE_NORMAL == RImplementation.phase) && (!RImplementation.is_sun()))		// phase normal with shadows without sun
-			|| (!ps_r2_ls_flags.test(R2FLAG_SUN_DETAILS) && (RImplementation.PHASE_NORMAL == RImplementation.phase)))									// phase normal without shadows
-
 			vis.clear_not_free			();
-*/
 		}
 		vOffset		+=	hw_BatchSize * Object.number_vertices;
 		iOffset		+=	hw_BatchSize * Object.number_indices;

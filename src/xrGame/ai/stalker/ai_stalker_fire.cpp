@@ -50,7 +50,6 @@
 #include "../../stalker_decision_space.h"
 #include "../../script_game_object.h"
 #include "../../inventory.h"
-#include "../../torch.h"
 
 using namespace StalkerSpace;
 
@@ -216,30 +215,32 @@ void CAI_Stalker::Hit			(SHit* pHDS)
 	
 	float hit_power = HDS.power * m_fRankImmunity;
 
-	if (m_boneHitProtection && HDS.hit_type == ALife::eHitTypeFireWound)
+	if ( m_boneHitProtection && HDS.hit_type == ALife::eHitTypeFireWound )
 	{
-		float BoneArmor = m_boneHitProtection->getBoneArmor(HDS.bone());
+		float BoneArmor = m_boneHitProtection->getBoneArmor( HDS.bone() );
 		float ap        = HDS.armor_piercing;
 
-		if ((ap > EPS) && (ap > BoneArmor))
+		if( ap > EPS && ap > BoneArmor )
 		{
 			float d_ap = ap - BoneArmor;
-			hit_power *= (d_ap / ap);
+			hit_power *= ( d_ap / ap );
 
-			if (hit_power < m_boneHitProtection->m_fHitFrac)
+			if ( hit_power < m_boneHitProtection->m_fHitFrac )
+			{
 				hit_power = m_boneHitProtection->m_fHitFrac;
-
-			if (hit_power < 0.0f)
-				hit_power = 0.0f;
+			}
+			if ( hit_power < 0.0f )	{	hit_power = 0.0f;	}
 		}
 		else
 		{
 			hit_power *= m_boneHitProtection->m_fHitFrac;
 			HDS.add_wound = false;
-		}
+		}// if >=
 
-		if (wounded()) //уже лежит => добивание
+		if ( wounded() ) //уже лежит => добивание
+		{
 			hit_power = 1000.f;
+		}
 	}
 	HDS.power = hit_power;
 
@@ -249,29 +250,36 @@ void CAI_Stalker::Hit			(SHit* pHDS)
 
 		if (!already_critically_wounded)
 		{
-			const CCoverPoint *cover = agent_manager().member().member(this).cover();
-
-			if (!invulnerable() && cover && HDS.initiator() && (HDS.initiator()->ID() != ID()) && !fis_zero(HDS.damage()) && brain().affect_cover())
+			const CCoverPoint		*cover = agent_manager().member().member(this).cover();
+			if ( !invulnerable() && cover && HDS.initiator() &&
+				( HDS.initiator()->ID() != ID() ) && !fis_zero( HDS.damage() ) && brain().affect_cover() )
+			{
 				agent_manager().location().add( xr_new<CDangerCoverLocation>(cover,Device.dwTimeGlobal,DANGER_INTERVAL,DANGER_DISTANCE) );
+			}
 		}
 
-		const CEntityAlive *entity_alive = smart_cast<const CEntityAlive*>(HDS.initiator());
-		if (entity_alive && !wounded()) 
-		{
+		const CEntityAlive	*entity_alive = smart_cast<const CEntityAlive*>(HDS.initiator());
+		if (entity_alive && !wounded()) {
 			if (is_relation_enemy(entity_alive))
 				sound().play		(eStalkerSoundInjuring);
 //			else
 //				sound().play		(eStalkerSoundInjuringByFriend);
 		}
 
-		int	weapon_type = -1;
+		int							weapon_type = -1;
 		if (best_weapon())
 			weapon_type				= best_weapon()->object().ef_weapon_type();
 
-		if	(!wounded() && !already_critically_wounded)
+		if	(
+				!wounded() &&
+				!already_critically_wounded)
 		{
-			bool became_critically_wounded = update_critical_wounded(HDS.boneID,HDS.power);
-			if	(!became_critically_wounded && animation().script_animations().empty() && (HDS.bone() != BI_NONE))
+			bool					became_critically_wounded = update_critical_wounded(HDS.boneID,HDS.power);
+			if	(
+				!became_critically_wounded &&
+				animation().script_animations().empty() &&
+				(HDS.bone() != BI_NONE)
+			)
 			{
 				Fvector					D;
 				float					yaw, pitch;
@@ -285,8 +293,7 @@ void CAI_Stalker::Hit			(SHit* pHDS)
 				IKinematics *tpKinematics = smart_cast<IKinematics*>(Visual());
 	#ifdef DEBUG
 				tpKinematics->LL_GetBoneInstance	(HDS.bone());
-				if (HDS.bone() >= tpKinematics->LL_BoneCount()) 
-				{
+				if (HDS.bone() >= tpKinematics->LL_BoneCount()) {
 					Msg					("tpKinematics has no bone_id %d",HDS.bone());
 					HDS._dump			();
 				}
@@ -295,12 +302,9 @@ void CAI_Stalker::Hit			(SHit* pHDS)
 //				if (fx_index != -1)
 //					animation().play_fx	(power_factor,fx_index);
 			}
-			else 
-			{
-				if (!already_critically_wounded && became_critically_wounded) 
-				{
-					if (HDS.who) 
-					{
+			else {
+				if (!already_critically_wounded && became_critically_wounded) {
+					if (HDS.who) {
 						CAI_Stalker		*stalker = smart_cast<CAI_Stalker*>(HDS.who);
 						if (stalker)
 							stalker->on_critical_wound_initiator	(this);
@@ -310,37 +314,19 @@ void CAI_Stalker::Hit			(SHit* pHDS)
 		}
 	}
 
-	// ZergO: break torch on head hit
-	IKinematics *tpKinematics = smart_cast<IKinematics*>(Visual());
-	tpKinematics->LL_GetBoneInstance (HDS.bone());
-	if (HDS.boneID == tpKinematics->LL_BoneID("bip01_head"))
+	if ( invulnerable() )
 	{
-		const xr_vector<CAttachableItem*>& all = CAttachmentOwner::attached_objects();
-		xr_vector<CAttachableItem*>::const_iterator it		= all.begin();
-		xr_vector<CAttachableItem*>::const_iterator it_e	= all.end();
-		for (; it != it_e; ++it)
-		{
-			CTorch* torch = smart_cast<CTorch*>(*it);
-			if (torch)
-			{
-				// если фонарь уже мигает, то разбить полностью, иначе шанс 50%
-				bool fatal = torch->Broken(false) ? true : Random.randI(2) == 1;
-				torch->Break(fatal);
-				//torch->SetBatteryStatus(0);
-				break;
-			}
-		}
+		return;
 	}
 
-	if (invulnerable())
-		return;
-
-	if (g_Alive() && (!m_hit_callback || m_hit_callback(&HDS)))
-		memory().hit().add(100.f * HDS.damage(), HDS.direction(), HDS.who, HDS.boneID);
+	if ( g_Alive() && ( !m_hit_callback || m_hit_callback( &HDS ) ) )
+	{
+		memory().hit().add( 100.f * HDS.damage(), HDS.direction(), HDS.who, HDS.boneID );
+	}
 
 	//conditions().health()			= 1.f;
 
-	inherited::Hit(&HDS);
+	inherited::Hit( &HDS );
 }
 
 void CAI_Stalker::HitSignal				(float amount, Fvector& vLocalDir, CObject* who, s16 element)

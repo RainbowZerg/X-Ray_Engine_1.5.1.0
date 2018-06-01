@@ -2,7 +2,6 @@
 
 #include "../xrRender/r__dsgraph_structure.h"
 #include "../xrRender/r__occlusion.h"
-#include "../xrRender_R2-R3/r__sun_cascades.h"
 
 #include "../xrRender/PSLibrary.h"
 
@@ -12,7 +11,6 @@
 #include "../xrRender/hom.h"
 #include "../xrRender/detailmanager.h"
 #include "../xrRender/modelpool.h"
-#include "../xrRender/glowmanager.h"
 #include "../xrRender/wallmarksengine.h"
 
 #include "smap_allocator.h"
@@ -26,7 +24,7 @@
 class dxRender_Visual;
 
 // definition
-class CRender: public R_dsgraph_structure
+class CRender													:	public R_dsgraph_structure
 {
 public:
 	enum
@@ -109,7 +107,6 @@ public:
 
 	CDetailManager*												Details;
 	CModelPool*													Models;
-	CGlowManager*												L_Glows;
 	CWallmarksEngine*											Wallmarks;
 
 	CRenderTarget*												Target;			// Render-target
@@ -123,17 +120,15 @@ public:
 
 	xr_vector<Fbox3,render_alloc<Fbox3> >						main_coarse_structure;
 
-	shared_str													c_sbase;
-	shared_str													c_lmaterial;
-	float														o_hemi;
-	float														o_hemi_cube[CROS_impl::NUM_FACES];
-	float														o_sun;
+	shared_str													c_sbase			;
+	shared_str													c_lmaterial		;
+	float														o_hemi			;
+	float														o_hemi_cube[CROS_impl::NUM_FACES]	;
+	float														o_sun			;
 	IDirect3DQuery9*											q_sync_point[CHWCaps::MAX_GPUS];
-	u32															q_sync_count;
+	u32															q_sync_count	;
 
 	bool														m_bMakeAsyncSS;
-
-	xr_vector<sun::cascade>										m_sun_cascades;
 private:
 	// Loading / Unloading
 	void							LoadBuffers					(CStreamReader	*fs,	BOOL	_alternative);
@@ -155,9 +150,9 @@ public:
 	void							render_smap_direct			(Fmatrix& mCombined);
 	void							render_indirect				(light*			L	);
 	void							render_lights				(light_Package& LP	);
-	void							render_sun_cascade			(u32 cascade_ind);
-	void							init_cascades				();
-	void							render_sun_cascades			();
+	void							render_sun					();
+	void							render_sun_near				();
+	void							render_sun_filtered			();
 	void							render_menu					();
 public:
 	ShaderElement*					rimp_select_sh_static		(dxRender_Visual	*pVisual, float cdist_sq);
@@ -196,9 +191,9 @@ public:
 		CTexture*		T	= RCache.get_ActiveTexture	(u32(C->samp.index));
 		VERIFY				(T);
 		float	mtl			= T->m_material;
-//#ifdef	DEBUG
+#ifdef	DEBUG
 		if (ps_r2_ls_flags.test(R2FLAG_GLOBALMATERIAL))	mtl=ps_r2_gmaterial;
-//#endif
+#endif
 		RCache.hemi.set_material (o_hemi,o_sun,0,(mtl+.5f)/4.f);
 		RCache.hemi.set_pos_faces(o_hemi_cube[CROS_impl::CUBE_FACE_POS_X],
 								  o_hemi_cube[CROS_impl::CUBE_FACE_POS_Y],
@@ -259,7 +254,7 @@ public:
 	virtual void					add_StaticWallmark			(IWallMarkArray *pArray, const Fvector& P, float s, CDB::TRI* T, Fvector* V);
 	virtual void					add_StaticWallmark			(const wm_shader& S, const Fvector& P, float s, CDB::TRI* T, Fvector* V);
 	virtual void					clear_static_wallmarks		();
-	virtual void					add_SkeletonWallmark		(const intrusive_ptr<CSkeletonWallmark> wm);
+	virtual void					add_SkeletonWallmark		(intrusive_ptr<CSkeletonWallmark> wm);
 	virtual void					add_SkeletonWallmark		(const Fmatrix* xf, CKinematics* obj, ref_shader& sh, const Fvector& start, const Fvector& dir, float size);
 	virtual void					add_SkeletonWallmark		(const Fmatrix* xf, IKinematics* obj, IWallMarkArray *pArray, const Fvector& start, const Fvector& dir, float size);
 
@@ -305,10 +300,6 @@ public:
 	virtual void					rmNear						();
 	virtual void					rmFar						();
 	virtual void					rmNormal					();
-
-	// KD: need to know, what R2 phase is active now
-	virtual u32						active_phase				()	{return phase;};
-	BOOL							is_sun						();
 
 	// Constructor/destructor/loader
 	CRender							();

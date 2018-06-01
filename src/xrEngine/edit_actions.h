@@ -5,7 +5,10 @@
 //	Description : edit actions class
 ////////////////////////////////////////////////////////////////////////////
 
-#pragma once
+#ifndef EDIT_ACTIONS_H_INCLUDED
+#define EDIT_ACTIONS_H_INCLUDED
+
+#include <boost/noncopyable.hpp>
 
 namespace text_editor
 {
@@ -13,14 +16,10 @@ namespace text_editor
 enum	key_state;
 class	line_edit_control;
 
-class base
+class base : private boost::noncopyable
 {
 public:
 					base			();
-
-	base			(const base& other)	= delete;
-	base& operator=	(const base& other) = delete;
-
 	virtual			~base			();
 			void	on_assign 		( base* const prev_action );
 	virtual	void	on_key_press	( line_edit_control* const control );
@@ -81,3 +80,5 @@ private:
 }; // class key_state_base
 
 } // namespace text_editor
+
+#endif // EDIT_ACTIONS_H_INCLUDED

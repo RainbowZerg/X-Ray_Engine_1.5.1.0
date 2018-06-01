@@ -52,9 +52,6 @@ protected:
 	ref_light						m_pTrailLight;
 	Fcolor							m_TrailLightColor;
 	float							m_fTrailLightRange;
-	bool							m_bTrailLightShadow;
-	bool							m_bTrailLightFlare;
-
 	u8								m_af_rank;
 	bool							m_bLightsEnabled;
 	float							m_additional_weight;

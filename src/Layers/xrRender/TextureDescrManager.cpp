@@ -4,16 +4,15 @@
 #include "ETextureParams.h"
 
 // eye-params
-extern float ps_r__dtex_range;
-class cl_dt_scaler		: public R_constant_setup 
-{
+float					r__dtex_range	= 50;
+class cl_dt_scaler		: public R_constant_setup {
 public:
 	float				scale;
 
 	cl_dt_scaler		(float s) : scale(s)	{};
 	virtual void setup	(R_constant* C)
 	{
-		RCache.set_c	(C,scale,scale,scale,1/ps_r__dtex_range);
+		RCache.set_c	(C,scale,scale,scale,1/r__dtex_range);
 	}
 };
 
@@ -185,7 +184,7 @@ BOOL CTextureDescrMngr::GetDetailTexture(const shared_str& tex_name, LPCSTR& res
 	{
 		if(I->second.m_assoc)
 		{
-			texture_assoc* TA = I->second.m_assoc;
+                        texture_assoc* TA = I->second.m_assoc;
 			res	= TA->detail_name.c_str();
 			CS	= TA->cs;
 			return TRUE;

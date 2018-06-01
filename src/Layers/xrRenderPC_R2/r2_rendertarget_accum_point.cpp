@@ -27,6 +27,15 @@ void CRenderTarget::accum_point		(light* L)
 		RImplementation.rmNear		();
 	}
 
+	// Common
+	Fvector		L_pos;
+	float		L_spec;
+	//float		L_R					= L->range;
+	float		L_R					= L->range*0.95f;
+	Fvector		L_clr;				L_clr.set		(L->color.r,L->color.g,L->color.b);
+	L_spec							= u_diffuse2s	(L_clr);
+	Device.mView.transform_tiny		(L_pos,L->position);
+
 	// Xforms
 	L->xform_calc					();
 	RCache.set_xform_world			(L->m_xform);
@@ -39,8 +48,8 @@ void CRenderTarget::accum_point		(light* L)
 	// *** similar to "Carmack's reverse", but assumes convex, non intersecting objects,
 	// *** thus can cope without stencil clear with 127 lights
 	// *** in practice, 'cause we "clear" it back to 0x1 it usually allows us to > 200 lights :)
-	RCache.set_ColorWriteEnable		(FALSE);
 	RCache.set_Element				(s_accum_mask->E[SE_MASK_POINT]);			// masker
+	RCache.set_ColorWriteEnable		(FALSE);
 
 	// backfaces: if (stencil>=1 && zfail)	stencil = light_id
 	RCache.set_CullMode				(CULL_CW);
@@ -68,22 +77,12 @@ void CRenderTarget::accum_point		(light* L)
 	Fmatrix			m_Texgen;			u_compute_texgen_screen	(m_Texgen	);
 	Fmatrix			m_Texgen_J;			u_compute_texgen_jitter	(m_Texgen_J	);
 
-	// Common constants
-	Fvector		L_pos, L_clr;
-	float		L_spec;
-	float		L_R					= L->range*0.95f;
-	float		L_factor			= 1.f/(L_R*L_R);
-
-	L_clr.set						(L->color.r,L->color.g,L->color.b);
-	L_spec							= u_diffuse2s	(L_clr);
-	Device.mView.transform_tiny		(L_pos,L->position);
-
 	// Draw volume with projective texgen
 	{
 		// Select shader
 		u32		_id					= 0;
 		if (L->flags.bShadow)		{
-			bool	bFullSize			= (L->X.S.size == RImplementation.o.smapsize);
+			bool	bFullSize			= (L->X.S.size == u32(RImplementation.o.smapsize));
 			if (L->X.S.transluent)	_id	= SE_L_TRANSLUENT;
 			else if		(bFullSize)	_id	= SE_L_FULLSIZE;
 			else					_id	= SE_L_NORMAL;
@@ -91,13 +90,12 @@ void CRenderTarget::accum_point		(light* L)
 			_id						= SE_L_UNSHADOWED;
 			//m_Shadow				= m_Lmap;
 		}
-		RCache.set_Element			(shader->E[ _id ]	);
+		RCache.set_Element				(shader->E[ _id ]	);
 
 		// Constants
-		RCache.set_c				("Ldynamic_pos",	L_pos.x,L_pos.y,L_pos.z, L_factor);
-		RCache.set_c				("Ldynamic_color",	L_clr.x,L_clr.y,L_clr.z,L_spec);
-		RCache.set_c				("m_texgen",		m_Texgen);
-		RCache.set_c				("m_texgen_J",		m_Texgen_J);
+		RCache.set_c					("Ldynamic_pos",	L_pos.x,L_pos.y,L_pos.z,1/(L_R*L_R));
+		RCache.set_c					("Ldynamic_color",	L_clr.x,L_clr.y,L_clr.z,L_spec);
+		RCache.set_c					("m_texgen",		m_Texgen);
 
 		// Fetch4 : enable
 		if (RImplementation.o.HW_smap_FETCH4)	{

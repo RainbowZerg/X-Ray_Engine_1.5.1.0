@@ -16,6 +16,7 @@ void CPolterTele::load(LPCSTR section)
 {
 	inherited::load(section);
 
+
 	m_pmt_radius						= READ_IF_EXISTS(pSettings,r_float,section,	"Tele_Find_Radius",					10.f);
 	m_pmt_object_min_mass				= READ_IF_EXISTS(pSettings,r_float,section,	"Tele_Object_Min_Mass",				40.f);
 	m_pmt_object_max_mass				= READ_IF_EXISTS(pSettings,r_float,section,	"Tele_Object_Max_Mass",				500.f);
@@ -33,25 +34,23 @@ void CPolterTele::load(LPCSTR section)
 	::Sound->create						(m_sound_tele_hold,		pSettings->r_string(section,"sound_tele_hold"),	st_Effect,SOUND_TYPE_WORLD);
 	::Sound->create						(m_sound_tele_throw,	pSettings->r_string(section,"sound_tele_throw"),st_Effect,SOUND_TYPE_WORLD);
 
+
 	m_state								= eWait;
 	m_time								= 0;
 	m_time_next							= 0;
+
 }
 
 void CPolterTele::update_schedule()
 {
 	inherited::update_schedule();
 
-	curr_enemy = const_cast<CEntityAlive*>(m_object->EnemyMan.get_enemy());
+	if (!m_object->g_Alive() || !Actor() || !Actor()->g_Alive()) return;
+	if (Actor()->Position().distance_to(m_object->Position()) > m_pmt_distance) return;
 
-	if (!m_object->g_Alive() || !curr_enemy || !curr_enemy->g_Alive()) return;
-	if (curr_enemy->Position().distance_to(m_object->Position()) > m_pmt_distance) return;
-
-	switch (m_state) 
-	{
+	switch (m_state) {
 	case eStartRaiseObjects:	
-		if ((m_time + m_time_next) < time()) 
-		{
+		if (m_time + m_time_next < time()) {
 			if (!tele_raise_objects())
 				m_state	= eRaisingObjects;
 			
@@ -59,10 +58,8 @@ void CPolterTele::update_schedule()
 			m_time_next		= m_pmt_raise_time_to_wait_in_objects / 2 + Random.randI(m_pmt_raise_time_to_wait_in_objects / 2);
 		}
 
-		if (m_state == eStartRaiseObjects) 
-		{
-			if (m_object->CTelekinesis::get_objects_count() >= m_pmt_object_count) 
-			{
+		if (m_state == eStartRaiseObjects) {
+			if (m_object->CTelekinesis::get_objects_count() >= m_pmt_object_count) {
 				m_state		= eRaisingObjects;
 				m_time		= time();
 			}
@@ -70,29 +67,26 @@ void CPolterTele::update_schedule()
 
 		break;
 	case eRaisingObjects:
-		if ((m_time + m_pmt_time_to_hold) > time()) break;
+		if (m_time + m_pmt_time_to_hold > time()) break;
 		
 		m_time				= time();
 		m_time_next		= 0;
 		m_state			= eFireObjects;
 	case eFireObjects:			
-		if ((m_time + m_time_next) < time()) 
-		{
+		if (m_time + m_time_next < time()) {
 			tele_fire_objects	();
 			
-			m_time		= time();
+			m_time			= time();
 			m_time_next	= m_pmt_time_to_wait_in_objects / 2 + Random.randI(m_pmt_time_to_wait_in_objects / 2);
 		}
 		
-		if (m_object->CTelekinesis::get_objects_count() == 0)
-		{
+		if (m_object->CTelekinesis::get_objects_count() == 0) {
 			m_state		= eWait;
-			m_time		= time();
+			m_time			= time();
 		}
 		break;
 	case eWait:				
-		if (m_time + m_pmt_time_to_wait < time()) 
-		{
+		if (m_time + m_pmt_time_to_wait < time()) {
 			m_time_next	= 0;
 			m_state		= eStartRaiseObjects;
 		}
@@ -159,10 +153,8 @@ bool CPolterTele::trace_object(CObject *obj, const Fvector &target)
 	dir.normalize	();
 
 	collide::rq_result	l_rq;
-	if (Level().ObjectSpace.RayPick(trace_from, dir, range, collide::rqtBoth, l_rq, obj)) 
-	{
-		if (l_rq.O == curr_enemy)
-			return true;
+	if (Level().ObjectSpace.RayPick(trace_from, dir, range, collide::rqtBoth, l_rq, obj)) {
+		if (l_rq.O == Actor()) return true;
 	}
 
 	return false;
@@ -188,11 +180,11 @@ void CPolterTele::tele_find_objects(xr_vector<CObject*> &objects, const Fvector 
 			m_object->CTelekinesis::is_active_object(obj) || 
 			!obj->m_pPhysicsShell->get_ApplyByGravity()) continue;
 
-
-		Fvector center;
-		curr_enemy->Center(center);
 		
-		if (trace_object(obj, center) || trace_object(obj, get_head_position(smart_cast<CObject*>(curr_enemy))))
+		Fvector center;
+		Actor()->Center(center);
+		
+		if (trace_object(obj, center) || trace_object(obj, get_head_position(Actor())))
 			objects.push_back(obj);
 	}
 }
@@ -205,15 +197,15 @@ bool CPolterTele::tele_raise_objects()
 	tele_objects.reserve	(20);
 
 	// получить список объектов вокруг врага
-	tele_find_objects	(tele_objects, curr_enemy->Position());
+	tele_find_objects	(tele_objects, Actor()->Position());
 
 	// получить список объектов вокруг монстра
 	tele_find_objects	(tele_objects, m_object->Position());
 
 	// получить список объектов между монстром и врагом
-	float dist			= curr_enemy->Position().distance_to(m_object->Position());
+	float dist			= Actor()->Position().distance_to(m_object->Position());
 	Fvector dir;
-	dir.sub				(curr_enemy->Position(), m_object->Position());
+	dir.sub				(Actor()->Position(), m_object->Position());
 	dir.normalize		();
 
 	Fvector pos;
@@ -221,7 +213,7 @@ bool CPolterTele::tele_raise_objects()
 	tele_find_objects	(tele_objects, pos);	
 
 	// сортировать и оставить только необходимое количество объектов
-	std::sort(tele_objects.begin(),tele_objects.end(),best_object_predicate2(m_object->Position(), curr_enemy->Position()));
+	std::sort(tele_objects.begin(),tele_objects.end(),best_object_predicate2(m_object->Position(), Actor()->Position()));
 	
 	// оставить уникальные объекты
 	tele_objects.erase	(
@@ -245,12 +237,11 @@ bool CPolterTele::tele_raise_objects()
 	//	CTelekinesis::activate		(obj, m_pmt_tele_raise_speed, m_pmt_tele_object_height, m_pmt_tele_time_object_keep, rotate);
 	//}
 
-	if (!tele_objects.empty())
-	{
+	if (!tele_objects.empty()) {
 		CPhysicsShellHolder *obj = smart_cast<CPhysicsShellHolder *>(tele_objects[0]);
 
 		// применить телекинез на объект
-		bool rotate = false;
+		bool	rotate = false;
 
 		CTelekineticObject		*tele_obj = m_object->CTelekinesis::activate		(obj, m_pmt_raise_speed, m_pmt_object_height, m_pmt_time_object_keep, rotate);
 		tele_obj->set_sound		(m_sound_tele_hold,m_sound_tele_throw);
@@ -263,14 +254,12 @@ bool CPolterTele::tele_raise_objects()
 
 void CPolterTele::tele_fire_objects()
 {
-	for (u32 i=0; i < m_object->CTelekinesis::get_objects_total_count();i++) 
-	{
+	for (u32 i=0; i < m_object->CTelekinesis::get_objects_total_count();i++) {
 		CTelekineticObject tele_object = m_object->CTelekinesis::get_object_by_index(i);
 		//if (tele_object.get_state() != TS_Fire) {
-		if ((tele_object.get_state() == TS_Raise) || (tele_object.get_state() == TS_Keep))  
-		{
+		if ((tele_object.get_state() == TS_Raise) || (tele_object.get_state() == TS_Keep))  {
 			Fvector					enemy_pos;
-			enemy_pos				= get_head_position(smart_cast<CObject*>(curr_enemy));
+			enemy_pos				= get_head_position(Actor());
 			m_object->CTelekinesis::fire_t	(tele_object.get_object(),enemy_pos, tele_object.get_object()->Position().distance_to(enemy_pos) / m_pmt_fly_velocity);
 			return;
 		}

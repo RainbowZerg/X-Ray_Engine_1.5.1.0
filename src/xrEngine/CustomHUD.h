@@ -14,15 +14,13 @@ ENGINE_API extern Flags32		psHUD_Flags;
 #define HUD_CROSSHAIR_RT2		(1<<9)
 #define HUD_DRAW_RT				(1<<10)
 #define HUD_WEAPON_RT2			(1<<11)
-#define HUD_CROSSHAIR_OLD		(1<<12)
 
 class ENGINE_API IRender_Visual;
 class CUI;
 
 class ENGINE_API CCustomHUD:
 	public DLL_Pure,
-	public IEventReceiver,
-	public pureScreenResolutionChanged
+	public IEventReceiver	
 {
 public:
 					CCustomHUD				();
@@ -32,12 +30,12 @@ public:
 	
 	virtual		void		Render_First			(){;}
 	virtual		void		Render_Last				(){;}
-	virtual		void		Render_Actor_Shadow		(){;}	// added by KD
-
+	
 	virtual		void		OnFrame					(){;}
 	virtual		void		OnEvent					(EVENT E, u64 P1, u64 P2){;}
 
 	virtual IC	CUI*		GetUI					()=0;
+	virtual void			OnScreenRatioChanged	()=0;
 	virtual void			OnDisconnected			()=0;
 	virtual void			OnConnected				()=0;
 	virtual	void			RenderActiveItemUI		()=0;

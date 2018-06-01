@@ -63,7 +63,6 @@
     <ClInclude Include="xrHemisphere.h" />
     <ClInclude Include="xrLevel.h" />
     <ClInclude Include="xrShaderTypes.h" />
-    <ClInclude Include="global_options.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StdAfx.cpp">

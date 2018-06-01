@@ -205,36 +205,63 @@ void CRender::ScreenshotImpl	(ScreenshotMode mode, LPCSTR name, CMemoryWriter* m
 
 #else	//	USE_DX10
 
-void CRender::ScreenshotImpl(ScreenshotMode mode, LPCSTR name, CMemoryWriter* memory_writer)
+void CRender::ScreenshotImpl	(ScreenshotMode mode, LPCSTR name, CMemoryWriter* memory_writer)
 {
-	if (!Device.b_is_Ready)	return;
+	if (!Device.b_is_Ready)			return;
+	if ((psDeviceFlags.test(rsFullscreen)) == 0) {
+		Log("~ Can't capture screen while in windowed mode...");
+		return;
+	}
 
 	// Create temp-surface
 	IDirect3DSurface9*	pFB;
 	D3DLOCKED_RECT		D;
 	HRESULT				hr;
-	hr					= HW.pDevice->CreateOffscreenPlainSurface(Device.dwWidth,Device.dwHeight,HW.DevPP.BackBufferFormat,D3DPOOL_SYSTEMMEM,&pFB,NULL);
-	if (FAILED(hr))		return;
+	hr					= HW.pDevice->CreateOffscreenPlainSurface(Device.dwWidth,Device.dwHeight,D3DFMT_A8R8G8B8,D3DPOOL_SYSTEMMEM,&pFB,NULL);
+	if(hr!=D3D_OK)		return;
 
-	hr					= HW.pDevice->GetRenderTargetData(HW.pBaseRT, pFB);
-	if (FAILED(hr))		goto _end_;
+	hr					= HW.pDevice->GetFrontBufferData(0,pFB);
+	if(hr!=D3D_OK)		return;
 
+	
 	hr					= pFB->LockRect(&D,0,D3DLOCK_NOSYSLOCK);
-	if (FAILED(hr))		goto _end_;
+	if(hr!=D3D_OK)		return;
 
 	// Image processing (gamma-correct)
 	u32* pPixel		= (u32*)D.pBits;
 	u32* pEnd		= pPixel+(Device.dwWidth*Device.dwHeight);
+	//	IGOR: Remove inverse color correction and kill alpha
+	/*
+	D3DGAMMARAMP	G;
+	dxRenderDeviceRender::Instance().gammaGenLUT(G);
+	for (int i=0; i<256; i++) {
+		G.red	[i]	/= 256;
+		G.green	[i]	/= 256;
+		G.blue	[i]	/= 256;
+	}
+	for (;pPixel!=pEnd; pPixel++)	{
+		u32 p = *pPixel;
+		*pPixel = color_xrgb	(
+			G.red	[color_get_R(p)],
+			G.green	[color_get_G(p)],
+			G.blue	[color_get_B(p)]
+			);
+	}
+	*/
 
 	//	Kill alpha
 	for (;pPixel!=pEnd; pPixel++)	
 	{
 		u32 p = *pPixel;
-		*pPixel = color_xrgb(color_get_R(p), color_get_G(p), color_get_B(p));
+		*pPixel = color_xrgb	(
+			color_get_R(p),
+			color_get_G(p),
+			color_get_B(p)
+		);
 	}
 
 	hr					= pFB->UnlockRect();
-	if (hr!=D3D_OK)		goto _end_;
+	if(hr!=D3D_OK)		goto _end_;
 	
 
 	// Save
@@ -316,28 +343,22 @@ void CRender::ScreenshotImpl(ScreenshotMode mode, LPCSTR name, CMemoryWriter* me
 			{
 				string64			t_stemp;
 				string_path			buf;
-
-				D3DXIMAGE_FILEFORMAT fmt = D3DXIFF_JPG;
-				LPCSTR ext = ".jpg";
-
-				if (strstr(Core.Params, "-ss_tga"))
-				{
-					fmt = D3DXIFF_TGA;
-					ext = ".tga";
-				}
-				else if (strstr(Core.Params, "-ss_png"))
-				{
-					fmt = D3DXIFF_PNG;
-					ext = ".png";
-				}
-
-				sprintf_s			(buf,sizeof(buf),"ss_%s_%s_(%s)%s",Core.UserName,timestamp(t_stemp),(g_pGameLevel)?g_pGameLevel->name().c_str():"mainmenu",ext);
-				ID3DBlob* saved		= 0;
-				CHK_DX				(D3DXSaveSurfaceToFileInMemory (&saved,fmt,pFB,0,0));
-				IWriter* fs			= FS.w_open	("$screenshots$",buf); R_ASSERT(fs);
+				sprintf_s			(buf,sizeof(buf),"ss_%s_%s_(%s).jpg",Core.UserName,timestamp(t_stemp),(g_pGameLevel)?g_pGameLevel->name().c_str():"mainmenu");
+				ID3DBlob*		saved	= 0;
+				CHK_DX				(D3DXSaveSurfaceToFileInMemory (&saved,D3DXIFF_JPG,pFB,0,0));
+				IWriter*		fs	= FS.w_open	("$screenshots$",buf); R_ASSERT(fs);
 				fs->w				(saved->GetBufferPointer(),saved->GetBufferSize());
 				FS.w_close			(fs);
 				_RELEASE			(saved);
+				if (strstr(Core.Params,"-ss_tga"))	{ // hq
+					sprintf_s			(buf,sizeof(buf),"ssq_%s_%s_(%s).tga",Core.UserName,timestamp(t_stemp),(g_pGameLevel)?g_pGameLevel->name().c_str():"mainmenu");
+					ID3DBlob*		saved	= 0;
+					CHK_DX				(D3DXSaveSurfaceToFileInMemory (&saved,D3DXIFF_TGA,pFB,0,0));
+					IWriter*		fs	= FS.w_open	("$screenshots$",buf); R_ASSERT(fs);
+					fs->w				(saved->GetBufferPointer(),saved->GetBufferSize());
+					FS.w_close			(fs);
+					_RELEASE			(saved);
+				}
 			}
 			break;
 		case IRender_interface::SM_FOR_LEVELMAP:

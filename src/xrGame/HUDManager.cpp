@@ -169,8 +169,12 @@ ENGINE_API extern float psHUD_FOV;
 
 void CHUDManager::Render_First()
 {
-	if (!m_Renderable) return;
-	if (!psHUD_Flags.is(HUD_WEAPON|HUD_WEAPON_RT|HUD_WEAPON_RT2)) return;
+	if ( !m_Renderable )
+	{
+		return;
+	}
+
+	if (!psHUD_Flags.is(HUD_WEAPON|HUD_WEAPON_RT|HUD_WEAPON_RT2))return;
 	if (0==pUI)						return;
 	CObject*	O					= g_pGameLevel->CurrentViewEntity();
 	if (0==O)						return;
@@ -187,33 +191,27 @@ void CHUDManager::Render_First()
 
 void CHUDManager::Render_Last()
 {
-	if (!m_Renderable) return;
-	if (!psHUD_Flags.is(HUD_WEAPON|HUD_WEAPON_RT|HUD_WEAPON_RT2)) return;
+	if ( !m_Renderable )
+	{
+		return;
+	}
+
+	if (!psHUD_Flags.is(HUD_WEAPON|HUD_WEAPON_RT|HUD_WEAPON_RT2))return;
 	if (0==pUI)						return;
-	CObject* O						= g_pGameLevel->CurrentViewEntity();
+	CObject*	O					= g_pGameLevel->CurrentViewEntity();
 	if (0==O)						return;
-	CActor*	A						= smart_cast<CActor*> (O);
+	CActor*		A					= smart_cast<CActor*> (O);
 	if (A && !A->HUDview())			return;
-	if (smart_cast<CCar*>(O) || smart_cast<CSpectator*>(O)) return;
+	if( smart_cast<CCar*>(O) || smart_cast<CSpectator*>(O) )
+	{
+		return;
+	}
 
 	// hud itself
 	::Render->set_HUD				(TRUE);
 	::Render->set_Object			(O->H_Root());
 	O->OnHUDDraw					(this);
 	::Render->set_HUD				(FALSE);
-}
-
-void CHUDManager::Render_Actor_Shadow()	// added by KD
-{
-	if (0 == pUI)					return;
-	CObject*	O					= g_pGameLevel->CurrentViewEntity();
-	if (0 == O)						return;
-	CActor*		A					= smart_cast<CActor*> (O);
-	if (!A)							return;
-	if (A->active_cam() != eacFirstEye) return;		// KD: we need to render actor shadow only in first eye cam mode because 
-													// in other modes actor model already in scene graph and renders well
-	::Render->set_Object(O->H_Root());
-	O->renderable_Render();
 }
 
 #include "player_hud.h"
@@ -251,7 +249,7 @@ void  CHUDManager::RenderUI()
 	if(!b_online)					return;
 
 	BOOL bAlready					= FALSE;
-//	if (psHUD_Flags.is(HUD_DRAW | HUD_DRAW_RT))
+	if (true || psHUD_Flags.is(HUD_DRAW | HUD_DRAW_RT))
 	{
 		HitMarker.Render			();
 		bAlready					= ! (pUI && !pUI->Render());
@@ -335,19 +333,20 @@ void CHUDManager::SetGrenadeMarkType( LPCSTR tex_name )
 #include "ui\UIMainInGameWnd.h"
 extern CUIXml*			pWpnScopeXml;
 
-void CHUDManager::OnScreenResolutionChanged()
+void CHUDManager::OnScreenRatioChanged()
 {
-	if (pUI->UIGame())
-		pUI->UIGame()->HideShownDialogs();
+	if(pUI->UIGame())
+		pUI->UIGame()->HideShownDialogs	();
 
-	xr_delete(pWpnScopeXml);
-	xr_delete(pUI->UIMainIngameWnd);
+	xr_delete							(pWpnScopeXml);
+	xr_delete							(pUI->UIMainIngameWnd);
 
-	pUI->UIMainIngameWnd = xr_new<CUIMainIngameWnd>();
-	pUI->UIMainIngameWnd->Init();
-	pUI->UnLoad();
-	pUI->Load(pUI->UIGame());
-	pUI->OnConnected();
+	pUI->UIMainIngameWnd				= xr_new<CUIMainIngameWnd>	();
+	pUI->UIMainIngameWnd->Init			();
+	pUI->UnLoad							();
+	pUI->Load							(pUI->UIGame());
+	pUI->OnConnected					();
+	GetUICursor()->OnScreenRatioChanged	();
 }
 
 void CHUDManager::OnDisconnected()

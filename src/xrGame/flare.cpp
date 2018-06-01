@@ -95,16 +95,16 @@ void CFlare::OnAnimationEnd(u32 state)
 
 void CFlare::SwitchOn()
 {
-	LPCSTR sect = cNameSect().c_str();
-
+	static int lt				= 1; //IRender_Light::POINT
+	static bool ls				= true;
 	light_render				= ::Render->light_create();
-	light_render->set_type		(IRender_Light::POINT);
-	light_render->set_shadow	(true);
-	light_lanim					= LALib.FindItem(pSettings->r_string(sect, "flare_lanim_showing"));
+	light_render->set_type		( (IRender_Light::LT)lt);
+	light_render->set_shadow	(ls);
+	light_lanim					= LALib.FindItem("flare_lanim_showing");
 
 	light_render->set_active	(true);
 
-	m_pFlareParticles			= CParticlesObject::Create(pSettings->r_string(sect, "working_particles"), FALSE);
+	m_pFlareParticles			= CParticlesObject::Create(pSettings->r_string(cNameSect(), "working_particles"), FALSE);
 	m_pFlareParticles->Play		(true);
 
 }
@@ -119,7 +119,7 @@ void CFlare::SwitchOff()
 
 void CFlare::DropFlare()
 {
-	if (GetState() != eFlareHidden)
+	if(GetState()!=eFlareHidden)
 		SwitchState					(eFlareDropping);
 }
 
@@ -127,15 +127,15 @@ void CFlare::UpdateCL()
 {
 	inherited::UpdateCL();
 
-	if (light_render /*&& HudItemData()*/)
+	if( light_render /* && HudItemData()*/ )
 	{
-		float _c 				= CurrStateTime() / 1000.0f;
-		if (fsimilar(_c, m_work_time_sec) || (_c > m_work_time_sec))
+		float _c 				= CurrStateTime()/1000.0f;
+		if(fsimilar(_c,m_work_time_sec)||_c>m_work_time_sec)
 		{
 			SwitchOff			();
-			return;
+			return				;
 		}
-		if ((_c + 2.0f) > m_work_time_sec) //2sec
+		if(_c+2.0f > m_work_time_sec) //2sec
 		{
 			DropFlare			();
 		}
@@ -152,6 +152,8 @@ void CFlare::UpdateCL()
 		fclr.set				((float)color_get_B(clr),(float)color_get_G(clr),(float)color_get_R(clr),1.f);
 		fclr.mul_rgb			(fBrightness/255.f);
 		
+		fclr.set				(1,1,1,1);
+		
 		light_render->set_color	(fclr);
 
 		Fvector							_fp;
@@ -162,18 +164,18 @@ void CFlare::UpdateCL()
 		ParticlesMatrix					(pm);
 
 		m_pFlareParticles->UpdateParent	(pm, Fvector().set(0.f,0.f,0.f));
+
 	}
 }
 
 void CFlare::FirePoint(Fvector& _fp)
 {
-	if (HudItemData())
+	if(HudItemData())
 	{
 		firedeps						_current_firedeps;
 		HudItemData()->setup_firedeps	(_current_firedeps);
 		_fp.set							(_current_firedeps.vLastFP);
-	}
-	else
+	}else
 	{
 		_fp.set							(0,0,0);
 		IKinematics* K					= smart_cast<IKinematics*>(Visual());
@@ -185,14 +187,13 @@ void CFlare::FirePoint(Fvector& _fp)
 
 void CFlare::ParticlesMatrix(Fmatrix& _pm)
 {
-	if (HudItemData())
+	if(HudItemData())
 	{
 		firedeps						_current_firedeps;
 		HudItemData()->setup_firedeps	(_current_firedeps);
 		_pm.set							(_current_firedeps.m_FireParticlesXForm);
 		_pm.c.set						(_current_firedeps.vLastFP);
-	}
-	else
+	}else
 	{
 		Fvector							_pd;
 		_pd.set							(0.f,0.f,1.f);
@@ -200,7 +201,7 @@ void CFlare::ParticlesMatrix(Fmatrix& _pm)
 
 		_pm.identity					();
 		_pm.k.set						(_pd);
-		Fvector::generate_orthonormal_basis_normalized	(_pm.k, _pm.j, _pm.i);
+		Fvector::generate_orthonormal_basis_normalized	(	_pm.k, _pm.j, _pm.i);
 		FirePoint						(_pm.c);
 	}
 }

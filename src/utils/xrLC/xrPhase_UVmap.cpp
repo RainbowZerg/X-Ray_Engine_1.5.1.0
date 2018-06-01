@@ -45,10 +45,12 @@ void CBuild::xrPhase_UVmap()
 	// Main loop
 	Status					("Processing...");
 	lc_global_data()->g_deflectors().reserve	(64*1024);
+	float		p_cost	= 1.f / float(g_XSplit.size());
+	float		p_total	= 0.f;
 	vecFace		faces_affected;
 	for (int SP = 0; SP<int(g_XSplit.size()); SP++) 
 	{
-		Progress			(SP / g_XSplit.size()); // ZergO: fixed progress bar
+		Progress			(p_total+=p_cost);
 		IsolateVertices		(FALSE);
 		
 		// Detect vertex-lighting and avoid this subdivision

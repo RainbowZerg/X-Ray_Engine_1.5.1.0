@@ -7,21 +7,21 @@
 char g_stackTrace[MAX_STACK_TRACE][4096];
 int g_stackTraceCount = 0;
 
-void BuildStackTrace (struct _EXCEPTION_POINTERS *g_BlackBoxUIExPtrs)
+void BuildStackTrace	(struct _EXCEPTION_POINTERS *g_BlackBoxUIExPtrs)
 {
-	for (int i = 0; i != MAX_STACK_TRACE; ++i)
-		FillMemory(g_stackTrace[i], 4096, 0);
+	FillMemory			(g_stackTrace[0],MAX_STACK_TRACE*256, 0 );
 
-	const TCHAR* traceDump = GetFirstStackTraceString(GSTSO_MODULE | GSTSO_SYMBOL | GSTSO_SRCLINE, g_BlackBoxUIExPtrs);
+	const TCHAR* traceDump = 
+		GetFirstStackTraceString( GSTSO_MODULE | GSTSO_SYMBOL | GSTSO_SRCLINE,
+									g_BlackBoxUIExPtrs );
 	g_stackTraceCount = 0;
 
 	int incr = 85;
-	while (NULL != traceDump) 
-	{
-		if (strlen(traceDump) < 4096)
+	while ( NULL != traceDump ) {
+		int				length = strlen(traceDump);
+		if (length < 4096)
 			lstrcpy		(g_stackTrace[g_stackTraceCount], traceDump);
-		else 
-		{
+		else {
 			memcpy		(g_stackTrace[g_stackTraceCount],traceDump,4092);
 			char		*i = g_stackTrace[g_stackTraceCount] + 4092;
 			*i++		= '.';
@@ -33,7 +33,8 @@ void BuildStackTrace (struct _EXCEPTION_POINTERS *g_BlackBoxUIExPtrs)
 		g_stackTraceCount++;
 
 		incr += 2;
-		traceDump = GetNextStackTraceString(GSTSO_MODULE | GSTSO_SYMBOL | GSTSO_SRCLINE, g_BlackBoxUIExPtrs);
+		traceDump = GetNextStackTraceString( GSTSO_MODULE | GSTSO_SYMBOL | GSTSO_SRCLINE,
+			g_BlackBoxUIExPtrs );
 	}
 }
 

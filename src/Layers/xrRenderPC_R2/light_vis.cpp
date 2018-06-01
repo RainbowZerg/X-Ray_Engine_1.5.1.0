@@ -2,8 +2,6 @@
 #include "../xrRender/light.h"
 #include "../../xrEngine/cl_intersect.h"
 
-#pragma todo ("ZergO: перенести из предыдущего проекта?")
-
 const	u32	delay_small_min			= 1;
 const	u32	delay_small_max			= 3;
 const	u32	delay_large_min			= 10;

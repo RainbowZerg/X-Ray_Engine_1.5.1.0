@@ -144,16 +144,6 @@ void CLevel::IR_OnKeyboardPress	(int key)
 		return;
 		break;
 
-	//ZergO - hide\show hud by key
-	case kHUD_HIDE:	
-		psHUD_Flags.set(HUD_DRAW, false); 
-		HUD().GetUI()->ShowGameIndicators(false);	
-		break;
-	case kHUD_SHOW:	
-		psHUD_Flags.set(HUD_DRAW, true); 
-		HUD().GetUI()->ShowGameIndicators(true); 
-		break;
-	//
 	case kQUIT: {
 		if(b_ui_exist && HUD().GetUI()->MainInputReceiver() )
 		{

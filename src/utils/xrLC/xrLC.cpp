@@ -31,20 +31,14 @@ CBuild*	pBuild		= NULL;
 u32		version		= 0;
 
 extern void logThread(void *dummy);
-extern volatile bool bClose;
+extern volatile BOOL bClose;
 
 static const char* h_str = 
 	"The following keys are supported / required:\n"
-	"-? or -h		== this help\n"
-	"-gi			== calculate global lighting\n"
-	"-nosun			== disable sun-lighting\n"
-	"-nosmg			== disable smoothing groops\n"
-	"-noise			== disable converting to MU\n"
-	"-norgb			== disable common lightmap calculating\n"
-	"-nolmaps		== disable lightmaps calculating\n"
-	"-nolmcompress	== disable lightmaps compression\n"
-	"-lmap_quality	== lightmap quality\n"
-	"-f<NAME>		== compile level in GameData\\Levels\\<NAME>\\\n"
+	"-? or -h	== this help\n"
+	"-o			== modify build options\n"
+	"-nosun		== disable sun-lighting\n"
+	"-f<NAME>	== compile level in GameData\\Levels\\<NAME>\\\n"
 	"\n"
 	"NOTE: The last key is required for any functionality\n";
 
@@ -55,32 +49,24 @@ void Help()
 
 typedef int __cdecl xrOptions(b_params* params, u32 version, bool bRunBuild);
 
-void Startup(LPSTR lpCmdLine)
+void Startup(LPSTR     lpCmdLine)
 {
+	
 	create_global_data();
+	char cmd[512],name[256];
+	BOOL bModifyOptions		= FALSE;
 
-	char cmd[512], name[256];
 	strcpy_s(cmd,lpCmdLine);
 	strlwr(cmd);
-
-	if (strstr(cmd,"-?") || strstr(cmd, "-h") || strstr(cmd, "-f") == 0)
-	{
-		Help(); 
-		return; 
-	}
-
-	if (strstr(cmd,"-gi"))								b_radiosity		= true;
-	if (strstr(cmd,"-noise"))							b_noise			= true;
-	if (strstr(cmd,"-net"))								b_net_light		= true;
-	if (strstr(cmd,"-nosmg"))							g_using_smooth_groups = false;
-	if (strstr(cmd,"-nolmaps"))							b_nolmaps		= true;
+	if (strstr(cmd,"-?") || strstr(cmd,"-h"))			{ Help(); return; }
+	if (strstr(cmd,"-f")==0)							{ Help(); return; }
+	if (strstr(cmd,"-o"))								bModifyOptions	= TRUE;
+	if (strstr(cmd,"-gi"))								b_radiosity		= TRUE;
+	if (strstr(cmd,"-noise"))							b_noise			= TRUE;
+	if (strstr(cmd,"-net"))								b_net_light		= TRUE;
 	VERIFY( lc_global_data() );
-	lc_global_data()->b_nosun_set						(!!strstr(cmd, "-nosun"));
-	lc_global_data()->b_norgb_set						(!!strstr(cmd, "-norgb"));
-	lc_global_data()->b_nolmcompress_set				(!!strstr(cmd, "-nolmcompress"));
-	const char* tmp_lmq = strstr(cmd, "-lmap_quality");
-	if (tmp_lmq)
-		sscanf_s(tmp_lmq + 14, "%f", &f_lmap_quality);
+	lc_global_data()->b_nosun_set						( !!strstr(cmd,"-nosun") );
+	//if (strstr(cmd,"-nosun"))							b_nosun			= TRUE;
 	
 	// Give a LOG-thread a chance to startup
 	//_set_sbh_threshold(1920);
@@ -131,8 +117,20 @@ void Startup(LPSTR lpCmdLine)
 	b_params				Params;
 	F->r_chunk			(EB_Parameters,&Params);
 
-	if (tmp_lmq)
-		Params.m_lm_pixels_per_meter = f_lmap_quality; // ZergO
+	// Show options if needed
+	if (bModifyOptions)		
+	{
+		Phase		("Project options...");
+		HMODULE		L = LoadLibrary		("xrLC_Options.dll");
+		void*		P = GetProcAddress	(L,"_frmScenePropertiesRun");
+		R_ASSERT	(P);
+		xrOptions*	O = (xrOptions*)P;
+		int			R = O(&Params,version,false);
+		FreeLibrary	(L);
+		if (R==2)	{
+			ExitProcess(0);
+		}
+	}
 	
 	// Conversion
 	Phase					("Converting data structures...");
@@ -157,7 +155,7 @@ void Startup(LPSTR lpCmdLine)
 		MessageBox			(logWindow,inf,"Congratulation!",MB_OK|MB_ICONINFORMATION);
 
 	// Close log
-	bClose					= true;
+	bClose					= TRUE;
 	Sleep					(500);
 }
 
@@ -165,7 +163,12 @@ void Startup(LPSTR lpCmdLine)
 //XRCORE_API DUMMY_STUFF	*g_temporary_stuff;
 //XRCORE_API DUMMY_STUFF	*g_dummy_stuff;
 
-int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+
+
+int APIENTRY WinMain(HINSTANCE hInst,
+                     HINSTANCE hPrevInstance,
+                     LPSTR     lpCmdLine,
+                     int       nCmdShow)
 {
 //	g_temporary_stuff	= &trivial_encryptor::decode;
 //	g_dummy_stuff		= &trivial_encryptor::encode;
@@ -173,6 +176,10 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR lpCmdLine, 
 	// Initialize debugging
 	Debug._initialize	(false);
 	Core._initialize	("xrLC");
+	
+	if(strstr(Core.Params,"-nosmg"))
+		g_using_smooth_groups = false;
+
 	Startup				(lpCmdLine);
 	Core._destroy		();
 	

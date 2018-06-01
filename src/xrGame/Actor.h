@@ -43,7 +43,6 @@ struct SShootingEffector;
 struct SSleepEffector;
 class  CSleepEffectorPP;
 class CInventoryBox;
-class CHangingLamp;
 
 class	CHudItem;
 class   CArtefact;
@@ -186,7 +185,6 @@ public:
 
 	virtual float						GetMass				() ;
 	virtual float						Radius				() const;
-	virtual float						GetCarryWeight		() const; 
 	virtual void						g_PerformDrop		();
 	
 	virtual	bool						use_default_throw_force	();
@@ -322,7 +320,6 @@ public:
 	CActorCameraManager&	Cameras				() 	{VERIFY(m_pActorEffector); return *m_pActorEffector;}
 	IC CCameraBase*			cam_Active			()	{return cameras[cam_active];}
 	IC CCameraBase*			cam_FirstEye		()	{return cameras[eacFirstEye];}
-	IC EActorCameras		active_cam			()	{return cam_active;}			// KD: need to know which cam active outside actor methods
 
 protected:
 	virtual	void			cam_Set					(EActorCameras style);
@@ -361,7 +358,6 @@ protected:
 	CHolderCustom*			m_pVehicleWeLookingAt;
 	CGameObject*			m_pObjectWeLookingAt;
 	CInventoryBox*			m_pInvBoxWeLookingAt;
-	CHangingLamp*			m_pHangingLampWeLookingAt;
 
 	// Tip for action for object we're looking at
 	shared_str				m_sDefaultObjAction;
@@ -371,8 +367,6 @@ protected:
 	shared_str				m_sCarCharacterUseAction;
 	shared_str				m_sInventoryItemUseAction;
 	shared_str				m_sInventoryBoxUseAction;
-//	shared_str				m_sHangingLampEnableAction;
-//	shared_str				m_sHangingLampDisableAction;
 
 	//режим подбирания предметов
 	bool					m_bPickupMode;

@@ -22,7 +22,6 @@
 #include "game_base_space.h"
 
 #define SMALL_ENTITY_RADIUS		0.6f
-#define SMALL_ENTITY_K			0.5f
 #define BLOOD_MARKS_SECT		"bloody_marks"
 
 //отметки крови на стенах 
@@ -286,29 +285,17 @@ void	CEntityAlive::Hit							(SHit* pHDS)
 	//изменить состояние, перед тем как родительский класс обработает хит
 	CWound* pWound = conditions().ConditionHit(&HDS);
 
-	if(pWound)
-	{
+	if(pWound){
 		if(ALife::eHitTypeBurn == HDS.hit_type)
 			StartFireParticles(pWound);
 		else if(ALife::eHitTypeWound == HDS.hit_type || ALife::eHitTypeFireWound == HDS.hit_type)
 			StartBloodDrops(pWound);
 	}
 
-	// ZergO: оставлять кровь только от определенных типов ранений
-	switch (HDS.hit_type)
-	{
-	case ALife::eHitTypeWound:
-	case ALife::eHitTypeExplosion:
-	case ALife::eHitTypeFireWound:
-	case ALife::eHitTypeStrike:
-	{
+	if (HDS.hit_type != ALife::eHitTypeTelepatic){
+		//добавить кровь на стены
 		if (!use_simplified_visual())
-			BloodyWallmarks(HDS.damage(), HDS.dir, HDS.bone(), HDS.p_in_bone_space);
-
-		break;
-	}
-
-	default: break;
+			BloodyWallmarks (HDS.damage(), HDS.dir, HDS.bone(), HDS.p_in_bone_space);
 	}
 
 	//-------------------------------------------
@@ -316,10 +303,9 @@ void	CEntityAlive::Hit							(SHit* pHDS)
 	//-------------------------------------------
 	inherited::Hit(&HDS);
 
-	if (g_Alive() && IsGameTypeSingle()) 
-	{
+	if (g_Alive()&&IsGameTypeSingle()) {
 		CEntityAlive* EA = smart_cast<CEntityAlive*>(HDS.who);
-		if (EA && EA->g_Alive() && EA->ID() != ID())
+		if(EA && EA->g_Alive() && EA->ID() != ID())
 		{
 			RELATION_REGISTRY().FightRegister(EA->ID(), ID(), this->tfGetRelationType(EA), HDS.damage());
 			RELATION_REGISTRY().Action(EA, this, RELATION_REGISTRY::ATTACK);
@@ -384,73 +370,79 @@ void CEntityAlive::PHFreeze()
 //////////////////////////////////////////////////////////////////////
 
 //добавление кровавых отметок на стенах, после получения хита
-void CEntityAlive::BloodyWallmarks (float P, const Fvector &dir, u16 element, const Fvector& position_in_object_space)
+void CEntityAlive::BloodyWallmarks (float P, const Fvector &dir, s16 element, 
+									const Fvector& position_in_object_space)
 {
-	if (BI_NONE == element) return;
+	if(BI_NONE == (u16)element)
+		return;
 
 	//вычислить координаты попадания
-	Fvector start_pos = position_in_object_space;
-
 	IKinematics* V = smart_cast<IKinematics*>(Visual());
-	if (V)
+		
+	Fvector start_pos = position_in_object_space;
+	if(V)
 	{
 		Fmatrix& m_bone = (V->LL_GetBoneInstance(u16(element))).mTransform;
 		m_bone.transform_tiny(start_pos);
 	}
 	XFORM().transform_tiny(start_pos);
 
+	float small_entity = 1.f;
+	if(Radius()<SMALL_ENTITY_RADIUS) small_entity = 0.5;
+
+
 	float wallmark_size = m_fBloodMarkSizeMax;
 	wallmark_size *= (P/m_fNominalHit);
-
-	if (Radius() < SMALL_ENTITY_RADIUS)
-		wallmark_size *= SMALL_ENTITY_K;
-
+	wallmark_size *= small_entity;
 	clamp(wallmark_size, m_fBloodMarkSizeMin, m_fBloodMarkSizeMax);
 
 	VERIFY(m_pBloodMarksVector);
-	PlaceBloodWallmark(dir, start_pos, m_fBloodMarkDistance, wallmark_size, &**m_pBloodMarksVector);
+	PlaceBloodWallmark(dir, start_pos, m_fBloodMarkDistance, 
+						wallmark_size, &**m_pBloodMarksVector);
 
 }
 
-void CEntityAlive::PlaceBloodWallmark (const Fvector& dir, const Fvector& start_pos, float trace_dist, float wallmark_size, IWallMarkArray *pwallmarks_vector)
+void CEntityAlive::PlaceBloodWallmark(const Fvector& dir, const Fvector& start_pos, 
+									  float trace_dist, float wallmark_size,
+									  IWallMarkArray *pwallmarks_vector)
 {
-	collide::rq_result result;
-	BOOL reach_surface = Level().ObjectSpace.RayPick(start_pos, dir, trace_dist, collide::rqtBoth, result, this);
+	collide::rq_result	result;
+	BOOL				reach_wall = 
+		Level().ObjectSpace.RayPick(
+			start_pos,
+			dir,
+			trace_dist, 
+			collide::rqtBoth,
+			result,
+			this
+		)
+		&&
+		!result.O;
 
-	if (!reach_surface) return; // если кровь не долетела до объекта - уходим отсюда
-
-	// вычислить точку попадания
-	Fvector end_point; end_point.set(0, 0, 0);
-	end_point.mad(start_pos, dir, result.range);
-
-	if (result.O)
+	//если кровь долетела до статического объекта
+	if(reach_wall)
 	{
-		IKinematics* const pK = smart_cast<IKinematics*>(result.O->Visual());
-		if (!pK) return;
+		CDB::TRI*	pTri	= Level().ObjectSpace.GetStaticTris()+result.element;
+		SGameMtl*	pMaterial = GMLib.GetMaterialByIdx(pTri->material);
 
-		CBoneData const& bone_data = pK->LL_GetData((u16)result.element);
-		SGameMtl* pMaterial = GMLib.GetMaterialByIdx(bone_data.game_mtl_idx);
-
-		if (pMaterial->Flags.is(SGameMtl::flBloodmark)) 
+		if(pMaterial->Flags.is(SGameMtl::flBloodmark))
 		{
-			// добавить отметку на материале
-			if (!g_dedicated_server)
-				::Render->add_SkeletonWallmark(&result.O->renderable.xform, pK, pwallmarks_vector, end_point, dir, wallmark_size);
-		}
-	}
-	else
-	{
-		CDB::TRI* pTri		= Level().ObjectSpace.GetStaticTris() + result.element;
-		SGameMtl* pMaterial = GMLib.GetMaterialByIdx(pTri->material);
+			//вычислить нормаль к пораженной поверхности
+			Fvector*	pVerts	= Level().ObjectSpace.GetStaticVerts();
 
-		if (pMaterial->Flags.is(SGameMtl::flBloodmark))
-		{
-			// вычислить нормаль к пораженной поверхности
-			Fvector* pVerts	= Level().ObjectSpace.GetStaticVerts();
+			//вычислить точку попадания
+			Fvector end_point;
+			end_point.set(0,0,0);
+			end_point.mad(start_pos, dir, result.range);
 
+			
+			//ref_shader wallmarkShader = wallmarks_vector[::Random.randI(wallmarks_vector.size())];
 			VERIFY(!pwallmarks_vector->empty());
-			// добавить отметку на материале
-			::Render->add_StaticWallmark(pwallmarks_vector, end_point, wallmark_size, pTri, pVerts);
+			{
+				//добавить отметку на материале
+				//::Render->add_StaticWallmark(wallmarkShader, end_point, wallmark_size, pTri, pVerts);
+				::Render->add_StaticWallmark(pwallmarks_vector, end_point, wallmark_size, pTri, pVerts);
+			}
 		}
 	}
 }

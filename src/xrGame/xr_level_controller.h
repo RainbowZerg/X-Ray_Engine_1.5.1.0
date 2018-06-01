@@ -20,15 +20,13 @@ enum	EGameActions
 	kL_LOOKOUT,
 	kR_LOOKOUT,
 						
-//	kENGINE, // use kDETECTOR instead
 	kCAM_1,
 	kCAM_2,
 	kCAM_3,
 	kCAM_4,
 	kCAM_ZOOM_IN,
 	kCAM_ZOOM_OUT,
-			
-	kFLARE,
+						
 	kTORCH,
 	kNIGHT_VISION,
 	kDETECTOR,
@@ -92,11 +90,6 @@ enum	EGameActions
 	kQUICK_SAVE,
 	kQUICK_LOAD,
 	kALIFE_CMD,
-
-	kHUD_HIDE,
-	kHUD_SHOW,
-
-	kKICK, // alpet: пинок видимого объекта
 
 	kLASTACTION,
 	kNOTBINDED,

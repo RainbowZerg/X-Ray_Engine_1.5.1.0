@@ -13,8 +13,8 @@
 #define		r2_T_envs0			"$user$env_s0"			// ---
 #define		r2_T_envs1			"$user$env_s1"			// ---
 
-#define		r__T_sky0			"$user$sky0" 
-#define		r__T_sky1			"$user$sky1" 
+#define		r2_T_sky0			"$user$sky0" 
+#define		r2_T_sky1			"$user$sky1" 
 
 #define		r2_RT_generic0		"$user$generic0"		// ---
 #define		r2_RT_generic1		"$user$generic1"		// ---
@@ -42,11 +42,6 @@
 #define		r2_jitter			"$user$jitter_"			// --- dither
 #define		r2_jitter_mipped	"$user$jitter_mipped"			// --- dither
 #define		r2_sunmask			"sunmask"
-
-// KD start
-#define		r2_RT_flares		"$user$flares"
-
-// KD end
 
 #define		JITTER(a) r2_jitter #a
 
@@ -87,9 +82,8 @@ const		u32					LUMINANCE_size		= 16	;
 
 // sun
 #define		SE_SUN_NEAR			0
-#define		SE_SUN_MIDDLE		1
-#define		SE_SUN_FAR			2
-#define		SE_SUN_LUMINANCE	3
+#define		SE_SUN_FAR			1
+#define		SE_SUN_LUMINANCE	2
 
 extern		float	ps_r2_gloss_factor;
 IC	float	u_diffuse2s	(float x, float y, float z)	{ float	v = (x+y+z)/3.f;	return ps_r2_gloss_factor * ((v<1)?powf(v,2.f/3.f):v); }

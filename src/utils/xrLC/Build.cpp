@@ -16,19 +16,18 @@
 #include "../xrLC_Light/xrLC_GlobalData.h"
 #include "../xrLC_Light/xrface.h"
 
-void	calc_ogf		(xrMU_Model &mu_model);
-void	export_geometry	(xrMU_Model &mu_model);
+void	calc_ogf		( xrMU_Model &	mu_model );
+void	export_geometry	( xrMU_Model &	mu_model );
 
-void	export_ogf		(xrMU_Reference &mu_reference);
+void	export_ogf		( xrMU_Reference& mu_reference );
 
-using namespace	std;
+using namespace			std;
 struct OGF_Base;
 xr_vector<OGF_Base *>	g_tree;
-bool					b_noise			= false;
-bool					b_radiosity		= false;
-bool					b_net_light		= false;
-bool					b_nolmaps		= false;
-float					f_lmap_quality	= 4.f;
+BOOL					b_R2		= FALSE;
+BOOL					b_noise		= FALSE;
+BOOL					b_radiosity	= FALSE;
+BOOL					b_net_light	= FALSE;
 vec2Face				g_XSplit;
 
 CThreadManager			mu_base;
@@ -268,17 +267,16 @@ void CBuild::Run	(LPCSTR P)
 	mu_base.wait				(500);
 	mu_secondary.wait			(500);
 #endif
-	if (!b_nolmaps)
-		Light					();
 
+	Light						();
 	RunAfterLight				( fs );
 
 }
-void CBuild::StartMu()
+void	CBuild::StartMu	()
 {
   mu_base.start				(xr_new<CMUThread> (0));
 }
-void CBuild::RunAfterLight(IWriter* fs)
+void CBuild::	RunAfterLight			( IWriter* fs	)
 {
  	//****************************************** Merge geometry
 	FPU::m64r					();

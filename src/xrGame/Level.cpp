@@ -1228,6 +1228,14 @@ IC bool	IsGameTypeSingle()
 	return (g_pGamePersistent->GameType() == eGameIDSingle);
 }
 */
+#ifdef BATTLEYE
+
+bool CLevel::TestLoadBEClient()
+{
+	return battleye_system.TestLoadClient();
+}
+
+#endif // BATTLEYE
 
 CZoneList* CLevel::create_hud_zones_list()
 {

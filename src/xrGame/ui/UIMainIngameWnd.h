@@ -5,14 +5,14 @@
 #include "UIGameLog.h"
 #include "UICarPanel.h"
 #include "UIMotionIcon.h"
-//#include "UIZoneMap.h"
+#include "UIZoneMap.h"
 
 #include "../hudsound.h"
 #include "../../xrServerEntities/alife_space.h"
 
 class	CUIPdaMsgListItem;
 class	CLAItem;
-//class	CUIZoneMap;
+class	CUIZoneMap;
 class	CUIScrollView;
 struct	GAME_NEWS_DATA;
 class	CActor;
@@ -43,7 +43,7 @@ protected:
 //	CUIProgressBar		UIArmorBar;
 //	CUICarPanel			UICarPanel;
 	CUIMotionIcon		UIMotionIcon;
-//	CUIZoneMap*			UIZoneMap;		// ZergO: no minimap
+	CUIZoneMap*			UIZoneMap;
 
 	//иконка, показывающая количество активных PDA
 //	CUIStatic			UIPdaOnline;
@@ -51,9 +51,9 @@ protected:
 	CUIHudStatesWnd*	m_ui_hud_states;
 
 public:
-//	IC	void			ShowZoneMap( bool status ) { UIZoneMap->visible = status; }
-//		void			DrawZoneMap() { UIZoneMap->Render(); }
-//		void			UpdateZoneMap() { UIZoneMap->Update(); }
+	IC	void			ShowZoneMap( bool status ) { UIZoneMap->visible = status; }
+		void			DrawZoneMap() { UIZoneMap->Render(); }
+		void			UpdateZoneMap() { UIZoneMap->Update(); }
 	
 	CUIHudStatesWnd*	get_hud_states() { return m_ui_hud_states; } //temp
 	void				OnSectorChanged			(int sector);

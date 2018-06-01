@@ -6,7 +6,7 @@
 
 #include "../xrRender/hom.h"
 #include "../xrRender/detailmanager.h"
-#include "../xrRender/glowmanager.h"
+#include "glowmanager.h"
 #include "../xrRender/wallmarksengine.h"
 #include "fstaticrender_rendertarget.h"
 #include "../xrRender/modelpool.h"
@@ -16,9 +16,6 @@
 #include "lightPPA.h"
 #include "../xrRender/light_DB.h"
 #include "../../xrEngine/fmesh.h"
-
-#define		r__T_sky0			"$user$sky0" 
-#define		r__T_sky1			"$user$sky1" 
 
 class dxRender_Visual;
 
@@ -37,7 +34,7 @@ public:
 		u32		distortion			: 1;	// run-time modified
 		u32		disasm				: 1;	// config
 		u32		forceskinw			: 1;	// config
-		u32		detail_textures		: 1;	// config
+		u32		no_detail_textures	: 1;	// config
 	}			o;
 	struct		_stats		{
 		u32		o_queries,	o_culled;
@@ -87,7 +84,7 @@ public:
 	bool														m_bMakeAsyncSS;
 private:
 	// Loading / Unloading
-	void								LoadBuffers				(CStreamReader	*fs, BOOL _alternative = FALSE);
+	void								LoadBuffers				(CStreamReader	*fs);
 	void								LoadVisuals				(IReader *fs);
 	void								LoadLights				(IReader *fs);
 	void								LoadSectors				(IReader *fs);
@@ -108,8 +105,6 @@ public:
 	IRender_Portal*						getPortal				(int id);
 	IRender_Sector*						getSectorActive			();
 	IRenderVisual*						model_CreatePE			(LPCSTR			name);
-	IRender_Sector*						detectSector			(const Fvector& P, Fvector& D);
-
 	void								ApplyBlur4				(FVF::TL4uv*	dest, u32 w, u32 h, float k);
 	void								apply_object			(IRenderable*	O);
 	IC void								apply_lmaterial			()				{};
@@ -214,9 +209,6 @@ public:
 	virtual void					rmNear					();
 	virtual void					rmFar					();
 	virtual void					rmNormal				();
-
-	// KD: need to know, what R2 phase is active now
-	virtual u32						active_phase			()	{return phase;};
 
 	// Constructor/destructor/loader
 	CRender							();

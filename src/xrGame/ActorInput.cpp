@@ -25,7 +25,6 @@
 #include "UI/UIStatic.h"
 #include "CharacterPhysicsSupport.h"
 #include "InventoryBox.h"
-#include "HangingLamp.h"
 #include "player_hud.h"
 #include "../xrEngine/xr_input.h"
 #include "flare.h"
@@ -121,14 +120,14 @@ void CActor::IR_OnKeyboardPress(int cmd)
 				return;
 			}
 		}break;
-
+/*
 	case kFLARE:{
 			PIItem fl_active = inventory().ItemFromSlot(FLARE_SLOT);
-			if (fl_active)
+			if(fl_active)
 			{
 				CFlare* fl			= smart_cast<CFlare*>(fl_active);
 				fl->DropFlare		();
-				return;
+				return				;
 			}
 
 			PIItem fli = inventory().Get(CLSID_DEVICE_FLARE, true);
@@ -136,10 +135,10 @@ void CActor::IR_OnKeyboardPress(int cmd)
 
 			CFlare* fl			= smart_cast<CFlare*>(fli);
 			
-			if (inventory().Slot(fl))
+			if(inventory().Slot(fl))
 				fl->ActivateFlare	();
 		}break;
-
+*/
 	case kUSE:
 		ActorUse();
 		break;
@@ -172,70 +171,7 @@ void CActor::IR_OnKeyboardPress(int cmd)
 					_s->wnd()->SetText			(str);
 				}
 			}
-		}
-		break;
-	case kKICK:
-		{
-			CGameObject *O = ObjectWeLookingAt();
-			// if (!O)	O = smart_cast<CGameObject*> ( PersonWeLookingAt());
-			// 
-			if (O)
-			{
-				static float kick_impulse	= READ_IF_EXISTS(pSettings, r_float, "actor", "kick_impulse", 250.f);
-				const char* kick_bone		= READ_IF_EXISTS(pSettings, r_string, "actor", "kick_bone", "bip01_r_toe0");
-				Fvector dir = Direction();
-				dir.y = _sin(15.f / 180.f * PI);
-				dir.normalize();
-				float mass_f = 1.f;
-				CPhysicsShellHolder *sh = smart_cast<CPhysicsShellHolder*>(O);
-				if (sh)
-					mass_f = sh->GetMass();
-
-				PIItem itm = smart_cast<PIItem>(O);
-				if (itm)
-					mass_f = itm->Weight();
-
-				CInventoryOwner *io = smart_cast<CInventoryOwner*> (O);
-				if (io)
-					mass_f += io->GetCarryWeight();
-
-				if (mass_f < 1)
-					mass_f = 1;
-
-				u16 bone_id = 0;
-				collide::rq_result& RQ = HUD().GetCurrentRayQuery();
-				if (RQ.O == O && RQ.element != 0xffff)
-					bone_id = (u16)RQ.element;
-
-				clamp<float>(mass_f, 0.1f, 100.f); // ограничить параметры хита
-
-				//shell->applyForce(dir, kick_power * conditions().GetPower());
-				Fvector h_pos = O->Position();
-
-				SHit hit = SHit(0.001f * mass_f, 0, dir, this, bone_id, h_pos, kick_impulse, ALife::eHitTypePhysicStrike);
-				O->Hit(&hit);
-				/*CEntityAlive *EA = smart_cast<CEntityAlive*>(O);
-				if (EA)
-				{
-				static float alive_kick_power = 3.f;
-				float real_imp = kick_impulse / mass_f;
-				dir.mul(pow(real_imp, alive_kick_power));
-				EA->character_physics_support()->movement()->AddControlVel(dir);
-				EA->character_physics_support()->movement()->ApplyImpulse(dir.normalize(), kick_impulse * alive_kick_power);
-				}
-				*/
-
-				conditions().ConditionJump(mass_f / 50);
-				if (mass_f > 5)
-				{
-					IKinematics* pVisual = smart_cast<IKinematics*>(Visual());
-					u16 bId = pVisual->LL_BoneID(kick_bone);
-					hit.boneID = bId; // ударим ГГ в ногу (зависит от конфига)
-					this->Hit(&hit); // сила действия равна силе противодействия
-				}
-			}
-		}
-		break;
+		}break;
 	}
 }
 
@@ -415,6 +351,7 @@ void CActor::ActorUse()
 	//mstate_real = 0;
 	PickupModeOn();
 
+		
 	if (m_holder)
 	{
 		CGameObject*	GO			= smart_cast<CGameObject*>(m_holder);
@@ -425,47 +362,44 @@ void CActor::ActorUse()
 		return;
 	}
 				
-	if (character_physics_support()->movement()->PHCapture())
+	if(character_physics_support()->movement()->PHCapture())
 		character_physics_support()->movement()->PHReleaseObject();
 
-	if (m_pUsableObject)
-		m_pUsableObject->use(this);
 	
-	if (m_pInvBoxWeLookingAt && m_pInvBoxWeLookingAt->nonscript_usable())
+
+	if(m_pUsableObject)m_pUsableObject->use(this);
+	
+	if(m_pInvBoxWeLookingAt && m_pInvBoxWeLookingAt->nonscript_usable())
 	{
 		CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
-		if (pGameSP) 
-			pGameSP->StartCarBody(this, m_pInvBoxWeLookingAt);
-
+		if(pGameSP) pGameSP->StartCarBody(this, m_pInvBoxWeLookingAt );
 		return;
 	}
 
-	if (m_pHangingLampWeLookingAt && m_pHangingLampWeLookingAt->Usable() && m_pHangingLampWeLookingAt->Alive())
+	if(!m_pUsableObject||m_pUsableObject->nonscript_usable())
 	{
-		if (m_pHangingLampWeLookingAt->Enabled())
-			m_pHangingLampWeLookingAt->TurnOff(true);
-		else
-			m_pHangingLampWeLookingAt->TurnOn(true);
-	}
-
-	if (!m_pUsableObject||m_pUsableObject->nonscript_usable())
-	{
-		if (m_pPersonWeLookingAt)
+		if(m_pPersonWeLookingAt)
 		{
-			CEntityAlive* pEntityAliveWeLookingAt = smart_cast<CEntityAlive*>(m_pPersonWeLookingAt);
+			CEntityAlive* pEntityAliveWeLookingAt = 
+				smart_cast<CEntityAlive*>(m_pPersonWeLookingAt);
 
 			VERIFY(pEntityAliveWeLookingAt);
 
 			if (IsGameTypeSingle())
 			{			
-				if (pEntityAliveWeLookingAt->g_Alive())
+
+				if(pEntityAliveWeLookingAt->g_Alive())
+				{
 					TryToTalk();
-				else if (!Level().IR_GetKeyState(DIK_LSHIFT)) //обыск трупа
+				}else
+
+				//обыск трупа
+				if(!Level().IR_GetKeyState(DIK_LSHIFT))
 				{
 					//только если находимся в режиме single
 					CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
-					if (pGameSP)
-						pGameSP->StartCarBody(this, m_pPersonWeLookingAt);
+					if(pGameSP)
+						pGameSP->StartCarBody(this, m_pPersonWeLookingAt );
 				}
 			}
 		}
@@ -473,14 +407,18 @@ void CActor::ActorUse()
 		collide::rq_result& RQ = HUD().GetCurrentRayQuery();
 		CPhysicsShellHolder* object = smart_cast<CPhysicsShellHolder*>(RQ.O);
 		u16 element = BI_NONE;
-		if (object) 
+		if(object) 
 			element = (u16)RQ.element;
 
-		if (object && Level().IR_GetKeyState(DIK_LSHIFT))
+		if(object && Level().IR_GetKeyState(DIK_LSHIFT))
 		{
 			bool b_allow = !!pSettings->line_exist("ph_capture_visuals",object->cNameVisual());
-			if (b_allow && !character_physics_support()->movement()->PHCapture())
-				character_physics_support()->movement()->PHCaptureObject(object, element);
+			if(b_allow && !character_physics_support()->movement()->PHCapture())
+			{
+				character_physics_support()->movement()->PHCaptureObject( object, element );
+
+			}
+
 		}
 		else
 		{
@@ -606,8 +544,6 @@ void CActor::set_input_external_handler(CActorInputHandler *handler)
 
 void CActor::SwitchNightVision()
 {
-#pragma todo("ZergO: переделать под отдельный предмет ПНВ")
-/*
 	xr_vector<CAttachableItem*> const& all = CAttachmentOwner::attached_objects();
 	xr_vector<CAttachableItem*>::const_iterator it = all.begin();
 	xr_vector<CAttachableItem*>::const_iterator it_e = all.end();
@@ -620,7 +556,6 @@ void CActor::SwitchNightVision()
 			return;
 		}
 	}
-*/
 }
 
 void CActor::SwitchTorch()
@@ -631,9 +566,9 @@ void CActor::SwitchTorch()
 	for ( ; it != it_e; ++it )
 	{
 		CTorch* torch = smart_cast<CTorch*>(*it);
-		if (torch)
+		if ( torch )
 		{		
-			torch->Switch(!torch->Enabled(), true);
+			torch->Switch();
 			return;
 		}
 	}

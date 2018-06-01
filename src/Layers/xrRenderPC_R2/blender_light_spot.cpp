@@ -10,10 +10,10 @@ void	CBlender_accum_spot::Compile(CBlender_Compile& C)
 {
 	IBlender::Compile		(C);
 
-	BOOL b_HW_smap		= RImplementation.o.HW_smap;
-	BOOL b_HW_PCF		= RImplementation.o.HW_smap_PCF;
-	BOOL blend			= RImplementation.o.fp16_blend;
-	D3DBLEND dest		= blend?D3DBLEND_ONE:D3DBLEND_ZERO;
+	BOOL		b_HW_smap	= RImplementation.o.HW_smap;
+	BOOL		b_HW_PCF	= RImplementation.o.HW_smap_PCF;
+	BOOL		blend		= RImplementation.o.fp16_blend;
+	D3DBLEND	dest		= blend?D3DBLEND_ONE:D3DBLEND_ZERO;
 
 	switch (C.iElement)
 	{
@@ -28,7 +28,7 @@ void	CBlender_accum_spot::Compile(CBlender_Compile& C)
 		C.r_Sampler_rtf		("s_normal",		r2_RT_N);
 		C.r_Sampler_clw		("s_material",		r2_material);
 		C.r_Sampler			("s_lmap",			C.L_textures[0],false,D3DTADDRESS_CLAMP);
-		C.r_Sampler_rtf		("s_accumulator",	r2_RT_accum);
+		C.r_Sampler_rtf		("s_accumulator",	r2_RT_accum		);
 		C.r_End				();
 		break;
 	case SE_L_NORMAL:		// normal

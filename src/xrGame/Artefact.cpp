@@ -55,13 +55,10 @@ void CArtefact::Load(LPCSTR section)
 		m_sParticlesName	= pSettings->r_string(section, "particles");
 
 	m_bLightsEnabled		= !!pSettings->r_bool(section, "lights_enabled");
-	if(m_bLightsEnabled)
-	{
-		sscanf(pSettings->r_string(section,"trail_light_color"), "%f,%f,%f", &m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
+	if(m_bLightsEnabled){
+		sscanf(pSettings->r_string(section,"trail_light_color"), "%f,%f,%f", 
+			&m_TrailLightColor.r, &m_TrailLightColor.g, &m_TrailLightColor.b);
 		m_fTrailLightRange	= pSettings->r_float(section,"trail_light_range");
-
-		m_bTrailLightShadow = !!READ_IF_EXISTS(pSettings, r_bool, section, "trail_light_shadow", false);
-		m_bTrailLightFlare	= !!READ_IF_EXISTS(pSettings, r_bool, section, "trail_light_flare", false);
 	}
 
 
@@ -252,8 +249,7 @@ void CArtefact::StartLights()
 
 	VERIFY							(m_pTrailLight == NULL);
 	m_pTrailLight					= ::Render->light_create();
-	m_pTrailLight->set_shadow		(m_bTrailLightShadow);
-	m_pTrailLight->set_flare		(m_bTrailLightFlare);
+	m_pTrailLight->set_shadow		(false);
 
 	m_pTrailLight->set_color	(m_TrailLightColor); 
 	m_pTrailLight->set_range	(m_fTrailLightRange);

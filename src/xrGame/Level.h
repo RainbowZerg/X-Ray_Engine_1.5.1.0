@@ -15,6 +15,7 @@
 #include "alife_space.h"
 #include "../xrcore/xrDebug.h"
 #include "xrServer.h"
+#include "battleye_system.h"
 #include "GlobalFeelTouch.hpp"
 #include "customdetector.h"
 
@@ -191,6 +192,11 @@ public:
 	
 	CZoneList*					hud_zones_list;
 	CZoneList*					create_hud_zones_list();
+
+#ifdef BATTLEYE
+	BattlEyeSystem				battleye_system;
+	virtual bool				TestLoadBEClient();
+#endif // BATTLEYE
 
 private:
 	// preload sounds registry

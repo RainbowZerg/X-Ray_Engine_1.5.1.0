@@ -63,10 +63,8 @@
 #include "Game_Object_Space.h"
 #include "script_callback_ex.h"
 #include "InventoryBox.h"
-#include "HangingLamp.h"
 #include "location_manager.h"
 #include "player_hud.h"
-#include "PHCapture.h"
 
 #include "../Include/xrRender/UIRender.h"
 
@@ -92,7 +90,7 @@ static Fbox		bbCrouchBox;
 static Fvector	vFootCenter;
 static Fvector	vFootExt;
 
-Flags32			psActorFlags={/*AF_DYNAMIC_MUSIC|*/};
+Flags32			psActorFlags={/*AF_DYNAMIC_MUSIC|*/AF_GODMODE_RT};
 
 
 
@@ -412,8 +410,6 @@ if(!g_dedicated_server)
 	m_sCarCharacterUseAction		= "car_character_use";
 	m_sInventoryItemUseAction		= "inventory_item_use";
 	m_sInventoryBoxUseAction		= "inventory_box_use";
-//	m_sHangingLampEnableAction		= "hanging_lamp_enable";
-//	m_sHangingLampDisableAction		= "hanging_lamp_disable";
 	//---------------------------------------------------------------------
 	m_sHeadShotParticle	= READ_IF_EXISTS(pSettings,r_string,section,"HeadShotParticle",0);
 
@@ -591,24 +587,6 @@ void	CActor::Hit							(SHit* pHDS)
 			Game().m_WeaponUsageStatistic->OnExplosionKill	(ps, HDS);
 		}
 	}
-
-	// ZergO: разбитие фонаря при попадании в голову
-	if (pHDS->boneID == m_head)
-	{
-		TIItemContainer::iterator I = inventory().m_all.begin();
-		TIItemContainer::iterator E = inventory().m_all.end();
-
-		for (; I != E; ++I)
-		{
-			CTorch* pTorch = smart_cast<CTorch*>(*I);
-			if (pTorch != NULL && attached(*I))
-			{
-				// если фонарь уже мигает, то разбить полностью, иначе шанс 50%
-				bool fatal = pTorch->Broken(false) ? true : Random.randI(2) == 1;
-				pTorch->Break(fatal);
-			}
-		}
-	}
 }
 
 void CActor::HitMark	(float P, 
@@ -719,35 +697,30 @@ void CActor::Die	(CObject* who)
 		{
 			if (slot_idx == inventory().GetActiveSlot()) 
 			{
-				if ((*I).m_pIItem)
+				if((*I).m_pIItem)
 				{
 					if (IsGameTypeSingle())
 						(*I).m_pIItem->SetDropManual(TRUE);
-//					else
-//					{
+					else
+					{
 						//This logic we do on a server site
 						/*
 						if ((*I).m_pIItem->object().CLS_ID != CLSID_OBJECT_W_KNIFE)
 						{
 							(*I).m_pIItem->SetDropManual(TRUE);
 						}*/							
-//					}
-				}
-				continue;
+					}
+				};
+			continue;
 			}
 			else
 			{
 				CCustomOutfit *pOutfit = smart_cast<CCustomOutfit *> ((*I).m_pIItem);
 				if (pOutfit) continue;
-
-				// ZergO: не снимаем фонарик в рюкзак
-				CTorch *pTorch = smart_cast<CTorch*> ((*I).m_pIItem);
-				if (pTorch) continue;
-			}
-
-			if ((*I).m_pIItem) 
+			};
+			if((*I).m_pIItem) 
 				inventory().Ruck((*I).m_pIItem);
-		}
+		};
 
 
 		///!!! чистка пояса
@@ -892,12 +865,14 @@ void CActor::UpdateCL	()
 		for(xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++)
 		{
 			CPhysicsShellHolder	*sh = smart_cast<CPhysicsShellHolder*>(*it);
-			if (sh && sh->character_physics_support())
+			if(sh&&sh->character_physics_support())
+			{
 				sh->character_physics_support()->movement()->UpdateObjectBox(character_physics_support()->movement()->PHCharacter());
+			}
 		}
 	}
-	if (m_holder)
-		m_holder->UpdateEx(currentFOV());
+	if(m_holder)
+		m_holder->UpdateEx( currentFOV() );
 
 	m_snd_noise -= 0.3f*Device.fTimeDelta;
 
@@ -915,15 +890,14 @@ void CActor::UpdateCL	()
 
 	cam_Update(float(Device.dwTimeDelta)/1000.0f, currentFOV());
 
-	if (Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID())
+	if(Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID() )
 	{
-		psHUD_Flags.set(HUD_CROSSHAIR_RT2, true);
-		psHUD_Flags.set(HUD_DRAW_RT, true);
+		psHUD_Flags.set( HUD_CROSSHAIR_RT2, true );
+		psHUD_Flags.set( HUD_DRAW_RT, true );
 	}
-
-	if (pWeapon)
+	if(pWeapon )
 	{
-		if (pWeapon->IsZoomed())
+		if(pWeapon->IsZoomed())
 		{
 			float full_fire_disp = pWeapon->GetFireDispersion(true);
 
@@ -931,39 +905,39 @@ void CActor::UpdateCL	()
 			if(S) 
 				S->SetParams(full_fire_disp);
 
-			SetZoomAimingMode (true);
+			SetZoomAimingMode		(true);
 		}
 
-		if (Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID())
+		if(Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID() )
 		{
 			float fire_disp_full = pWeapon->GetFireDispersion(true);
 			m_fdisp_controller.SetDispertion(fire_disp_full);
 			
-			if (!psHUD_Flags.test(HUD_CROSSHAIR_OLD)) // ZergO - круглый прицел
-			{
-				if (psHUD_Flags.test(HUD_CROSSHAIR_DYNAMIC))
-				{
-					fire_disp_full = m_fdisp_controller.GetCurrentDispertion();
-					HUD().SetCrosshairDisp(fire_disp_full);
-				}
+			fire_disp_full = m_fdisp_controller.GetCurrentDispertion();
 
-				HUD().ShowCrosshair(pWeapon->use_crosshair());
-			}
-			else
-				HUD().ShowCrosshair(false);
-
+			HUD().SetCrosshairDisp(fire_disp_full, 0.02f);
+			HUD().ShowCrosshair(pWeapon->use_crosshair());
 #ifdef DEBUG
 			HUD().SetFirstBulletCrosshairDisp(pWeapon->GetFirstBulletDisp());
 #endif
 			
-			psHUD_Flags.set(HUD_CROSSHAIR_RT2, pWeapon->show_crosshair());
-			psHUD_Flags.set(HUD_DRAW_RT, pWeapon->show_indicators());
+			BOOL B = ! ((mstate_real & mcLookout) && !IsGameTypeSingle());
+
+			psHUD_Flags.set( HUD_WEAPON_RT, B );
+
+			B = B && pWeapon->show_crosshair();
+
+			psHUD_Flags.set( HUD_CROSSHAIR_RT2, B );
+			
+
+			
+			psHUD_Flags.set( HUD_DRAW_RT,		pWeapon->show_indicators() );
 		}
 
 	}
 	else
 	{
-		if (Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID())
+		if(Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID() )
 		{
 			HUD().SetCrosshairDisp(0.f);
 			HUD().ShowCrosshair(false);
@@ -989,8 +963,8 @@ void CActor::UpdateCL	()
 		else
 			xr_delete(m_sndShockEffector);
 	}
-	Fmatrix trans;
-	if (cam_Active() == cam_FirstEye())
+	Fmatrix							trans;
+	if(cam_Active() == cam_FirstEye())
 	{
 /*
 		CCameraBase* C = cam_Active();
@@ -1009,9 +983,9 @@ void CActor::UpdateCL	()
 		trans.set				(vRight, vNormal, vDirection, vPosition);
 */
 		Cameras().hud_camera_Matrix		(trans);
-	}
-	else
+	}else
 		Cameras().camera_Matrix			(trans);
+	
 	
 	if(IsFocused())
 		g_player_hud->update			(trans);
@@ -1243,7 +1217,7 @@ void CActor::shedule_Update	(u32 DT)
 	collide::rq_result& RQ				= HUD().GetCurrentRayQuery();
 	
 
-	if (!input_external_handler_installed() && RQ.O && RQ.O->getVisible() && RQ.range < 2.0f) 
+	if(!input_external_handler_installed() && RQ.O && RQ.O->getVisible() &&  RQ.range<2.0f) 
 	{
 		m_pObjectWeLookingAt			= smart_cast<CGameObject*>(RQ.O);
 		
@@ -1252,40 +1226,35 @@ void CActor::shedule_Update	(u32 DT)
 		m_pInvBoxWeLookingAt			= smart_cast<CInventoryBox*>(game_object);
 		m_pPersonWeLookingAt			= smart_cast<CInventoryOwner*>(game_object);
 		m_pVehicleWeLookingAt			= smart_cast<CHolderCustom*>(game_object);
-		m_pHangingLampWeLookingAt		= smart_cast<CHangingLamp*>(game_object);
 		CEntityAlive* pEntityAlive		= smart_cast<CEntityAlive*>(game_object);
 		
 		if (GameID() == eGameIDSingle )
 		{
 			if (m_pUsableObject && m_pUsableObject->tip_text())
 			{
-				m_sDefaultObjAction = CStringTable().translate(m_pUsableObject->tip_text());
+				m_sDefaultObjAction = CStringTable().translate( m_pUsableObject->tip_text() );
 			}
 			else
 			{
 				if (m_pPersonWeLookingAt && pEntityAlive->g_Alive() && m_pPersonWeLookingAt->IsTalkEnabled())
 					m_sDefaultObjAction = m_sCharacterUseAction;
+
 				else if (pEntityAlive && !pEntityAlive->g_Alive())
 				{
 					bool b_allow_drag = !!pSettings->line_exist("ph_capture_visuals",pEntityAlive->cNameVisual());
 				
-					if (b_allow_drag)
+					if(b_allow_drag)
 						m_sDefaultObjAction = m_sDeadCharacterUseOrDragAction;
 					else
 						m_sDefaultObjAction = m_sDeadCharacterUseAction;
 
-				}
-				else if (m_pVehicleWeLookingAt)
+				}else if (m_pVehicleWeLookingAt)
 					m_sDefaultObjAction = m_sCarCharacterUseAction;
-				else if (m_pObjectWeLookingAt && m_pObjectWeLookingAt->cast_inventory_item() && m_pObjectWeLookingAt->cast_inventory_item()->CanTake())
+
+				else if (	m_pObjectWeLookingAt && 
+							m_pObjectWeLookingAt->cast_inventory_item() && 
+							m_pObjectWeLookingAt->cast_inventory_item()->CanTake() )
 					m_sDefaultObjAction = m_sInventoryItemUseAction;
-				else if (m_pHangingLampWeLookingAt && m_pHangingLampWeLookingAt->Usable() && m_pHangingLampWeLookingAt->Alive())
-				{
-					if (m_pHangingLampWeLookingAt->Enabled())
-						m_sDefaultObjAction = m_pHangingLampWeLookingAt->disable_tip;
-					else
-						m_sDefaultObjAction = m_pHangingLampWeLookingAt->enable_tip;
-				}
 				else 
 					m_sDefaultObjAction = NULL;
 			}
@@ -1299,7 +1268,6 @@ void CActor::shedule_Update	(u32 DT)
 		m_pObjectWeLookingAt	= NULL;
 		m_pVehicleWeLookingAt	= NULL;
 		m_pInvBoxWeLookingAt	= NULL;
-		m_pHangingLampWeLookingAt = NULL;
 	}
 
 //	UpdateSleep									();
@@ -1314,12 +1282,9 @@ void CActor::renderable_Render	()
 {
 	VERIFY(_valid(XFORM()));
 	inherited::renderable_Render			();
-	// ZergO: weapon shadow in 1st face
-	if ((cam_active==eacFirstEye && ((::Render->get_generation() == ::Render->GENERATION_R2 && ::Render->active_phase() == 1) ||
-									 (::Render->get_generation() == ::Render->GENERATION_R1 && ::Render->active_phase() == 0)))
-		||
-		!(IsFocused() && (cam_active==eacFirstEye) && ((!m_holder) || (m_holder && m_holder->allowWeapon() && m_holder->HUDView()))))
-			CInventoryOwner::renderable_Render ();
+	if (!HUDview()){
+		CInventoryOwner::renderable_Render	();
+	}
 	VERIFY(_valid(XFORM()));
 }
 
@@ -1687,8 +1652,6 @@ void CActor::UpdateArtefactsOnBeltAndOutfit()
 		conditions().ChangeSatiety		(outfit->m_fSatietyRestoreSpeed   * f_update_time);
 		conditions().ChangeRadiation	(outfit->m_fRadiationRestoreSpeed * f_update_time);
 	}
-#pragma todo("ZergO: переделать под отдельный предмет ПНВ")
-/*
 	else
 	{
 		CTorch* pTorch = smart_cast<CTorch*>( inventory().ItemFromSlot(TORCH_SLOT) );
@@ -1697,7 +1660,6 @@ void CActor::UpdateArtefactsOnBeltAndOutfit()
 			pTorch->SwitchNightVision(false);
 		}
 	}
-*/
 }
 
 float	CActor::HitArtefactsOnBelt(float hit_power, ALife::EHitType hit_type)
@@ -1892,23 +1854,6 @@ void CActor::OnDifficultyChanged	()
 CVisualMemoryManager	*CActor::visual_memory	() const
 {
 	return							(&memory().visual());
-}
-
-float		CActor::GetCarryWeight() const
-{
-	float add = 0;
-	CPHCapture* capture = character_physics_support()->movement()->PHCapture();
-	if (capture && capture->taget_object())
-	{
-		CPhysicsShellHolder *obj = capture->taget_object();
-		CInventoryOwner *io = smart_cast<CInventoryOwner *> (obj);
-		if (io)
-			add += io->GetCarryWeight();
-
-		add += READ_IF_EXISTS(pSettings, r_float, *obj->cNameSect(), "ph_mass", 0) * 0.1f;
-	}
-	
-	return CInventoryOwner::GetCarryWeight() + add;
 }
 
 float		CActor::GetMass				()

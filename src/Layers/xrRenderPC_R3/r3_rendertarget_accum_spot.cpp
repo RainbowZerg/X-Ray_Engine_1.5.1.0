@@ -11,25 +11,22 @@ void CRenderTarget::accum_spot	(light* L)
 	// *** assume accumulator already setup ***
 	// *****************************	Mask by stencil		*************************************
 	ref_shader		shader;
-	ref_shader*    shader_msaa;
-	if (IRender_Light::OMNIPART == L->flags.type)	
-	{
-		shader		= L->s_point;
-		shader_msaa	= L->s_point_msaa;
+   ref_shader*    shader_msaa;
+	if (IRender_Light::OMNIPART == L->flags.type)	{
+			shader		= L->s_point;
+         shader_msaa	= L->s_point_msaa;
 		if (!shader)
 		{	
-		shader			= s_accum_point;
+			shader		= s_accum_point;
          shader_msaa	= s_accum_point_msaa;
 		}
-	} 
-	else 
-	{
+	} else {
 		shader		= L->s_spot;
-		shader_msaa	= L->s_spot_msaa;
+      shader_msaa	= L->s_spot_msaa;
 		if (!shader)
 		{
 			shader		= s_accum_spot;
-			shader_msaa	= s_accum_spot_msaa;
+         shader_msaa	= s_accum_spot_msaa;
 		}	
 	}
 
@@ -157,6 +154,13 @@ void CRenderTarget::accum_spot	(light* L)
 		RCache.set_ca				("m_lmap",		0,	m_Lmap._11, m_Lmap._21, m_Lmap._31, m_Lmap._41	);
 		RCache.set_ca				("m_lmap",		1,	m_Lmap._12, m_Lmap._22, m_Lmap._32, m_Lmap._42	);
 
+		// Fetch4 : enable
+//		if (RImplementation.o.HW_smap_FETCH4)	{
+			//. we hacked the shader to force smap on S0
+//#			define FOURCC_GET4  MAKEFOURCC('G','E','T','4') 
+//			HW.pDevice->SetSamplerState	( 0, D3DSAMP_MIPMAPLODBIAS, FOURCC_GET4 );
+//		}
+
       if( ! RImplementation.o.dx10_msaa )
       {
    		RCache.set_Stencil	(TRUE,D3DCMP_LESSEQUAL,dwLightMarkerID,0xff,0x00);
@@ -192,7 +196,55 @@ void CRenderTarget::accum_spot	(light* L)
 		   RCache.set_Stencil	(TRUE,D3DCMP_LESSEQUAL,dwLightMarkerID,0xff,0x00);
       }
 
+		// Fetch4 : disable
+//		if (RImplementation.o.HW_smap_FETCH4)	{
+			//. we hacked the shader to force smap on S0
+//#			define FOURCC_GET1  MAKEFOURCC('G','E','T','1') 
+//			HW.pDevice->SetSamplerState	( 0, D3DSAMP_MIPMAPLODBIAS, FOURCC_GET1 );
+//		}
 	}
+
+	// blend-copy
+	if (!RImplementation.o.fp16_blend)	{
+      if( !RImplementation.o.dx10_msaa )
+		   u_setrt						(rt_Accumulator,NULL,NULL,HW.pBaseZB);
+      else
+		   u_setrt						(rt_Accumulator,NULL,NULL,rt_MSAADepth->pZRT);
+		RCache.set_Element	(s_accum_mask->E[SE_MASK_ACCUM_VOL]	);
+		RCache.set_c			("m_texgen",		m_Texgen);
+		RCache.set_c			("m_texgen_J",		m_Texgen_J	);
+      if( !RImplementation.o.dx10_msaa )
+      {
+		   RCache.set_Stencil	(TRUE,D3DCMP_EQUAL,dwLightMarkerID,0xff,0x00);		
+		   draw_volume				(L);
+      }
+      else // checked Holger
+      {
+         // per pixel
+		   RCache.set_Element	(s_accum_mask->E[SE_MASK_ACCUM_VOL]	);
+         RCache.set_Stencil	(TRUE,D3DCMP_EQUAL,dwLightMarkerID,0xff,0x00);		
+         draw_volume				(L);
+         // per sample
+         if( RImplementation.o.dx10_msaa_opt )
+         {
+		      RCache.set_Element	(s_accum_mask_msaa[0]->E[SE_MASK_ACCUM_VOL]	);
+            RCache.set_Stencil	(TRUE,D3DCMP_EQUAL,dwLightMarkerID|0x80,0xff,0x00);		
+            draw_volume				(L);
+         }
+         else // checked Holger
+         {
+		      for( u32 i = 0; i < RImplementation.o.dx10_msaa_samples; ++i )
+			      {
+			      RCache.set_Element	      (s_accum_mask_msaa[i]->E[SE_MASK_ACCUM_VOL]	);
+               StateManager.SetSampleMask ( u32(1) << i );
+               RCache.set_Stencil	      (TRUE,D3DCMP_EQUAL,dwLightMarkerID|0x80,0xff,0x00);		
+               draw_volume				      (L);
+			      }
+		      StateManager.SetSampleMask( 0xffffffff );
+         }
+		   RCache.set_Stencil	(TRUE,D3DCMP_EQUAL,dwLightMarkerID,0xff,0x00);		
+      }
+	}	
 	
 	RCache.set_Scissor(0);
 	//CHK_DX		(HW.pDevice->SetRenderState(D3DRS_SCISSORTESTENABLE,FALSE));
@@ -381,8 +433,15 @@ void CRenderTarget::accum_volumetric(light* L)
 		//	Set correct depth surface
 		//	It's slow. Make this when shader is created
 		{
-			const char*	pszSMapName = r2_RT_smap_depth;
-
+			char*		pszSMapName;
+			BOOL		b_HW_smap	= RImplementation.o.HW_smap;
+			BOOL		b_HW_PCF	= RImplementation.o.HW_smap_PCF;
+			if (b_HW_smap)		{
+				if (b_HW_PCF)	pszSMapName = r2_RT_smap_depth;
+				else			pszSMapName = r2_RT_smap_depth;
+			}
+			else				pszSMapName = r2_RT_smap_surf;
+			//s_smap
 			STextureList* _T = &*s_accum_volume->E[0]->passes[0]->T;
 
 			STextureList::iterator	_it		= _T->begin	();
@@ -475,6 +534,13 @@ void CRenderTarget::accum_volumetric(light* L)
 		*/
 
 
+		// Fetch4 : enable
+//		if (RImplementation.o.HW_smap_FETCH4)	{
+			//. we hacked the shader to force smap on S0
+//#			define FOURCC_GET4  MAKEFOURCC('G','E','T','4') 
+//			HW.pDevice->SetSamplerState	( 0, D3DSAMP_MIPMAPLODBIAS, FOURCC_GET4 );
+//		}
+
 		RCache.set_ColorWriteEnable(D3DCOLORWRITEENABLE_RED|D3DCOLORWRITEENABLE_GREEN|D3DCOLORWRITEENABLE_BLUE);
 
 		RCache.set_Geometry(g_accum_volumetric);
@@ -514,11 +580,27 @@ void CRenderTarget::accum_volumetric(light* L)
 
 		RCache.set_ColorWriteEnable();
 
+		// Fetch4 : disable
+//		if (RImplementation.o.HW_smap_FETCH4)	{
+			//. we hacked the shader to force smap on S0
+//#			define FOURCC_GET1  MAKEFOURCC('G','E','T','1') 
+//			HW.pDevice->SetSamplerState	( 0, D3DSAMP_MIPMAPLODBIAS, FOURCC_GET1 );
+//		}
+
 		//	Restore clip planes
 		//HW.pDevice->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
 		RCache.set_ClipPlanes (FALSE,(Fmatrix *)0,0);
 	}
-
+/*
+	// blend-copy
+	if (!RImplementation.o.fp16_blend)	{
+		u_setrt						(rt_Accumulator,NULL,NULL,HW.pBaseZB);
+		RCache.set_Element			(s_accum_mask->E[SE_MASK_ACCUM_VOL]	);
+		RCache.set_c				("m_texgen",		m_Texgen);
+		RCache.set_c				("m_texgen_J",		m_Texgen_J	);
+		draw_volume					(L);
+	}
+*/
 	//CHK_DX		(HW.pDevice->SetRenderState(D3DRS_SCISSORTESTENABLE,FALSE));
 	RCache.set_Scissor(0);
 }

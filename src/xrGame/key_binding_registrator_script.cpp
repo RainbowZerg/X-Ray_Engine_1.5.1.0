@@ -33,7 +33,6 @@ void key_binding_registrator::script_register(lua_State *L)
 				value("kCROUCH",					int(kCROUCH)),
 				value("kCROUCH_TOGGLE",				int(kCROUCH_TOGGLE)),
 				value("kACCEL",						int(kACCEL)),
-//				value("kENGINE",					int(kENGINE)),
 				value("kCAM_1",						int(kCAM_1)),
 				value("kCAM_2",						int(kCAM_2)),
 				value("kCAM_3",						int(kCAM_3)),

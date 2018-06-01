@@ -122,9 +122,9 @@ public:
 	float				exec_time;
 	float				exec_time_loaded;
 
-	shared_str			sky_texture_name;
+	shared_str			sky_texture_name	;
 	shared_str			sky_texture_env_name;
-	shared_str			clouds_texture_name;
+	shared_str			clouds_texture_name	;
 
 	/*
 	ref_texture			sky_texture		;
@@ -133,11 +133,9 @@ public:
 	*/
 	FactoryPtr<IEnvDescriptorRender>	m_pDescriptor;
 
-	bool				auto_sun_dir; // ZergO: if false, sun dir will be used from weather config
-
-	Fvector4			clouds_color;
-	Fvector3			sky_color;
-	float				sky_rotation;
+	Fvector4			clouds_color	;
+	Fvector3			sky_color		;
+	float				sky_rotation	;
 
 	float				far_plane;
 
@@ -154,14 +152,16 @@ public:
     float				wind_velocity;
     float				wind_direction;  
     
-	Fvector3			ambient;
-	Fvector4			hemi_color;	// w = R2 correction
-	Fvector3			sun_color;
-	Fvector3			sun_dir;
+	Fvector3			ambient		;
+	Fvector4			hemi_color	;	// w = R2 correction
+	Fvector3			sun_color	;
+	Fvector3			sun_dir		;
 	float				m_fSunShaftsIntensity;
 	float				m_fWaterIntensity;
-	float				moon_road_intensity;
 
+
+//	int					lens_flare_id;
+//	int					tb_id;
 	shared_str			lens_flare_id;
 	shared_str			tb_id;
     

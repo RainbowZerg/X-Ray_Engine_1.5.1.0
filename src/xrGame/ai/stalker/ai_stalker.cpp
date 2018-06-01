@@ -796,7 +796,7 @@ void CAI_Stalker::shedule_Update		( u32 DT )
 	}
 
 	START_PROFILE("stalker/schedule_update/inherited")
-	CEntityAlive::shedule_Update(DT);
+	inherited::inherited::shedule_Update(DT);
 	STOP_PROFILE
 	
 	if (Remote())		{

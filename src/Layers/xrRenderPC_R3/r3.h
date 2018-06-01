@@ -2,11 +2,10 @@
 
 #include "../xrRender/r__dsgraph_structure.h"
 #include "../xrRender/r__occlusion.h"
-#include "../xrRender_R2-R3/r__sun_cascades.h"
 
 #include "../xrRender/PSLibrary.h"
 
-#include "r3_types.h"
+#include "r2_types.h"
 #include "r3_rendertarget.h"
 
 #include "../xrRender/hom.h"
@@ -21,8 +20,6 @@
 
 #include "../../xrEngine/irenderable.h"
 #include "../../xrEngine/fmesh.h"
-
-#include "../xrRender/GlowManager.h"
 
 class dxRender_Visual;
 
@@ -64,11 +61,21 @@ public:
 
 		u32		smapsize			: 16;
 		u32		depth16				: 1;
+		u32		mrt					: 1;
+		u32		mrtmixdepth			: 1;
+		u32		fp16_filter			: 1;
+		u32		fp16_blend			: 1;
+		u32		albedo_wo			: 1;						// work-around albedo on less capable HW
+		u32		HW_smap				: 1;
+		u32		HW_smap_PCF			: 1;
+		u32		HW_smap_FETCH4		: 1;
 
 		u32		HW_smap_FORMAT		: 32;
 
 		u32		nvstencil			: 1;
 		u32		nvdbt				: 1;
+
+		u32		nullrt				: 1;
 
 		u32		distortion			: 1;
 		u32		distortion_enabled	: 1;
@@ -122,14 +129,13 @@ public:
 	xr_vector<ref_shader>										Shaders;
 	typedef svector<D3DVERTEXELEMENT9,MAXD3DDECLLENGTH+1>		VertexDeclarator;
 	xr_vector<VertexDeclarator>									nDC,xDC;
-	xr_vector<ID3DVertexBuffer*>								nVB,xVB;
-	xr_vector<ID3DIndexBuffer*>									nIB,xIB;
+	xr_vector<ID3DVertexBuffer*>							nVB,xVB;
+	xr_vector<ID3DIndexBuffer*>							nIB,xIB;
 	xr_vector<dxRender_Visual*>									Visuals;
 	CPSLibrary													PSLibrary;
 
 	CDetailManager*												Details;
 	CModelPool*													Models;
-	CGlowManager*												L_Glows;
 	CWallmarksEngine*											Wallmarks;
 
 	CRenderTarget*												Target;			// Render-target
@@ -152,8 +158,6 @@ public:
 	u32															q_sync_count	;
 
 	bool														m_bMakeAsyncSS;
-
-	xr_vector<sun::cascade>										m_sun_cascades;
 private:
 	// Loading / Unloading
 	void							LoadBuffers					(CStreamReader	*fs,	BOOL	_alternative);
@@ -176,17 +180,17 @@ public:
 	void							render_smap_direct			(Fmatrix& mCombined);
 	void							render_indirect				(light*			L	);
 	void							render_lights				(light_Package& LP	);
-	void							render_sun_cascade			(u32 cascade_ind);
-	void							init_cascades				();
-	void							render_sun_cascades			();
+	void							render_sun					();
+	void							render_sun_near				();
+	void							render_sun_filtered			();
 	void							render_menu					();
 	void							render_rain					();
 public:
 	ShaderElement*					rimp_select_sh_static		(dxRender_Visual	*pVisual, float cdist_sq);
 	ShaderElement*					rimp_select_sh_dynamic		(dxRender_Visual	*pVisual, float cdist_sq);
 	D3DVERTEXELEMENT9*				getVB_Format				(int id, BOOL	_alt=FALSE);
-	ID3DVertexBuffer*				getVB						(int id, BOOL	_alt=FALSE);
-	ID3DIndexBuffer*				getIB						(int id, BOOL	_alt=FALSE);
+	ID3DVertexBuffer*			getVB						(int id, BOOL	_alt=FALSE);
+	ID3DIndexBuffer*			getIB						(int id, BOOL	_alt=FALSE);
 	FSlideWindowItem*				getSWI						(int id);
 	IRender_Portal*					getPortal					(int id);
 	IRender_Sector*					getSectorActive				();
@@ -204,10 +208,10 @@ public:
 		if (0==O)					return;
 		if (0==O->renderable_ROS())	return;
 		CROS_impl& LT				= *((CROS_impl*)O->renderable_ROS());
-		LT.update_smooth			(O);
-		o_hemi						= 0.75f * LT.get_hemi		();
-		//o_hemi					= 0.5f * LT.get_hemi		();
-		o_sun						= 0.75f * LT.get_sun		();
+		LT.update_smooth			(O)								;
+		o_hemi						= 0.75f*LT.get_hemi			()	;
+		//o_hemi						= 0.5f*LT.get_hemi			()	;
+		o_sun						= 0.75f*LT.get_sun			()	;
 		CopyMemory(o_hemi_cube, LT.get_hemi_cube(), CROS_impl::NUM_FACES*sizeof(float));
 	}
 	IC void							apply_lmaterial				()
@@ -222,9 +226,13 @@ public:
 #ifdef	DEBUG
 		if (ps_r2_ls_flags.test(R2FLAG_GLOBALMATERIAL))	mtl=ps_r2_gmaterial;
 #endif
-		RCache.hemi.set_material (o_hemi,o_sun,0,(mtl + 0.5f) / 4.f);
-		RCache.hemi.set_pos_faces(o_hemi_cube[CROS_impl::CUBE_FACE_POS_X], o_hemi_cube[CROS_impl::CUBE_FACE_POS_Y], o_hemi_cube[CROS_impl::CUBE_FACE_POS_Z]);
-		RCache.hemi.set_neg_faces(o_hemi_cube[CROS_impl::CUBE_FACE_NEG_X], o_hemi_cube[CROS_impl::CUBE_FACE_NEG_Y], o_hemi_cube[CROS_impl::CUBE_FACE_NEG_Z]);
+		RCache.hemi.set_material (o_hemi,o_sun,0,(mtl+.5f)/4.f);
+		RCache.hemi.set_pos_faces(o_hemi_cube[CROS_impl::CUBE_FACE_POS_X],
+			o_hemi_cube[CROS_impl::CUBE_FACE_POS_Y],
+			o_hemi_cube[CROS_impl::CUBE_FACE_POS_Z]);
+		RCache.hemi.set_neg_faces	(o_hemi_cube[CROS_impl::CUBE_FACE_NEG_X],
+			o_hemi_cube[CROS_impl::CUBE_FACE_NEG_Y],
+			o_hemi_cube[CROS_impl::CUBE_FACE_NEG_Z]);
 	}
 
 public:
@@ -324,10 +332,6 @@ public:
 	virtual void					rmNear						();
 	virtual void					rmFar						();
 	virtual void					rmNormal					();
-
-	// KD: need to know, what R2 phase is active now
-	virtual u32						active_phase				()	{return phase;};
-	BOOL							is_sun						();
 
 	// Constructor/destructor/loader
 	CRender							();

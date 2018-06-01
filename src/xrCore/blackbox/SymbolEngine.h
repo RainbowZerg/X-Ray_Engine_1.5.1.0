@@ -47,20 +47,20 @@ USE_BUGSLAYERUTIL - If defined, the class will have another
 // The IMAGEHLP_MODULE wrapper class
 struct CImageHlp_Module : public IMAGEHLP_MODULE
 {
-    CImageHlp_Module ()
+    CImageHlp_Module ( )
     {
-        FillMemory (this, sizeof (IMAGEHLP_MODULE), NULL);
-        SizeOfStruct = sizeof (IMAGEHLP_MODULE);
+        FillMemory ( this , sizeof ( IMAGEHLP_MODULE ), NULL ) ;
+        SizeOfStruct = sizeof ( IMAGEHLP_MODULE ) ;
     }
 } ;
 
 // The IMAGEHLP_LINE wrapper class
 struct CImageHlp_Line : public IMAGEHLP_LINE
 {
-    CImageHlp_Line ()
+    CImageHlp_Line ( )
     {
-        FillMemory (this, sizeof (IMAGEHLP_LINE), NULL);
-        SizeOfStruct = sizeof (IMAGEHLP_LINE);
+        FillMemory ( this , sizeof ( IMAGEHLP_LINE ) , NULL ) ;
+        SizeOfStruct = sizeof ( IMAGEHLP_LINE ) ;
     }
 } ;
 
@@ -70,22 +70,22 @@ class CSymbolEngine
 /*----------------------------------------------------------------------
                   Public Construction and Destruction
 ----------------------------------------------------------------------*/
-public:
+public      :
     // To use this class, call the SymInitialize member function to
     // initialize the symbol engine and then use the other member
     // functions in place of their corresponding DBGHELP.DLL functions.
-	CSymbolEngine() : m_hProcess(NULL)
+    CSymbolEngine ( void )
     {
     }
 
-    virtual ~CSymbolEngine ()
+    virtual ~CSymbolEngine ( void )
     {
     }
 
 /*----------------------------------------------------------------------
                   Public Helper Information Functions
 ----------------------------------------------------------------------*/
-public:
+public      :
 
     // Returns the file version of DBGHELP.DLL being used.
     //  To convert the return values into a readable format:
@@ -96,74 +96,99 @@ public:
     //             HIWORD ( dwLS )        ,
     //             LOWORD ( dwLS )         ) ;
     //  szVer will contain a string like: 5.00.1878.1
-    BOOL GetImageHlpVersion (DWORD & dwMS, DWORD & dwLS)
+    BOOL GetImageHlpVersion ( DWORD & dwMS , DWORD & dwLS )
     {
-        return (GetInMemoryFileVersion(_T("DBGHELP.DLL"), dwMS, dwLS));
+        return( GetInMemoryFileVersion ( _T ( "DBGHELP.DLL" ) ,
+                                         dwMS                 ,
+                                         dwLS                  ) ) ;
     }
 
-    BOOL GetDbgHelpVersion (DWORD & dwMS, DWORD & dwLS)
+    BOOL GetDbgHelpVersion ( DWORD & dwMS , DWORD & dwLS )
     {
-        return (GetInMemoryFileVersion(_T("DBGHELP.DLL"), dwMS, dwLS));
+        return( GetInMemoryFileVersion ( _T ( "DBGHELP.DLL" ) ,
+                                         dwMS                 ,
+                                         dwLS                  ) ) ;
     }
 
     // Returns the file version of the PDB reading DLLs
-    BOOL GetPDBReaderVersion (DWORD & dwMS, DWORD & dwLS)
+    BOOL GetPDBReaderVersion ( DWORD & dwMS , DWORD & dwLS )
     {
         // First try MSDBI.DLL.
-		if ((FALSE != GetInMemoryFileVersion(_T("MSDBI.DLL"), dwMS, dwLS)) || (FALSE != GetInMemoryFileVersion(_T("MSPDB60.DLL"), dwMS, dwLS)))
-            return TRUE;
-
+        if ( TRUE == GetInMemoryFileVersion ( _T ( "MSDBI.DLL" ) ,
+                                              dwMS               ,
+                                              dwLS                ) )
+        {
+            return ( TRUE ) ;
+        }
+        else if ( TRUE == GetInMemoryFileVersion ( _T ( "MSPDB60.DLL" ),
+                                                   dwMS                ,
+                                                   dwLS               ))
+        {
+            return ( TRUE ) ;
+        }
         // Just fall down to MSPDB50.DLL.
-        return (GetInMemoryFileVersion(_T("MSPDB50.DLL"), dwMS, dwLS));
+        return ( GetInMemoryFileVersion ( _T ( "MSPDB50.DLL" ) ,
+                                          dwMS                 ,
+                                          dwLS                  ) ) ;
     }
 
     // The worker function used by the previous two functions
-    BOOL GetInMemoryFileVersion (LPCTSTR szFile, DWORD & dwMS, DWORD & dwLS)
+    BOOL GetInMemoryFileVersion ( LPCTSTR szFile ,
+                                  DWORD & dwMS   ,
+                                  DWORD & dwLS    )
     {
-        HMODULE hInstIH = GetModuleHandle (szFile);
+        HMODULE hInstIH = GetModuleHandle ( szFile ) ;
 
         // Get the full filename of the loaded version.
-        TCHAR szImageHlp[MAX_PATH];
-        GetModuleFileName(hInstIH, szImageHlp, MAX_PATH);
+        TCHAR szImageHlp[ MAX_PATH ] ;
+        GetModuleFileName ( hInstIH , szImageHlp , MAX_PATH ) ;
 
-        dwMS = 0;
-        dwLS = 0;
+        dwMS = 0 ;
+        dwLS = 0 ;
 
         // Get the version information size.
-        DWORD dwVerInfoHandle;
-        DWORD dwVerSize;
+        DWORD dwVerInfoHandle ;
+        DWORD dwVerSize       ;
 
-        dwVerSize = GetFileVersionInfoSize(szImageHlp ,&dwVerInfoHandle);
-
-        if (0 == dwVerSize)
-            return FALSE;
+        dwVerSize = GetFileVersionInfoSize ( szImageHlp       ,
+                                             &dwVerInfoHandle  ) ;
+        if ( 0 == dwVerSize )
+        {
+            return ( FALSE ) ;
+        }
 
         // Got the version size, now get the version information.
-		TCHAR* lpData = new TCHAR[dwVerSize];
-        if (FALSE == GetFileVersionInfoA (szImageHlp, dwVerInfoHandle, dwVerSize, lpData))
+        LPVOID lpData = (LPVOID)new TCHAR [ dwVerSize ] ;
+        if ( FALSE == GetFileVersionInfo ( szImageHlp       ,
+                                           dwVerInfoHandle  ,
+                                           dwVerSize        ,
+                                           lpData            ) )
         {
-            delete[] lpData;
-            return FALSE;
+            delete [] lpData ;
+            return ( FALSE ) ;
         }
 
-        VS_FIXEDFILEINFO * lpVerInfo;
-        UINT uiLen;
-        BOOL bRet = VerQueryValue (lpData, _T ("\\"), (LPVOID*)&lpVerInfo, &uiLen);
-        if (TRUE == bRet)
+        VS_FIXEDFILEINFO * lpVerInfo ;
+        UINT uiLen ;
+        BOOL bRet = VerQueryValue ( lpData              ,
+                                    _T ( "\\" )         ,
+                                    (LPVOID*)&lpVerInfo ,
+                                    &uiLen               ) ;
+        if ( TRUE == bRet )
         {
-            dwMS = lpVerInfo->dwFileVersionMS;
-            dwLS = lpVerInfo->dwFileVersionLS;
+            dwMS = lpVerInfo->dwFileVersionMS ;
+            dwLS = lpVerInfo->dwFileVersionLS ;
         }
 
-        delete[] lpData;
+        delete [] lpData ;
 
-        return (bRet);
+        return ( bRet ) ;
     }
 
 /*----------------------------------------------------------------------
                    Public Initialization and Cleanup
 ----------------------------------------------------------------------*/
-public:
+public      :
 
     BOOL SymInitialize ( IN HANDLE   hProcess       ,
                          IN LPSTR    UserSearchPath ,

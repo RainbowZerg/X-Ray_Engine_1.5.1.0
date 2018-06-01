@@ -113,7 +113,7 @@ void CUIActorMenu::SetMenuMode(EMenuMode mode)
 			break;
 		}
 
-//		HUD().GetUI()->UIMainIngameWnd->ShowZoneMap(false);
+		HUD().GetUI()->UIMainIngameWnd->ShowZoneMap(false);
 
 		m_currMenuMode = mode;
 		switch(mode)
@@ -194,7 +194,7 @@ void CUIActorMenu::Hide()
 void CUIActorMenu::Draw()
 {
 	inherited::Draw();
-//	HUD().GetUI()->UIMainIngameWnd->DrawZoneMap();
+	HUD().GetUI()->UIMainIngameWnd->DrawZoneMap();
 	m_ItemInfo->Draw();
 	m_hint_wnd->Draw();
 }
@@ -213,7 +213,7 @@ void CUIActorMenu::Update()
 	case mmInventory:
 		{
 			m_clock_value->SetText( InventoryUtilities::GetGameTimeAsString( InventoryUtilities::etpTimeToMinutes ).c_str() );
-//			HUD().GetUI()->UIMainIngameWnd->UpdateZoneMap();
+			HUD().GetUI()->UIMainIngameWnd->UpdateZoneMap();
 			break;
 		}
 	case mmTrade:

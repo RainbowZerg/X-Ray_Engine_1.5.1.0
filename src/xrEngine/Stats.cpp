@@ -68,7 +68,7 @@ void _draw_cam_pos(CGameFont* pFont)
 	float sz		= pFont->GetHeight();
 	pFont->SetHeightI(0.02f);
 	pFont->SetColor	(0xffffffff);
-	pFont->Out		(10, (float)Device.dwHeight - 30, "CAMERA POSITION:  [%3.2f,%3.2f,%3.2f]",VPUSH(Device.vCameraPosition));
+	pFont->Out		(10, 600, "CAMERA POSITION:  [%3.2f,%3.2f,%3.2f]",VPUSH(Device.vCameraPosition));
 	pFont->SetHeight(sz);
 	pFont->OnRender	();
 }
@@ -157,6 +157,16 @@ void CStats::Show()
 	////////////////////////////////////////////////
 	if (g_dedicated_server) return;
 	////////////////////////////////////////////////
+	int frm = 2000;
+	div_t ddd = div(Device.dwFrame,frm);
+	if( ddd.rem < frm/2.0f ){
+		pFont->SetColor	(0xFFFFFFFF	);
+		pFont->OutSet	(0,0);
+		pFont->OutNext	(*eval_line_1);
+		pFont->OutNext	(*eval_line_2);
+		pFont->OutNext	(*eval_line_3);
+		pFont->OnRender	();
+	}
 
 	CGameFont& F = *pFont;
 	float		f_base_size	= 0.01f;
@@ -435,6 +445,16 @@ void CStats::OnDeviceCreate			()
 	pFont	= xr_new<CGameFont>		("stat_font", CGameFont::fsDeviceIndependent);
 #endif
 	
+	if(!pSettings->section_exist("evaluation")
+		||!pSettings->line_exist("evaluation","line1")
+		||!pSettings->line_exist("evaluation","line2")
+		||!pSettings->line_exist("evaluation","line3") )
+		FATAL	("");
+
+	eval_line_1 = pSettings->r_string_wb("evaluation","line1");
+	eval_line_2 = pSettings->r_string_wb("evaluation","line2");
+	eval_line_3 = pSettings->r_string_wb("evaluation","line3");
+
 	// 
 #ifdef DEBUG
 	if (!g_bDisableRedText)			SetLogCB	(_LogCallback);

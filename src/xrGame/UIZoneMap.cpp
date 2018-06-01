@@ -37,7 +37,7 @@ void CUIZoneMap::Init()
 	CUIXmlInit					xml_init;
 	xml_init.InitStatic			(uiXml, "minimap:background", 0, &m_background);
 
-	if (IsGameTypeSingle())
+	if(IsGameTypeSingle())
 	{
 		xml_init.InitStatic			(uiXml, "minimap:background:dist_text", 0, &m_pointerDistanceText);
 		m_background.AttachChild	(&m_pointerDistanceText);
@@ -56,7 +56,7 @@ void CUIZoneMap::Init()
 	xml_init.InitStatic				(uiXml, "minimap:compass", 0, &m_compass);
 	m_background.AttachChild(&m_compass);
 
-	if (IsGameTypeSingle())
+	if ( IsGameTypeSingle() )
 	{
 		xml_init.InitStatic			(uiXml, "minimap:static_counter", 0, &m_Counter);
 		m_background.AttachChild	(&m_Counter);

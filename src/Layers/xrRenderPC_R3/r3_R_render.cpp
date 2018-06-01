@@ -105,8 +105,7 @@ void CRender::render_main	(Fmatrix&	m_ViewProjection, bool _fportals)
 			}
 
 			if	(PortalTraverser.i_marker != sector->r_marker)	continue;	// inactive (untouched) sector
-			for (u32 v_it=0; v_it<sector->r_frustums.size(); v_it++)	
-			{
+			for (u32 v_it=0; v_it<sector->r_frustums.size(); v_it++)	{
 				CFrustum&	view	= sector->r_frustums[v_it];
 				if (!view.testSphere_dirty(spatial->spatial.sphere.P,spatial->spatial.sphere.R))	continue;
 
@@ -116,33 +115,22 @@ void CRender::render_main	(Fmatrix&	m_ViewProjection, bool _fportals)
 					IRenderable*	renderable		= spatial->dcast_Renderable	();
 					VERIFY							(renderable);
 
-					// ZergO 
-					if (0 == renderable)
-					{
-						// It may be an glow
-						CGlow*		glow = dynamic_cast<CGlow*>(spatial);
-						VERIFY(glow);
-						L_Glows->add(glow);
-					}//
-					else
-					{
-						// Occlusion
-						//	casting is faster then using getVis method
-						vis_data&		v_orig			= ((dxRender_Visual*)renderable->renderable.visual)->vis;
-						vis_data		v_copy			= v_orig;
-						v_copy.box.xform				(renderable->renderable.xform);
-						BOOL			bVisible		= HOM.visible(v_copy);
-						v_orig.marker					= v_copy.marker;
-						v_orig.accept_frame				= v_copy.accept_frame;
-						v_orig.hom_frame				= v_copy.hom_frame;
-						v_orig.hom_tested				= v_copy.hom_tested;
-						if (!bVisible)					break;	// exit loop on frustums
+					// Occlusion
+					//	casting is faster then using getVis method
+					vis_data&		v_orig			= ((dxRender_Visual*)renderable->renderable.visual)->vis;
+					vis_data		v_copy			= v_orig;
+					v_copy.box.xform				(renderable->renderable.xform);
+					BOOL			bVisible		= HOM.visible(v_copy);
+					v_orig.marker					= v_copy.marker;
+					v_orig.accept_frame				= v_copy.accept_frame;
+					v_orig.hom_frame				= v_copy.hom_frame;
+					v_orig.hom_tested				= v_copy.hom_tested;
+					if (!bVisible)					break;	// exit loop on frustums
 
-						// Rendering
-						set_Object						(renderable);
-						renderable->renderable_Render	();
-						set_Object						(0);
-					}
+					// Rendering
+					set_Object						(renderable);
+					renderable->renderable_Render	();
+					set_Object						(0);
 				}
 				break;	// exit loop on frustums
 			}
@@ -208,10 +196,12 @@ void CRender::render_menu	()
 	RCache.Render					(D3DPT_TRIANGLELIST,Offset,0,4,0,2);
 }
 
+extern u32 g_r;
 void CRender::Render		()
 {
 	PIX_EVENT(CRender_Render);
 
+	g_r						= 1;
 	VERIFY					(0==mapDistort.size());
 
 	rmNormal();
@@ -235,7 +225,7 @@ void CRender::Render		()
 
 	// Configure
 	RImplementation.o.distortion				= FALSE;		// disable distorion
-	Fcolor					sun_color			= ((light*)Lights.sun._get())->color;
+	Fcolor					sun_color			= ((light*)Lights.sun_adapted._get())->color;
 	BOOL					bSUN				= ps_r2_ls_flags.test(R2FLAG_SUN) && (u_diffuse2s(sun_color.r,sun_color.g,sun_color.b)>EPS);
 	if (o.sunstatic)		bSUN				= FALSE;
 	// Msg						("sstatic: %s, sun: %s",o.sunstatic?;"true":"false", bSUN?"true":"false");
@@ -425,6 +415,7 @@ void CRender::Render		()
 	{
 		PIX_EVENT(DEFER_WALLMARKS);
 		Target->phase_wallmarks					();
+		g_r										= 0;
 		Wallmarks->Render						();				// wallmarks has priority as normal geometry
 	}
 
@@ -463,7 +454,9 @@ void CRender::Render		()
 	{
 		PIX_EVENT(DEFER_SUN);
 		RImplementation.stats.l_visible		++;
-		render_sun_cascades					();
+		render_sun_near						();
+		render_sun							();
+		render_sun_filtered					();
 		Target->accum_direct_blend			();
 	}
 

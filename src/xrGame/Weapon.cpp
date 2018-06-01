@@ -26,6 +26,8 @@
 #define WEAPON_REMOVE_TIME		60000
 #define ROTATION_TIME			0.25f
 
+BOOL	b_toggle_weapon_aim		= FALSE;
+
 CWeapon::CWeapon()
 {
 	SetState				(eHidden);
@@ -61,12 +63,8 @@ CWeapon::CWeapon()
 
 	m_strap_bone0			= 0;
 	m_strap_bone1			= 0;
-	m_strap_bone0_id		= -1;
-	m_strap_bone1_id		= -1;
 	m_StrapOffset.identity	();
 	m_strapped_mode			= false;
-	m_strapped_mode_rifle	= false;
-	m_can_be_strapped_rifle	= false;
 	m_can_be_strapped		= false;
 	m_ef_main_weapon_type	= u32(-1);
 	m_ef_weapon_type		= u32(-1);
@@ -111,38 +109,14 @@ void CWeapon::UpdateXForm	()
 	if (parent && parent->use_simplified_visual())
 		return;
 
-	if (!m_can_be_strapped_rifle)
-	{
-		if (parent->attached(this))
-			return;
-	}
+	if (parent->attached(this))
+		return;
 
 	IKinematics*			V = smart_cast<IKinematics*>	(E->Visual());
 	VERIFY					(V);
 
 	// Get matrices
 	int						boneL = -1, boneR = -1, boneR2 = -1;
-
-	if ((m_strap_bone0_id == -1 || m_strap_bone1_id == -1) && m_can_be_strapped_rifle)
-	{
-		m_strap_bone0_id = V->LL_BoneID(m_strap_bone0);
-		m_strap_bone1_id = V->LL_BoneID(m_strap_bone1);
-	}
-
-	if (parent->inventory().GetActiveSlot() != RIFLE_SLOT && m_can_be_strapped_rifle && parent->inventory().InSlot(this))
-	{
-		boneR				= m_strap_bone0_id;
-		boneR2				= m_strap_bone1_id;
-		boneL				= boneR;
-
-		if (!m_strapped_mode_rifle) m_strapped_mode_rifle = true;
-	} 
-	else 
-	{
-		E->g_WeaponBones		(boneL,boneR,boneR2);
-
-		if (m_strapped_mode_rifle) m_strapped_mode_rifle = false;
-	}
 
 	// this ugly case is possible in case of a CustomMonster, not a Stalker, nor an Actor
 	E->g_WeaponBones		(boneL,boneR,boneR2);
@@ -690,10 +664,9 @@ void CWeapon::OnH_B_Independent	(bool just_before_destroy)
 
 	FireEnd						();
 	SetPending					(FALSE);
-	SwitchState					(eHidden); // eIdle in SoC and LA
+	SwitchState					(eHidden);
 
-	m_strapped_mode					= false;
-	m_strapped_mode_rifle			= false;
+	m_strapped_mode				= false;
 	m_zoom_params.m_bIsZoomModeNow	= false;
 	UpdateXForm					();
 
@@ -849,10 +822,7 @@ void CWeapon::SetDefaults()
 void CWeapon::UpdatePosition(const Fmatrix& trans)
 {
 	Position().set		(trans.c);
-	if (m_strapped_mode || m_strapped_mode_rifle)
-		XFORM().mul			(trans,m_StrapOffset);
-	else
-		XFORM().mul			(trans,m_Offset);
+	XFORM().mul			(trans,m_strapped_mode ? m_StrapOffset : m_Offset);
 	VERIFY				(!fis_zero(DET(renderable.xform)));
 }
 
@@ -886,42 +856,37 @@ bool CWeapon::Action(s32 cmd, u32 flags)
 		case kWPN_ZOOM:
 			if(IsZoomEnabled())
 			{
-				if (psActorFlags.test(AF_WPNAIMTOGGLE))
+				if(b_toggle_weapon_aim)
 				{
-					if (flags&CMD_START)
+					if(flags&CMD_START)
 					{
-						if (!IsZoomed())
+						if(!IsZoomed())
 						{
-							if (!IsPending())
+							if(!IsPending())
 							{
-								if (GetState()!=eIdle)
+								if(GetState()!=eIdle)
 									SwitchState(eIdle);
-
 								OnZoomIn	();
 							}
-						}
-						else
+						}else
 							OnZoomOut	();
 					}
-				}
-				else
+				}else
 				{
-					if (flags&CMD_START)
+					if(flags&CMD_START)
 					{
-						if (!IsZoomed() && !IsPending())
+						if(!IsZoomed() && !IsPending())
 						{
 							if(GetState()!=eIdle)
 								SwitchState(eIdle);
-
 							OnZoomIn	();
 						}
-					}
-					else if(IsZoomed())
-						OnZoomOut	();
+					}else 
+						if(IsZoomed())
+							OnZoomOut	();
 				}
 				return true;
-			}
-			else 
+			}else 
 				return false;
 
 		case kWPN_ZOOM_INC:
@@ -1393,25 +1358,17 @@ void CWeapon::reload			(LPCSTR section)
 	CHudItemObject::reload			(section);
 	
 	m_can_be_strapped			= true;
-	m_can_be_strapped_rifle		= (GetSlot() == RIFLE_SLOT);
 	m_strapped_mode				= false;
-	m_strapped_mode_rifle		= false;
 	
 	if (pSettings->line_exist(section,"strap_bone0"))
 		m_strap_bone0			= pSettings->r_string(section,"strap_bone0");
 	else
-	{
 		m_can_be_strapped		= false;
-		m_can_be_strapped_rifle = false;
-	}
 	
 	if (pSettings->line_exist(section,"strap_bone1"))
 		m_strap_bone1			= pSettings->r_string(section,"strap_bone1");
 	else
-	{
 		m_can_be_strapped		= false;
-		m_can_be_strapped_rifle = false;
-	}
 
 	if (m_eScopeStatus == ALife::eAddonAttachable) {
 		m_addon_holder_range_modifier	= READ_IF_EXISTS(pSettings,r_float,m_sScopeName,"holder_range_modifier",m_holder_range_modifier);
@@ -1443,11 +1400,8 @@ void CWeapon::reload			(LPCSTR section)
 		m_StrapOffset.setHPB			(ypr.x,ypr.y,ypr.z);
 		m_StrapOffset.translate_over	(pos);
 	}
-	else 
-	{
-		m_can_be_strapped		= false;
-		m_can_be_strapped_rifle		= false;
-	}
+	else
+		m_can_be_strapped	= false;
 
 	m_ef_main_weapon_type	= READ_IF_EXISTS(pSettings,r_u32,section,"ef_main_weapon_type",u32(-1));
 	m_ef_weapon_type		= READ_IF_EXISTS(pSettings,r_u32,section,"ef_weapon_type",u32(-1));
@@ -1753,7 +1707,7 @@ void CWeapon::debug_draw_firedeps()
 const float &CWeapon::hit_probability	() const
 {
 	VERIFY					((g_SingleGameDifficulty >= egdNovice) && (g_SingleGameDifficulty <= egdMaster)); 
-	return					(m_hit_probability[g_SingleGameDifficulty]); // ZergO - возврат текущего уровня сложности, вместо новичка
+	return					(m_hit_probability[egdNovice]);
 }
 
 void CWeapon::OnStateSwitch	(u32 S)

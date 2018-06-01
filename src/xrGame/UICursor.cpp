@@ -1,65 +1,33 @@
 #include "stdafx.h"
 #include "uicursor.h"
 
-#include "../xrEngine/IInputReceiver.h"
+#include "../xrEngine/CustomHUD.h"
 #include "UI.h"
+#include "HUDManager.h"
 #include "ui/UIStatic.h"
-#include <windows.h>
 
-#define C_DEFAULT	color_xrgb(0xff,0xff,0xff)
+
+#define C_DEFAULT	D3DCOLOR_XRGB(0xff,0xff,0xff)
 
 CUICursor::CUICursor()
-:m_static(NULL),m_b_use_win_cursor(false)
+:m_static(NULL)
 {    
 	bVisible				= false;
-	vPrevPos.set			(0.0f, 0.0f);
 	vPos.set				(0.f,0.f);
 	InitInternal			();
-	Device.seqRender.Add	(this,-3/*2*/);
-	Device.seqResolutionChanged.Add(this);
+	Device.seqRender.Add	(this,2);
 }
 //--------------------------------------------------------------------
 CUICursor::~CUICursor	()
 {
 	xr_delete				(m_static);
 	Device.seqRender.Remove	(this);
-	Device.seqResolutionChanged.Remove(this);
 }
 
-void CUICursor::OnScreenResolutionChanged()
+void CUICursor::OnScreenRatioChanged()
 {
-	xr_delete				(m_static);
-	InitInternal			();
-}
-
-void CUICursor::Clip(bool clip)
-{
-	HWND hwnd = Device.m_hWnd;
-	if (hwnd)
-	{
-		if (clip)
-		{
-			RECT clientRect;
-			::GetClientRect(hwnd, &clientRect);
-			::ClientToScreen(hwnd, (LPPOINT)&clientRect.left);
-			::ClientToScreen(hwnd, (LPPOINT)&clientRect.right);
-			::ClipCursor(&clientRect);
-		}
-		else
-			::ClipCursor(nullptr);
-	}
-}
-
-void CUICursor::Show()
-{
-	bVisible = true;
-	Clip(false);
-}
-
-void CUICursor::Hide()
-{
-	bVisible = false;
-	Clip(true);
+	xr_delete					(m_static);
+	InitInternal				();
 }
 
 void CUICursor::InitInternal()
@@ -76,10 +44,6 @@ void CUICursor::InitInternal()
 
 	m_static->SetWndSize		(sz);
 	m_static->SetStretchTexture	(true);
-
-	u32 screen_size_x	= GetSystemMetrics( SM_CXSCREEN );
-	u32 screen_size_y	= GetSystemMetrics( SM_CYSCREEN );
-	m_b_use_win_cursor	= (screen_size_y >=Device.dwHeight && screen_size_x>=Device.dwWidth);
 }
 
 //--------------------------------------------------------------------
@@ -122,29 +86,19 @@ Fvector2 CUICursor::GetCursorPositionDelta()
 	return res_delta;
 }
 
-// nitrocaster: Fix ingame cursor position in windowed mode 
-void CUICursor::UpdateCursorPosition(int _dx, int _dy)
+void CUICursor::UpdateCursorPosition()
 {
-	Fvector2	p;
-	vPrevPos = vPos;
-	if (m_b_use_win_cursor)
-	{
-		Ivector2 pti;
-		IInputReceiver::IR_GetMousePosReal(pti);
 
-		p.x		= (float)pti.x;
-		p.y		= (float)pti.y;
-		vPos.x	= p.x * (UI_BASE_WIDTH / (float)Device.dwWidth);
-		vPos.y	= p.y * (UI_BASE_HEIGHT / (float)Device.dwHeight);
-	}
-	else
-	{
-		float sens = 1.0f;
-		vPos.x += _dx*sens;
-		vPos.y += _dy*sens;
-	}
-	clamp(vPos.x, 0.f, UI_BASE_WIDTH);
-	clamp(vPos.y, 0.f, UI_BASE_HEIGHT);
+	POINT		p;
+	BOOL r		= GetCursorPos(&p);
+	R_ASSERT	(r);
+
+	vPrevPos = vPos;
+
+	vPos.x			= (float)p.x * (UI_BASE_WIDTH/(float)Device.dwWidth);
+	vPos.y			= (float)p.y * (UI_BASE_HEIGHT/(float)Device.dwHeight);
+	clamp			(vPos.x, 0.f, UI_BASE_WIDTH);
+	clamp			(vPos.y, 0.f, UI_BASE_HEIGHT);
 }
 
 void CUICursor::SetUICursorPosition(Fvector2 pos)
@@ -153,9 +107,6 @@ void CUICursor::SetUICursorPosition(Fvector2 pos)
 	POINT		p;
 	p.x			= iFloor(vPos.x / (UI_BASE_WIDTH/(float)Device.dwWidth));
 	p.y			= iFloor(vPos.y / (UI_BASE_HEIGHT/(float)Device.dwHeight));
-
-	if (m_b_use_win_cursor)
-		ClientToScreen(Device.m_hWnd, (LPPOINT)&p);
 
 	SetCursorPos(p.x, p.y);
 }

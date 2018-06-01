@@ -78,8 +78,7 @@ void CTexture::apply_load	(u32 dwStage)	{
 
 void CTexture::apply_theora	(u32 dwStage)
 {
-	if (pTheora->Update(m_play_time!=0xFFFFFFFF?m_play_time:Device.dwTimeContinual))
-	{
+	if (pTheora->Update(m_play_time!=0xFFFFFFFF?m_play_time:Device.dwTimeContinual)){
 		R_ASSERT(D3DRTYPE_TEXTURE == pSurface->GetType());
 		ID3DTexture2D*	T2D		= (ID3DTexture2D*)pSurface;
 		D3DLOCKED_RECT		R;
@@ -303,7 +302,6 @@ void CTexture::Unload	()
 		seqDATA.clear();
 		pSurface	= 0;
 	}
-	flags.MemoryUsage = 0;
 
 #ifdef DEBUG
 	_SHOW_REF		(msg_buff, pSurface);

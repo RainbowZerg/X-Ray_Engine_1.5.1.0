@@ -109,7 +109,7 @@
     </ResourceCompile>
     <Lib>
       <AdditionalOptions>/ignore:4075 %(AdditionalOptions)</AdditionalOptions>
-      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>

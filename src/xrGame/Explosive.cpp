@@ -75,7 +75,6 @@ void CExplosive::LightCreate()
 {
 	m_pLight				= ::Render->light_create();
 	m_pLight->set_shadow	(true);
-	m_pLight->set_flare		(false);
 }
 
 void CExplosive::LightDestroy()

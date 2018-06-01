@@ -162,8 +162,7 @@ BOOL  __stdcall
 }
 
 // Turn off unreachable code error after ExitProcess.
-#pragma warning (push)
-#pragma warning (disable : 4702)
+#pragma warning ( disable : 4702 )
 
 // The code that does the real assertion work.
 BOOL __stdcall RealAssert  ( DWORD  dwOverrideOpts  ,
@@ -329,7 +328,7 @@ BOOL __stdcall RealAssert  ( DWORD  dwOverrideOpts  ,
     return ( TRUE ) ;
 }
 // Turn on unreachable code error
-#pragma warning (pop)
+#pragma warning ( default : 4702 )
 
 HANDLE  __stdcall
     SetDiagOutputFile ( HANDLE hFile )

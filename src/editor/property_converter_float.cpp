@@ -72,9 +72,6 @@ Object^ property_converter_float::ConvertFrom	(
 	if (!value)
 		return		(inherited::ConvertFrom(context, culture, value));
 
-	// ZergO: replace dot with comma for correct convertation if needed
-	string = string->Replace('.', ',');
-
 	try {
 		return		( float::Parse(string) );
 	}

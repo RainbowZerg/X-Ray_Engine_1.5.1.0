@@ -6,6 +6,7 @@
 #include "script_export_space.h"
 
 class CLAItem;
+class CMonsterEffector;
 
 class CTorch : public CInventoryItemObject {
 private:
@@ -14,7 +15,7 @@ private:
 protected:
 	float			fBrightness;
 	CLAItem*		lanim;
-	CLAItem*		lanim_flickering;
+	float			time2hide;
 
 	u16				guid_bone;
 	shared_str		light_trace_bone;
@@ -25,20 +26,8 @@ protected:
 	ref_light		light_render;
 	ref_light		light_omni;
 	ref_glow		glow_render;
+	Fvector			m_focus;
 private:
-	// ZergO: added
-	bool			m_is_flickering;
-	bool			m_is_broken;
-	bool			m_light_is_volumetric;
-
-	float			m_light_range;
-	float			m_light_volumetric_intensity;
-
-	Fvector			m_light_offset;
-	Fvector			m_light_omni_offset;
-	Fcolor			m_light_color;
-	//
-
 	inline	bool	can_use_dynamic_lights	();
 
 public:
@@ -56,46 +45,31 @@ public:
 
 	virtual void	UpdateCL			();
 
-			bool	Enabled				()				const;
-			bool	Broken				(bool fatal)	const;
-
-			void	Switch				(bool light_on, bool sound = false);
-			void	Break				(bool fatal);
-
-	IRender_Light  *GetLight(int target = 0);
-
-	void			SetAngle			(float angle, int target = 0);
-	void			SetAnimation		(LPCSTR name);
-	void			SetBrightness		(float brightness);
-	void			SetDirection		(const Fvector &v, float bank);
-	void			SetColor			(const Fcolor &color, int target = 0);
-	void			SetColor			(float r, float g, float b, int target = 0);
-		
-	void			SetPosition			(const Fvector &v);
-	void			SetRange			(float range, int target = 0);
-	void			SetTexture			(LPCSTR texture, int target = 0);
-	void			SetVirtualSize		(float size, int target = 0);
-	
-	void			SetFlare			(bool b, int target = 0);
-
-	void			SetVolumetric				(bool b, int target = 0);
-	void			SetVolumetricIntensity		(float f, int target = 0);
-	void			SetVolumetricQuality		(float f, int target = 0);
-	void			SetVolumetricDistance		(float f, int target = 0);
+			void	Switch				();
+			void	Switch				(bool light_on);
 
 	virtual bool	can_be_attached		() const;
 
 	//CAttachableItem
 	virtual	void				enable					(bool value);
+ 
+public:
+			void	SwitchNightVision		  ();
+			void	SwitchNightVision		  (bool light_on);
+			void	UpdateSwitchNightVision   ();
+			float	NightVisionBattery		  ();
 
+			bool	GetNightVisionStatus	() { return m_bNightVisionOn; }
 protected:
-	HUD_SOUND_ITEM m_FlashlightSwitchSnd;
+	bool					m_bNightVisionEnabled;
+	bool					m_bNightVisionOn;
 
-	enum EStats
-	{
-		eActive		= (1<<0),
-		eAttached	= (1<<1),
-		eFlickering	= (1<<2), // ZergO: added
+	HUD_SOUND_COLLECTION	m_sounds;
+
+	enum EStats{
+		eTorchActive				= (1<<0),
+		eNightVisionActive			= (1<<1),
+		eAttached					= (1<<2)
 	};
 
 public:

@@ -72,10 +72,6 @@ public:
 	ref_rt						rt_smap_depth;	// 24(32) bit,	depth 
 	IDirect3DSurface9*			rt_smap_ZB;		//
 
-	// KD start
-	ref_rt						rt_flares;		// lens flares
-	// KD end
-
 	// Textures
 	IDirect3DVolumeTexture9*	t_material_surf;
 	ref_texture					t_material;
@@ -86,12 +82,9 @@ private:
 	// OCCq
 	ref_shader					s_occq;
 
-	// flares
-	ref_shader					s_flare;
-
 	// Accum
 	ref_shader					s_accum_mask	;
-	ref_shader					s_accum_direct;
+	ref_shader					s_accum_direct	;
 	ref_shader					s_accum_direct_volumetric;
 	ref_shader					s_accum_point	;
 	ref_shader					s_accum_spot	;
@@ -136,7 +129,6 @@ private:
 	ref_geom					g_combine;
 	ref_geom					g_combine_VP;		// xy=p,zw=tc
 	ref_geom					g_combine_2UV;
-	ref_geom					g_combine_cuboid;
 	ref_geom					g_aa_blur;
 	ref_geom					g_aa_AA;
 	ref_shader					s_combine_dbg_0;
@@ -149,7 +141,6 @@ public:
 	ref_geom					g_postprocess;
 	ref_shader					s_menu;
 	ref_geom					g_menu;
-	ref_geom					g_flare;
 private:
 	float						im_noise_time;
 	u32							im_noise_shift_w;
@@ -168,8 +159,6 @@ private:
 
 	//	Igor: used for volumetric lights
 	bool						m_bHasActiveVolumetric;
-
-	u32							dwFlareClearMark;
 public:
 								CRenderTarget			();
 								~CRenderTarget			();
@@ -194,8 +183,6 @@ public:
 	BOOL						u_DBT_enable			(float zMin, float zMax);
 	void						u_DBT_disable			();
 
-	void						phase_flares			();
-
 	void						phase_ssao				();
 	void						phase_downsamp			();
 	void						phase_scene_prepare		();
@@ -218,7 +205,8 @@ public:
 	void						disable_aniso			();
 
 	void						draw_volume				(light* L);
-	void						accum_direct_cascade	(u32	sub_phase, Fmatrix& xform, Fmatrix& xform_prev, float fBias);
+	void						accum_direct			(u32	sub_phase);
+	void						accum_direct_f			(u32	sub_phase);
 	void						accum_direct_lum		();
 	void						accum_direct_blend		();
 	void						accum_direct_volumetric	(u32	sub_phase, const u32 Offset, const Fmatrix &mShadow);
@@ -253,8 +241,6 @@ public:
 	void						increment_light_marker();
 
 	void						DoAsyncScreenshot		();
-
-	void						render_flare			(light* L);
 
 #ifdef DEBUG
 	IC void						dbg_addline				(Fvector& P0, Fvector& P1, u32 c)					{

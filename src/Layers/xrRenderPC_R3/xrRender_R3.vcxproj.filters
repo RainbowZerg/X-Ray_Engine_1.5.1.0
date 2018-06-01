@@ -201,7 +201,13 @@
     <ClInclude Include="..\xrRender\QueryHelper.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="r2_types.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="r3.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="r3_R_sun_support.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="..\xrRender\r__dsgraph_structure.h">
@@ -213,8 +219,14 @@
     <ClInclude Include="..\xrRender\r__occlusion.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\xrRender\r__pixel_calculator.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="doug_lea_memory_allocator.h">
       <Filter>Core\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="DetailFormat.h">
+      <Filter>Details</Filter>
     </ClInclude>
     <ClInclude Include="..\xrRender\DetailManager.h">
       <Filter>Details</Filter>
@@ -262,6 +274,9 @@
       <Filter>Wallmarks</Filter>
     </ClInclude>
     <ClInclude Include="blender_bloom_build.h">
+      <Filter>Shading templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xrRender\Blender_BmmD.h">
       <Filter>Shading templates</Filter>
     </ClInclude>
     <ClInclude Include="blender_combine.h">
@@ -699,27 +714,6 @@
     <ClInclude Include="..\xrRender\Debug\dxPixEventWrapper.h">
       <Filter>Debug</Filter>
     </ClInclude>
-    <ClInclude Include="..\xrRender\DetailFormat.h">
-      <Filter>Details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xrRender\GlowManager.h">
-      <Filter>Glows</Filter>
-    </ClInclude>
-    <ClInclude Include="r3_types.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xrRender_R2-R3\r__pixel_calculator.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xrRender_R2-R3\r__sun_cascades.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xrRender_R2-R3\r__sun_support.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xrRender\Blender_BmmD.h">
-      <Filter>Shading templates\R1</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -734,16 +728,37 @@
     <ClCompile Include="..\xrRender\PSLibrary.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="r2_blenders.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="r2_R_calculate.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="r2_R_lights.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="r2_R_sun.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="r2_sector_detect.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClCompile Include="r2_test_hw.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="r3.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="r3_loader.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClCompile Include="r3_R_rain.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="r3_R_render.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="r3_R_sun_support.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\xrRender\r__dsgraph_build.cpp">
@@ -756,6 +771,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\xrRender\r__occlusion.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xrRender\r__pixel_calculator.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\xrRender\r__screenshot.cpp">
@@ -818,6 +836,9 @@
     <ClCompile Include="Light_Render_Direct.cpp">
       <Filter>Lights</Filter>
     </ClCompile>
+    <ClCompile Include="Light_Render_Direct_ComputeXFS.cpp">
+      <Filter>Lights</Filter>
+    </ClCompile>
     <ClCompile Include="light_smapvis.cpp">
       <Filter>Lights</Filter>
     </ClCompile>
@@ -831,6 +852,9 @@
       <Filter>Wallmarks</Filter>
     </ClCompile>
     <ClCompile Include="blender_bloom_build.cpp">
+      <Filter>Shading templates</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xrRender\Blender_BmmD.cpp">
       <Filter>Shading templates</Filter>
     </ClCompile>
     <ClCompile Include="blender_combine.cpp">
@@ -1276,39 +1300,6 @@
     </ClCompile>
     <ClCompile Include="..\xrRender\Debug\dxPixEventWrapper.cpp">
       <Filter>Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="r3_R_lights.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender\r__blenders.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender\r__loader.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender\GlowManager.cpp">
-      <Filter>Glows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender\r__sector_detect.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender_R2-R3\r__pixel_calculator.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender_R2-R3\r__sun.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender_R2-R3\r__sun_support.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender\r__calculate.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender\Blender_BmmD.cpp">
-      <Filter>Shading templates\R1</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender_R2-R3\Light_Render_Direct_ComputeXFS.cpp">
-      <Filter>Lights</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

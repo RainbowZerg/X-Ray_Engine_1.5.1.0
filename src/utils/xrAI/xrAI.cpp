@@ -14,6 +14,16 @@
 #include <mmsystem.h>
 #include "spawn_patcher.h"
 
+#pragma comment(linker,"/STACK:0x800000,0x400000")
+
+#pragma comment(lib,"comctl32.lib")
+#pragma comment(lib,"d3dx9.lib")
+#pragma comment(lib,"IMAGEHLP.LIB")
+#pragma comment(lib,"winmm.LIB")
+#pragma comment(lib,"xrcdb.LIB")
+#pragma comment(lib,"MagicFM.LIB")
+#pragma comment(lib,"xrCore.LIB")
+
 extern LPCSTR LEVEL_GRAPH_NAME;
 
 extern void	xrCompiler			(LPCSTR name, bool draft_mode, bool pure_covers, LPCSTR out_name);
@@ -39,9 +49,7 @@ static const char* h_str =
 	"NOTE: The last key is required for any functionality\n";
 
 void Help()
-{	
-	MessageBox(0,h_str,"Command line options",MB_OK|MB_ICONINFORMATION); 
-}
+{	MessageBox(0,h_str,"Command line options",MB_OK|MB_ICONINFORMATION); }
 
 string_path INI_FILE;
 
@@ -57,13 +65,16 @@ void execute	(LPSTR cmd)
 	string4096 name;
 	name[0]=0; 
 	if (strstr(cmd,"-f"))
-		sscanf(strstr(cmd,"-f")+2,"%s",name);
-	else if (strstr(cmd,"-s"))
-		sscanf(strstr(cmd,"-s")+2,"%s",name);
-	else if (strstr(cmd,"-t"))
-		sscanf(strstr(cmd,"-t")+2,"%s",name);
-	else if (strstr(cmd,"-verify"))
-		sscanf(strstr(cmd,"-verify")+xr_strlen("-verify"),"%s",name);
+		sscanf	(strstr(cmd,"-f")+2,"%s",name);
+	else
+		if (strstr(cmd,"-s"))
+			sscanf	(strstr(cmd,"-s")+2,"%s",name);
+		else
+			if (strstr(cmd,"-t"))
+				sscanf	(strstr(cmd,"-t")+2,"%s",name);
+			else
+				if (strstr(cmd,"-verify"))
+					sscanf	(strstr(cmd,"-verify")+xr_strlen("-verify"),"%s",name);
 
 	if (xr_strlen(name))
 		strcat			(name,"\\");
@@ -71,22 +82,19 @@ void execute	(LPSTR cmd)
 	string_path			prjName;
 	prjName				[0] = 0;
 	bool				can_use_name = false;
-	if (xr_strlen(name) < sizeof(string_path)) 
-	{
+	if (xr_strlen(name) < sizeof(string_path)) {
 		can_use_name	= true;
 		FS.update_path	(prjName,"$game_levels$",name);
 	}
 
 	FS.update_path		(INI_FILE,"$game_config$",GAME_CONFIG);
 	
-	if (strstr(cmd,"-f")) 
-	{
+	if (strstr(cmd,"-f")) {
 		R_ASSERT3		(can_use_name,"Too big level name",name);
 		
 		char			*output = strstr(cmd,"-out");
 		string256		temp0;
-		if (output) 
-		{
+		if (output) {
 			output		+= xr_strlen("-out");
 			sscanf		(output,"%s",temp0);
 			_TrimLeft	(temp0);
@@ -97,24 +105,20 @@ void execute	(LPSTR cmd)
 
 		xrCompiler		(prjName,!!strstr(cmd,"-draft"),!!strstr(cmd,"-pure_covers"),output);
 	}
-	else 
-	{
-		if (strstr(cmd,"-s")) 
-		{
+	else {
+		if (strstr(cmd,"-s")) {
 			if (xr_strlen(name))
 				name[xr_strlen(name) - 1] = 0;
 			char				*output = strstr(cmd,"-out");
 			string256			temp0, temp1;
-			if (output) 
-			{
+			if (output) {
 				output			+= xr_strlen("-out");
 				sscanf			(output,"%s",temp0);
 				_TrimLeft		(temp0);
 				output			= temp0;
 			}
 			char				*start = strstr(cmd,"-start");
-			if (start) 
-			{
+			if (start) {
 				start			+= xr_strlen("-start");
 				sscanf			(start,"%s",temp1);
 				_TrimLeft		(temp1);
@@ -125,8 +129,7 @@ void execute	(LPSTR cmd)
 			CGameSpawnConstructor(name,output,start,!!no_separator_check);
 		}
 		else
-			if (strstr(cmd,"-verify")) 
-			{
+			if (strstr(cmd,"-verify")) {
 				R_ASSERT3			(can_use_name,"Too big level name",name);
 				verify_level_graph	(prjName,!strstr(cmd,"-noverbose"));
 			}
