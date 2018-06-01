@@ -47,8 +47,9 @@ Temporary Items
 .apdisk
 
 #ignore specific folders & files
-binaries
-intermediate
-ipch
-libraries
+binaries/
+intermediate/
+ipch/
+libraries/
 *.sdf
+*.suo
